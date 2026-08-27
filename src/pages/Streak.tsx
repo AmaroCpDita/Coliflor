@@ -291,6 +291,23 @@ export default function Streak() {
 
       if (rpcError) throw rpcError;
 
+      // Send push notification message to partner
+      try {
+        const myName = profile.display_name || 'Tú';
+        const hasPartnerPhoto = Boolean(todayPhotos.partnerPhoto);
+        const pushContent = hasPartnerPhoto
+          ? `🔥 ¡Racha del día completada! Ya pueden ver las fotos de hoy y llevar la racha activa.`
+          : `📸 ¡${myName} subió la foto de la racha de hoy! Sube la tuya para desbloquearlas.`;
+
+        await supabase.from('messages').insert({
+          couple_id: couple.id,
+          sender_id: profile.id,
+          content: pushContent,
+        });
+      } catch {
+        // Ignore notification fallback
+      }
+
       setPreviewFile(null);
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(null);
@@ -328,6 +345,20 @@ export default function Streak() {
       });
 
       if (rpcError) throw rpcError;
+
+      // Send recovery notification
+      try {
+        const myName = profile?.display_name || 'Tú';
+        if (profile) {
+          await supabase.from('messages').insert({
+            couple_id: couple.id,
+            sender_id: profile.id,
+            content: `🩹 ¡${myName} usó un comodín de recuperación! La racha volvió a estar activa.`,
+          });
+        }
+      } catch {
+        // Ignore notification fallback
+      }
 
       await refreshProfile();
       await fetchHistory();
