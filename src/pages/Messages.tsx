@@ -54,29 +54,46 @@ export default function Messages() {
   }, []);
 
   const requestNotificationPermission = async () => {
-    if (typeof Notification !== 'undefined') {
+    if (typeof Notification === 'undefined') {
+      alert('Tu navegador no soporta notificaciones push. Asegúrate de estar navegando por HTTPS.');
+      return;
+    }
+    try {
       const perm = await Notification.requestPermission();
       setNotifPermission(perm);
+      if (perm === 'granted') {
+        triggerLockscreenNotification('Coliflor', '¡Notificaciones de pantalla de bloqueo activadas con éxito! 💖');
+      } else if (perm === 'denied') {
+        alert('Las notificaciones fueron denegadas. Ve a la configuración de tu celular o navegador para permitirlas.');
+      }
+    } catch (err) {
+      console.error('Error requesting notification permission:', err);
     }
   };
 
   const triggerLockscreenNotification = useCallback((sender: string, text: string) => {
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
-        navigator.serviceWorker.ready.then(reg => {
-          reg.showNotification(`💜 ${sender}`, {
-            body: text,
-            icon: '/pwa-192x192.png',
-            badge: '/pwa-192x192.png',
-            vibrate: [200, 100, 200],
-            tag: 'coliflor-message',
-            data: { url: '/messages' },
-          } as any);
-        }).catch(() => {
-          new Notification(`💜 ${sender}`, { body: text, icon: '/pwa-192x192.png' });
-        });
-      } else {
-        new Notification(`💜 ${sender}`, { body: text, icon: '/pwa-192x192.png' });
+    if (typeof Notification === 'undefined') return;
+
+    if (Notification.permission === 'granted') {
+      try {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.ready.then(reg => {
+            reg.showNotification(`💜 ${sender}`, {
+              body: text,
+              icon: '/logo.png',
+              badge: '/logo.png',
+              vibrate: [200, 100, 200],
+              tag: 'coliflor-' + Date.now(),
+              data: { url: '/messages' },
+            } as any);
+          }).catch(() => {
+            new Notification(`💜 ${sender}`, { body: text, icon: '/logo.png' });
+          });
+        } else {
+          new Notification(`💜 ${sender}`, { body: text, icon: '/logo.png' });
+        }
+      } catch (e) {
+        console.warn('Direct notification fallback:', e);
       }
     }
   }, []);
@@ -131,7 +148,10 @@ export default function Messages() {
         },
         (payload) => {
           const msg = payload.new as Message;
-          setMessages(prev => [...prev, msg]);
+          setMessages(prev => {
+            if (prev.some(m => m.id === msg.id)) return prev;
+            return [...prev, msg];
+          });
           setTimeout(scrollToBottom, 100);
 
           // Trigger lockscreen notification if message is from partner
@@ -146,6 +166,33 @@ export default function Messages() {
       supabase.removeChannel(channel);
     };
   }, [couple?.id, scrollToBottom, isMockMode, profile?.id, partnerName, triggerLockscreenNotification]);
+
+  // Smart Polling Backup (Every 3 seconds) for 100% constant sync
+  useEffect(() => {
+    if (!couple || isMockMode) return;
+
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('couple_id', couple.id)
+        .order('created_at', { ascending: true })
+        .limit(100);
+
+      if (data && data.length > 0) {
+        setMessages(prev => {
+          const hasNew = data.some(d => !prev.some(p => p.id === d.id));
+          if (hasNew || data.length !== prev.length) {
+            setTimeout(scrollToBottom, 100);
+            return data as Message[];
+          }
+          return prev;
+        });
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [couple?.id, isMockMode, scrollToBottom]);
 
   const handleSend = async () => {
     if (!input.trim() || !couple || !profile || sending) return;
@@ -170,18 +217,27 @@ export default function Messages() {
     }
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('messages')
         .insert({
           couple_id: couple.id,
           sender_id: profile.id,
           content,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
-    } catch (err) {
+
+      if (data) {
+        setMessages(prev => {
+          if (prev.some(m => m.id === data.id)) return prev;
+          return [...prev, data as Message];
+        });
+        setTimeout(scrollToBottom, 100);
+      }
+    } catch (err: any) {
       console.error('Error sending message:', err);
-      setInput(content);
     } finally {
       setSending(false);
       inputRef.current?.focus();
