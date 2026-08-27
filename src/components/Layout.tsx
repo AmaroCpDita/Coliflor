@@ -99,6 +99,25 @@ export default function Layout() {
     };
   }, [showNotifCenter]);
 
+  // OneSignal User Login & Web Push Permission Binding
+  useEffect(() => {
+    if (profile?.id && typeof window !== 'undefined') {
+      const win = window as any;
+      if (win.OneSignalDeferred) {
+        win.OneSignalDeferred.push(async function(OneSignal: any) {
+          try {
+            await OneSignal.login(profile.id);
+            if (OneSignal.Notifications && !OneSignal.Notifications.permission) {
+              await OneSignal.Notifications.requestPermission();
+            }
+          } catch (e) {
+            console.warn('OneSignal binding error:', e);
+          }
+        });
+      }
+    }
+  }, [profile?.id]);
+
   // Fetch Activity / System notifications
   const fetchActivityLogs = useCallback(async () => {
     if (!couple?.id || isMockMode) return;
