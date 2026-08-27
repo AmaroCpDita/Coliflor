@@ -35,7 +35,7 @@ export const MOCK_PROFILE_JAVIERA: Profile = {
   display_name: 'Javiera',
   couple_id: 'mock-couple-id',
   invite_code: null,
-  avatar_emoji: '💜',
+  avatar_emoji: '💛',
   created_at: '2026-05-20T00:00:00Z',
 };
 

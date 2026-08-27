@@ -140,7 +140,7 @@ export default function Messages() {
         { id: 'm2', couple_id: 'mock', sender_id: 'mock-user-amaro', content: 'Siii ya la tomé! Te ves hermosa en la tuya 💖', created_at: new Date(Date.now() - 3600000 * 2.5).toISOString() },
         { id: 'm3', couple_id: 'mock', sender_id: 'mock-user-javiera', content: 'Gracias mi vida 🥰 ¿Nos vemos hoy en la noche?', created_at: new Date(Date.now() - 3600000 * 2).toISOString() },
         { id: 'm4', couple_id: 'mock', sender_id: 'mock-user-amaro', content: 'Paso por ti a las 8pm y cenamos juntos!', created_at: new Date(Date.now() - 3600000 * 1.5).toISOString() },
-        { id: 'm5', couple_id: 'mock', sender_id: 'mock-user-javiera', content: 'Súper! Te espero impaciente 💜', created_at: new Date(Date.now() - 3600000 * 1).toISOString() },
+        { id: 'm5', couple_id: 'mock', sender_id: 'mock-user-javiera', content: 'Súper! Te espero impaciente 💛', created_at: new Date(Date.now() - 3600000 * 1).toISOString() },
       ];
       setMessages(mockMsgs);
       setTimeout(scrollToBottom, 100);
