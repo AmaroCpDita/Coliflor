@@ -330,8 +330,17 @@ export default function Messages() {
     );
   }
 
+  // Filter out system activity notifications (💌, 📅, 📸, 🩹) from chat bubbles so chat is 100% pure text
+  const chatMessages = messages.filter(msg => {
+    const isSystem = msg.content.startsWith('💌') || 
+                     msg.content.startsWith('📅') || 
+                     msg.content.startsWith('📸') || 
+                     msg.content.startsWith('🩹');
+    return !isSystem;
+  });
+
   // Group messages by date with strict chronological sorting
-  const sortedMessages = [...messages].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  const sortedMessages = [...chatMessages].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   const groupedMessages: { date: string; messages: Message[] }[] = [];
   let currentDate = '';
   

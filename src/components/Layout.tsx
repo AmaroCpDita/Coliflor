@@ -1,11 +1,13 @@
 // ============================================================
-// Coliflor — Layout Component (Global App Navigation & Push Notifications)
+// Coliflor — Layout Component (Global App Navigation & Bell Notification Center)
 // ============================================================
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { formatTime } from '../lib/utils';
+import type { Message } from '../lib/types';
 
 function IconHome({ active }: { active: boolean }) {
   return (
@@ -61,9 +63,22 @@ function IconSettings({ active }: { active: boolean }) {
   );
 }
 
+function IconBellHeader() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e5c573" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+
 export default function Layout() {
   const { couple, profile, partner, isMockMode } = useAuth();
   const partnerName = partner ? partner.display_name : 'Tu pareja';
+
+  const [showNotifCenter, setShowNotifCenter] = useState(false);
+  const [activityLogs, setActivityLogs] = useState<Message[]>([]);
+  const [hasUnread, setHasUnread] = useState(false);
 
   const profileIdRef = useRef(profile?.id);
   const coupleRef = useRef(couple);
@@ -77,6 +92,36 @@ export default function Layout() {
     partnerRef.current = partner;
     partnerNameRef.current = partnerName;
   }, [profile?.id, couple, partner, partnerName]);
+
+  // Fetch Activity / System notifications
+  const fetchActivityLogs = useCallback(async () => {
+    if (!couple?.id || isMockMode) return;
+
+    try {
+      const { data } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('couple_id', couple.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (data) {
+        const systemNotifs = data.filter(m => 
+          m.content.startsWith('💌') || 
+          m.content.startsWith('📅') || 
+          m.content.startsWith('📸') || 
+          m.content.startsWith('🩹')
+        );
+        setActivityLogs(systemNotifs as Message[]);
+      }
+    } catch (e) {
+      console.warn('Error fetching activity logs:', e);
+    }
+  }, [couple?.id, isMockMode]);
+
+  useEffect(() => {
+    fetchActivityLogs();
+  }, [fetchActivityLogs]);
 
   // Global Push Notification Trigger
   const triggerGlobalNotification = useCallback((sender: string, text: string) => {
@@ -113,9 +158,23 @@ export default function Layout() {
   const processIncomingMessage = useCallback((msg: any) => {
     try {
       if (!msg || !msg.id || !profileIdRef.current) return;
-      if (msg.sender_id === profileIdRef.current) return;
-      if (lastNotifiedMsgIdRef.current === msg.id) return;
+      
+      const isSystem = msg.content.startsWith('💌') || 
+                       msg.content.startsWith('📅') || 
+                       msg.content.startsWith('📸') || 
+                       msg.content.startsWith('🩹');
 
+      if (isSystem) {
+        setActivityLogs(prev => [msg, ...prev.filter(p => p.id !== msg.id)]);
+      }
+
+      if (msg.sender_id === profileIdRef.current) return;
+
+      if (isSystem) {
+        setHasUnread(true);
+      }
+
+      if (lastNotifiedMsgIdRef.current === msg.id) return;
       lastNotifiedMsgIdRef.current = msg.id;
 
       const c = coupleRef.current;
@@ -165,13 +224,20 @@ export default function Layout() {
           .select('*')
           .eq('couple_id', couple.id)
           .order('created_at', { ascending: false })
-          .limit(5);
+          .limit(10);
 
         if (data && data.length > 0) {
+          const systemNotifs = data.filter(m => 
+            m.content.startsWith('💌') || 
+            m.content.startsWith('📅') || 
+            m.content.startsWith('📸') || 
+            m.content.startsWith('🩹')
+          );
+          setActivityLogs(systemNotifs as Message[]);
+
           data.forEach(m => {
             if (m.sender_id !== profileIdRef.current) {
               const msgTime = new Date(m.created_at).getTime();
-              // Only notify if message arrived within the last 15 seconds
               if (Date.now() - msgTime < 15000) {
                 processIncomingMessage(m);
               }
@@ -188,7 +254,54 @@ export default function Layout() {
 
   return (
     <>
+      {/* Floating Top Header Bell Icon Button */}
+      <div style={{
+        position: 'fixed',
+        top: 'calc(var(--safe-top) + 12px)',
+        right: '16px',
+        zIndex: 90,
+      }}>
+        <button
+          onClick={() => {
+            setShowNotifCenter(true);
+            setHasUnread(false);
+          }}
+          className="btn btn--ghost"
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            padding: 0,
+            background: 'rgba(24, 26, 36, 0.85)',
+            border: '1px solid var(--color-border-accent)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+          }}
+        >
+          <IconBellHeader />
+          {hasUnread && (
+            <span style={{
+              position: 'absolute',
+              top: '6px',
+              right: '6px',
+              width: '9px',
+              height: '9px',
+              borderRadius: '50%',
+              background: '#e07a7a',
+              boxShadow: '0 0 8px #e07a7a',
+            }} />
+          )}
+        </button>
+      </div>
+
       <Outlet />
+
+      {/* Floating Navigation Dock */}
       <nav className="floating-dock">
         <NavLink
           to="/"
@@ -275,6 +388,66 @@ export default function Layout() {
           )}
         </NavLink>
       </nav>
+
+      {/* Bell Notification Center Drawer / Modal */}
+      {showNotifCenter && (
+        <div className="modal-backdrop" onClick={() => setShowNotifCenter(false)}>
+          <div className="modal animate-fade-in" onClick={(e) => e.stopPropagation()} style={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
+            <div className="modal__handle" />
+            
+            <div className="row row--between" style={{ marginBottom: 'var(--space-md)', paddingBottom: 'var(--space-xs)', borderBottom: '1px solid var(--color-border)' }}>
+              <div className="row row--gap-xs">
+                <IconBellHeader />
+                <h3 style={{ fontSize: 'var(--font-size-base)' }}>Historial de Actividad</h3>
+              </div>
+              <button className="btn btn--ghost btn--xs" onClick={() => setShowNotifCenter(false)} style={{ color: 'var(--color-text-secondary)' }}>
+                Cerrar ✕
+              </button>
+            </div>
+
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+              {activityLogs.length === 0 ? (
+                <div className="empty-state" style={{ padding: 'var(--space-xl) 0' }}>
+                  <IconBellHeader />
+                  <div className="empty-state__title" style={{ marginTop: 'var(--space-sm)' }}>Sin actividad reciente</div>
+                  <div className="empty-state__text">
+                    Aquí aparecerán los avisos cuando tu pareja agregue notitas, eventos al calendario o fotos de la racha.
+                  </div>
+                </div>
+              ) : (
+                activityLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className="glass-card"
+                    style={{
+                      padding: 'var(--space-sm) var(--space-md)',
+                      background: 'rgba(28, 30, 42, 0.6)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-lg)',
+                    }}
+                  >
+                    <div style={{ fontSize: 'var(--font-size-sm)', color: '#f2f2f7', lineHeight: 1.4 }}>
+                      {log.content}
+                    </div>
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginTop: '4px', textAlign: 'right' }}>
+                      {formatTime(log.created_at)}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-sm)', borderTop: '1px solid var(--color-border)' }}>
+              <button
+                className="btn btn--secondary btn--full btn--sm"
+                onClick={() => setShowNotifCenter(false)}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
