@@ -77,7 +77,6 @@ export default function Home() {
   const { openNotifCenter, hasUnread } = useOutletContext<{ openNotifCenter?: () => void; hasUnread?: boolean }>() || {};
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showEditNoteForm, setShowEditNoteForm] = useState(false);
-  const [showNotesDrawer, setShowNotesDrawer] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [joinCode, setJoinCode] = useState('');
 
@@ -234,7 +233,7 @@ export default function Home() {
   };
 
   return (
-    <div className="page" style={{ paddingBottom: '90px' }}>
+    <div className="page" style={{ paddingBottom: '120px' }}>
       <div className="stack stack--md stagger-children">
         {/* Top Bar Header (Lacticonecta Style Header) */}
         <div className="row row--between" style={{ padding: '0 4px' }}>
@@ -744,142 +743,6 @@ export default function Home() {
 
               <button className="btn btn--ghost btn--full" onClick={() => { setShowJoinModal(false); setError(''); }}>
                 Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Lateral Side Drawer for Partner Notes */}
-      {showNotesDrawer && (
-        <div
-          className="modal-backdrop"
-          onClick={() => setShowNotesDrawer(false)}
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'stretch',
-            padding: 0,
-            background: 'rgba(0, 0, 0, 0.65)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-          }}
-        >
-          <div
-            className="animate-slide-in-right"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '88%',
-              maxWidth: '380px',
-              height: '100dvh',
-              background: '#12141c',
-              borderLeft: '1px solid var(--color-border-accent)',
-              boxShadow: '-12px 0 36px rgba(0, 0, 0, 0.6)',
-              padding: 'calc(var(--safe-top) + 20px) 20px 30px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-md)',
-              overflowY: 'auto',
-            }}
-          >
-            {/* Drawer Header */}
-            <div className="row row--between" style={{ paddingBottom: 'var(--space-xs)', borderBottom: '1px solid var(--color-border)' }}>
-              <div className="row row--gap-xs">
-                <span style={{ fontSize: '1.3rem' }}>💌</span>
-                <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 700 }}>Notitas de Amor</h3>
-              </div>
-              <button
-                className="btn btn--ghost btn--xs"
-                onClick={() => setShowNotesDrawer(false)}
-                style={{ color: 'var(--color-text-secondary)', fontSize: '12px' }}
-              >
-                Ocultar ✕
-              </button>
-            </div>
-
-            {/* CARD 1: Received Note */}
-            <div
-              className="glass-card stack stack--xs"
-              style={{
-                padding: 'var(--space-md)',
-                background: 'linear-gradient(180deg, rgba(229, 197, 115, 0.12) 0%, rgba(22, 23, 32, 0.8) 100%)',
-                borderColor: 'var(--color-border-accent)',
-              }}
-            >
-              <div className="text-secondary" style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
-                Notita de {partnerName} para ti
-              </div>
-
-              <p style={{ fontSize: 'var(--font-size-xs)', fontStyle: 'italic', color: 'var(--color-text-primary)', lineHeight: 1.5, fontWeight: 500, margin: '6px 0' }}>
-                "{receivedNoteDisplay}"
-              </p>
-            </div>
-
-            {/* CARD 2: Sent Note (Editable) */}
-            <div
-              className="glass-card stack stack--xs"
-              style={{
-                padding: 'var(--space-md)',
-                background: 'var(--color-bg-card)',
-                borderColor: 'var(--color-border)',
-              }}
-            >
-              <div className="text-secondary" style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
-                Tu notita para {partnerName}
-              </div>
-
-              {!showEditNoteForm ? (
-                <>
-                  <p style={{ fontSize: 'var(--font-size-xs)', fontStyle: 'italic', color: 'var(--color-text-secondary)', lineHeight: 1.5, fontWeight: 500, margin: '6px 0 8px' }}>
-                    "{mySentNote}"
-                  </p>
-
-                  <button
-                    className="btn btn--secondary btn--sm btn--full row row--center row--gap-xs"
-                    onClick={handleOpenEditNote}
-                    style={{
-                      fontSize: '11px',
-                      padding: '8px 12px',
-                      background: 'rgba(229, 197, 115, 0.12)',
-                      borderColor: 'var(--color-border-accent)',
-                      color: 'var(--color-accent-light)',
-                      fontWeight: 600,
-                    }}
-                  >
-                    <IconEdit />
-                    <span>Cambiar mi notita</span>
-                  </button>
-                </>
-              ) : (
-                <form onSubmit={handleSaveNote} className="stack stack--xs" style={{ marginTop: '4px' }}>
-                  <textarea
-                    className="input"
-                    value={noteInput}
-                    onChange={(e) => setNoteInput(e.target.value)}
-                    rows={3}
-                    maxLength={200}
-                    placeholder={`Escribe un mensajito para ${partnerName}...`}
-                    autoFocus
-                    style={{ fontSize: 'var(--font-size-xs)', resize: 'none' }}
-                  />
-                  <div className="row row--gap-xs">
-                    <button type="submit" className="btn btn--primary btn--sm btn--full" disabled={savingNote}>
-                      {savingNote ? 'Guardando...' : 'Guardar y enviar'}
-                    </button>
-                    <button type="button" className="btn btn--ghost btn--sm" onClick={() => setShowEditNoteForm(false)}>
-                      Cancelar
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
-
-            <div style={{ marginTop: 'auto', textAlign: 'center' }}>
-              <button
-                className="btn btn--secondary btn--full btn--sm"
-                onClick={() => setShowNotesDrawer(false)}
-              >
-                Esconder panel ✕
               </button>
             </div>
           </div>

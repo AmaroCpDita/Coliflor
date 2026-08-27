@@ -188,38 +188,9 @@ export default function Layout() {
     }
   }, []);
 
-  // Global Push Notification Trigger
+  // Global In-App Notification Trigger (Sound only, OneSignal handles Push)
   const triggerGlobalNotification = useCallback((sender: string, text: string) => {
     playNotificationChime();
-
-    if (typeof Notification === 'undefined') return;
-
-    if (Notification.permission === 'granted') {
-      const uniqueTag = 'coliflor-notif-' + Date.now();
-      const notifOptions = {
-        body: text,
-        icon: '/logo.png',
-        badge: '/logo.png',
-        vibrate: [200, 100, 200, 100, 200],
-        tag: uniqueTag,
-        renotify: false,
-        data: { url: '/messages' },
-      };
-
-      try {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
-          navigator.serviceWorker.ready.then(reg => {
-            reg.showNotification(`💛 ${sender}`, notifOptions as any);
-          }).catch(() => {
-            new Notification(`💛 ${sender}`, notifOptions);
-          });
-        } else {
-          new Notification(`💛 ${sender}`, notifOptions);
-        }
-      } catch (e) {
-        console.warn('Global notification error:', e);
-      }
-    }
   }, [playNotificationChime]);
 
   const processIncomingMessage = useCallback((msg: any) => {
