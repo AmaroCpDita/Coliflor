@@ -81,6 +81,11 @@ export default function Messages() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
+  const profileIdRef = useRef(profile?.id);
+  useEffect(() => {
+    profileIdRef.current = profile?.id;
+  }, [profile?.id]);
+
   const requestNotificationPermission = async () => {
     if (typeof Notification === 'undefined') {
       alert('Tu navegador no soporta notificaciones push. Asegúrate de estar navegando por HTTPS.');
@@ -103,19 +108,17 @@ export default function Messages() {
     if (typeof Notification === 'undefined') return;
 
     if (Notification.permission === 'granted') {
-      const uniqueTag = 'coliflor-msg-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6);
       const notifOptions = {
         body: text,
         icon: '/logo.png',
         badge: '/logo.png',
         vibrate: [200, 100, 200, 100, 200],
-        tag: uniqueTag,
         renotify: true,
         data: { url: '/messages' },
       };
 
       try {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
           navigator.serviceWorker.ready.then(reg => {
             reg.showNotification(`💛 ${sender}`, notifOptions as any);
           }).catch(() => {
@@ -187,7 +190,7 @@ export default function Messages() {
           setTimeout(scrollToBottom, 100);
 
           // Trigger lockscreen notification if message is from partner
-          if (msg.sender_id !== profile?.id) {
+          if (msg.sender_id !== profileIdRef.current) {
             triggerLockscreenNotification(displayPartnerName, msg.content);
           }
         }
@@ -197,7 +200,7 @@ export default function Messages() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [couple?.id, scrollToBottom, isMockMode, profile?.id, displayPartnerName, triggerLockscreenNotification]);
+  }, [couple?.id, scrollToBottom, isMockMode, displayPartnerName, triggerLockscreenNotification]);
 
   // Smart Polling Backup (Every 3 seconds) for 100% constant sync + notifications
   useEffect(() => {
@@ -214,7 +217,7 @@ export default function Messages() {
       if (data && data.length > 0) {
         setMessages(prev => {
           const newPartnerMsgs = data.filter(
-            d => !prev.some(p => p.id === d.id) && d.sender_id !== profile?.id
+            d => !prev.some(p => p.id === d.id) && d.sender_id !== profileIdRef.current
           );
 
           if (newPartnerMsgs.length > 0) {

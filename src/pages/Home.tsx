@@ -204,6 +204,19 @@ export default function Home() {
             .eq('id', couple.id);
         }
 
+        // Insert push notification message
+        if (profile) {
+          try {
+            await supabase.from('messages').insert({
+              couple_id: couple.id,
+              sender_id: profile.id,
+              content: `💌 ¡${myName} te envió una notita nueva en el inicio!`,
+            });
+          } catch {
+            // Non-fatal fallback
+          }
+        }
+
         await refreshProfile();
       } catch (err: any) {
         console.warn('Note update warning:', err);

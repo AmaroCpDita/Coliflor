@@ -311,6 +311,24 @@ export default function Calendar() {
         }
       }
 
+      // Send push notification message to partner
+      try {
+        const myName = profile.display_name || 'Tú';
+        const dateParts = selectedDate.split('-');
+        const dayNum = parseInt(dateParts[2] || '1', 10);
+        const monthNum = parseInt(dateParts[1] || '1', 10);
+        const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        const formattedDate = `${dayNum} ${monthNames[monthNum - 1] || ''}`;
+
+        await supabase.from('messages').insert({
+          couple_id: couple.id,
+          sender_id: profile.id,
+          content: `📅 ¡${myName} agregó un evento al calendario (${formattedDate}): "${eventTitle}"!`,
+        });
+      } catch {
+        // Non-fatal fallback
+      }
+
       setTitle('');
       setNote('');
       setShowAddForm(false);
