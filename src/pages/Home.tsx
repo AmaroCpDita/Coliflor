@@ -7,6 +7,7 @@ import { Link, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { daysSince, generateInviteCode, formatDate } from '../lib/utils';
 import { supabase } from '../lib/supabase';
+import { sendOneSignalPush } from '../lib/onesignal';
 
 function IconFlame() {
   return (
@@ -217,6 +218,10 @@ export default function Home() {
             });
           } catch {
             // Non-fatal fallback
+          }
+
+          if (partner?.id) {
+            sendOneSignalPush(partner.id, myName, `💌 ¡${myName} te envió una notita nueva en el inicio!`);
           }
         }
 

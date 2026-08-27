@@ -75,7 +75,7 @@ export default function Layout() {
   const coupleRef = useRef(couple);
   const partnerRef = useRef(partner);
   const partnerNameRef = useRef(partnerName);
-  const lastNotifiedMsgIdRef = useRef<string | null>(null);
+  const notifiedIdsSetRef = useRef(new Set<string>());
 
   useEffect(() => {
     profileIdRef.current = profile?.id;
@@ -160,14 +160,14 @@ export default function Layout() {
     if (typeof Notification === 'undefined') return;
 
     if (Notification.permission === 'granted') {
-      const uniqueTag = 'coliflor-push-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+      const uniqueTag = 'coliflor-notif-' + Date.now();
       const notifOptions = {
         body: text,
         icon: '/logo.png',
         badge: '/logo.png',
         vibrate: [200, 100, 200, 100, 200],
         tag: uniqueTag,
-        renotify: true,
+        renotify: false,
         data: { url: '/messages' },
       };
 
@@ -206,8 +206,9 @@ export default function Layout() {
         setHasUnread(true);
       }
 
-      if (lastNotifiedMsgIdRef.current === msg.id) return;
-      lastNotifiedMsgIdRef.current = msg.id;
+      // STRICT DEDUPLICATION: If already notified once, return immediately
+      if (notifiedIdsSetRef.current.has(msg.id)) return;
+      notifiedIdsSetRef.current.add(msg.id);
 
       const partnerNickname = getPartnerNickname();
       triggerGlobalNotification(partnerNickname, msg.content);
@@ -216,7 +217,7 @@ export default function Layout() {
     }
   }, [getPartnerNickname, triggerGlobalNotification]);
 
-  // Triple Realtime Listener for messages, calendar_events, and couples tables
+  // Triple Realtime Listener for live incoming messages, calendar_events, and couples tables
   useEffect(() => {
     if (!couple?.id || isMockMode) return;
 
@@ -242,8 +243,8 @@ export default function Layout() {
           const evt = payload.new as any;
           if (evt && evt.created_by !== profileIdRef.current) {
             const calNotifKey = `cal_evt_${evt.id}`;
-            if (lastNotifiedMsgIdRef.current !== calNotifKey) {
-              lastNotifiedMsgIdRef.current = calNotifKey;
+            if (!notifiedIdsSetRef.current.has(calNotifKey)) {
+              notifiedIdsSetRef.current.add(calNotifKey);
               const partnerNickname = getPartnerNickname();
               triggerGlobalNotification(partnerNickname, `📅 ¡Agregó un evento al calendario: "${evt.title || 'Nuevo evento'}"!`);
             }
@@ -262,8 +263,8 @@ export default function Layout() {
           const updatedCouple = payload.new as any;
           if (updatedCouple && updatedCouple.daily_note_updated_by && updatedCouple.daily_note_updated_by !== profileIdRef.current) {
             const noteNotifKey = `note_upd_${updatedCouple.daily_note_updated_by}_${updatedCouple.daily_note}`;
-            if (lastNotifiedMsgIdRef.current !== noteNotifKey) {
-              lastNotifiedMsgIdRef.current = noteNotifKey;
+            if (!notifiedIdsSetRef.current.has(noteNotifKey)) {
+              notifiedIdsSetRef.current.add(noteNotifKey);
               const partnerNickname = getPartnerNickname();
               triggerGlobalNotification(partnerNickname, `💌 ¡Te envió una notita nueva en el inicio!`);
             }
@@ -279,7 +280,7 @@ export default function Layout() {
     };
   }, [couple?.id, isMockMode, getPartnerNickname, processIncomingMessage, triggerGlobalNotification]);
 
-  // Smart Polling Backup (Every 3 seconds) for 100% guaranteed fresh notifications
+  // Polling ONLY updates activity logs state (No Push Notifications to prevent loops)
   useEffect(() => {
     if (!couple?.id || isMockMode) return;
 
@@ -290,7 +291,7 @@ export default function Layout() {
           .select('*')
           .eq('couple_id', couple.id)
           .order('created_at', { ascending: false })
-          .limit(10);
+          .limit(20);
 
         if (data && data.length > 0) {
           const systemNotifs = data.filter(m => 
@@ -300,24 +301,14 @@ export default function Layout() {
             m.content.startsWith('🩹')
           );
           setActivityLogs(systemNotifs as Message[]);
-
-          data.forEach(m => {
-            if (m.sender_id !== profileIdRef.current) {
-              const msgTime = new Date(m.created_at).getTime();
-              // Only trigger lockscreen notification if message arrived within the last 2 minutes (120,000ms)
-              if (Date.now() - msgTime < 120000) {
-                processIncomingMessage(m);
-              }
-            }
-          });
         }
       } catch (err) {
         console.warn('Polling error:', err);
       }
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, [couple?.id, isMockMode, processIncomingMessage]);
+  }, [couple?.id, isMockMode]);
 
   const openNotifCenter = useCallback(() => {
     setShowNotifCenter(true);
