@@ -66,20 +66,30 @@ export default function Layout() {
   const partnerName = partner ? partner.display_name : 'Tu pareja';
 
   const profileIdRef = useRef(profile?.id);
+  const coupleRef = useRef(couple);
+  const partnerRef = useRef(partner);
+  const partnerNameRef = useRef(partnerName);
+  const lastNotifiedMsgIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     profileIdRef.current = profile?.id;
-  }, [profile?.id]);
+    coupleRef.current = couple;
+    partnerRef.current = partner;
+    partnerNameRef.current = partnerName;
+  }, [profile?.id, couple, partner, partnerName]);
 
-  // Global Push Notification Trigger (Runs anywhere in the app)
+  // Global Push Notification Trigger
   const triggerGlobalNotification = useCallback((sender: string, text: string) => {
     if (typeof Notification === 'undefined') return;
 
     if (Notification.permission === 'granted') {
+      const uniqueTag = 'coliflor-push-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
       const notifOptions = {
         body: text,
         icon: '/logo.png',
         badge: '/logo.png',
         vibrate: [200, 100, 200, 100, 200],
+        tag: uniqueTag,
         renotify: true,
         data: { url: '/messages' },
       };
@@ -100,12 +110,31 @@ export default function Layout() {
     }
   }, []);
 
-  // Global Realtime Listener for messages across all pages (Home, Quiz, Calendar, Streak)
+  const processIncomingMessage = useCallback((msg: any) => {
+    try {
+      if (!msg || !msg.id || !profileIdRef.current) return;
+      if (msg.sender_id === profileIdRef.current) return;
+      if (lastNotifiedMsgIdRef.current === msg.id) return;
+
+      lastNotifiedMsgIdRef.current = msg.id;
+
+      const c = coupleRef.current;
+      const isUser1 = c ? c.user1_id === profileIdRef.current : true;
+      const dbNickname = isUser1 ? c?.user1_partner_nickname : c?.user2_partner_nickname;
+      const partnerNickname = dbNickname || localStorage.getItem('partner_nickname_' + (partnerRef.current?.id || 'default')) || partnerNameRef.current;
+
+      triggerGlobalNotification(partnerNickname, msg.content);
+    } catch (err) {
+      console.warn('Error processing notification:', err);
+    }
+  }, [triggerGlobalNotification]);
+
+  // Realtime WebSocket Listener (Global across all pages)
   useEffect(() => {
-    if (!couple || isMockMode) return;
+    if (!couple?.id || isMockMode) return;
 
     const channel = supabase
-      .channel('global-app-notifications')
+      .channel(`global-notifications-${couple.id}`)
       .on(
         'postgres_changes',
         {
@@ -115,14 +144,7 @@ export default function Layout() {
           filter: `couple_id=eq.${couple.id}`,
         },
         (payload) => {
-          const msg = payload.new as any;
-          if (msg && msg.sender_id !== profileIdRef.current) {
-            const isUser1 = couple.user1_id === profileIdRef.current;
-            const dbNickname = isUser1 ? couple.user1_partner_nickname : couple.user2_partner_nickname;
-            const partnerNickname = dbNickname || localStorage.getItem('partner_nickname_' + (partner?.id || 'default')) || partnerName;
-
-            triggerGlobalNotification(partnerNickname, msg.content);
-          }
+          processIncomingMessage(payload.new);
         }
       )
       .subscribe();
@@ -130,7 +152,39 @@ export default function Layout() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [couple, isMockMode, partner?.id, partnerName, triggerGlobalNotification]);
+  }, [couple?.id, isMockMode, processIncomingMessage]);
+
+  // Smart Polling Backup (Every 3 seconds) for 100% guaranteed notifications
+  useEffect(() => {
+    if (!couple?.id || isMockMode) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const { data } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('couple_id', couple.id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (data && data.length > 0) {
+          data.forEach(m => {
+            if (m.sender_id !== profileIdRef.current) {
+              const msgTime = new Date(m.created_at).getTime();
+              // Only notify if message arrived within the last 15 seconds
+              if (Date.now() - msgTime < 15000) {
+                processIncomingMessage(m);
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('Polling error:', err);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [couple?.id, isMockMode, processIncomingMessage]);
 
   return (
     <>

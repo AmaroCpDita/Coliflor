@@ -167,12 +167,12 @@ export default function Messages() {
     fetchMessages();
   }, [couple?.id, scrollToBottom, isMockMode]);
 
-  // Realtime messages + Lockscreen Push notification trigger
+  // Realtime messages UI sync
   useEffect(() => {
     if (!couple || isMockMode) return;
 
     const channel = supabase
-      .channel('messages-realtime')
+      .channel('messages-realtime-ui')
       .on(
         'postgres_changes',
         {
@@ -188,11 +188,6 @@ export default function Messages() {
             return [...prev, msg];
           });
           setTimeout(scrollToBottom, 100);
-
-          // Trigger lockscreen notification if message is from partner
-          if (msg.sender_id !== profileIdRef.current) {
-            triggerLockscreenNotification(displayPartnerName, msg.content);
-          }
         }
       )
       .subscribe();
@@ -200,9 +195,9 @@ export default function Messages() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [couple?.id, scrollToBottom, isMockMode, displayPartnerName, triggerLockscreenNotification]);
+  }, [couple?.id, scrollToBottom, isMockMode]);
 
-  // Smart Polling Backup (Every 3 seconds) for 100% constant sync + notifications
+  // Smart Polling Backup (Every 3 seconds) for 100% constant UI sync
   useEffect(() => {
     if (!couple || isMockMode) return;
 
@@ -216,16 +211,6 @@ export default function Messages() {
 
       if (data && data.length > 0) {
         setMessages(prev => {
-          const newPartnerMsgs = data.filter(
-            d => !prev.some(p => p.id === d.id) && d.sender_id !== profileIdRef.current
-          );
-
-          if (newPartnerMsgs.length > 0) {
-            newPartnerMsgs.forEach(m => {
-              triggerLockscreenNotification(displayPartnerName, m.content);
-            });
-          }
-
           const hasNew = data.some(d => !prev.some(p => p.id === d.id));
           if (hasNew || data.length !== prev.length) {
             setTimeout(scrollToBottom, 100);
@@ -237,7 +222,7 @@ export default function Messages() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [couple?.id, isMockMode, profile?.id, displayPartnerName, scrollToBottom, triggerLockscreenNotification]);
+  }, [couple?.id, isMockMode, scrollToBottom]);
 
   const handleSend = async () => {
     if (!input.trim() || !couple || !profile || sending) return;
