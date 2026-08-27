@@ -188,9 +188,41 @@ export default function Layout() {
     }
   }, []);
 
-  // Global In-App Notification Trigger (Sound only, OneSignal handles Push)
+  // Global In-App Notification Trigger (Works when app is open or softly backgrounded)
   const triggerGlobalNotification = useCallback((sender: string, text: string) => {
     playNotificationChime();
+
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+
+    // Cross-tab deduplication: prevent loop if multiple tabs are open
+    const notifKey = `coliflor_last_notif_${Date.now()}`;
+    const recentNotif = localStorage.getItem('coliflor_last_notif_time');
+    if (recentNotif && Date.now() - parseInt(recentNotif) < 2000) return; // Debounce 2 seconds across tabs
+    localStorage.setItem('coliflor_last_notif_time', Date.now().toString());
+
+    const notifOptions = {
+      body: text,
+      icon: '/logo.png',
+      badge: '/logo.png',
+      vibrate: [200, 100, 200, 100, 200],
+      tag: 'coliflor-notif',
+      renotify: true,
+      data: { url: '/messages' },
+    };
+
+    try {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then(reg => {
+          reg.showNotification(`💛 ${sender}`, notifOptions as any);
+        }).catch(() => {
+          new Notification(`💛 ${sender}`, notifOptions);
+        });
+      } else {
+        new Notification(`💛 ${sender}`, notifOptions);
+      }
+    } catch (e) {
+      console.warn('Global notification error:', e);
+    }
   }, [playNotificationChime]);
 
   const processIncomingMessage = useCallback((msg: any) => {
