@@ -414,33 +414,7 @@ export default function Messages() {
         </div>
       </div>
 
-      {/* Lockscreen Notification Permission Banner */}
-      {notifPermission === 'default' && (
-        <div className="glass-card glass-card--accent text-center animate-fade-in" style={{ margin: 'var(--space-sm) var(--space-md)', padding: 'var(--space-sm) var(--space-md)' }}>
-          <div className="row row--center row--gap-xs" style={{ fontSize: 'var(--font-size-xs)', marginBottom: '4px' }}>
-            <IconBell />
-            <span style={{ fontWeight: 600 }}>Notificaciones de pantalla de bloqueo</span>
-          </div>
-          <p className="text-secondary" style={{ fontSize: '11px', marginBottom: '8px' }}>
-            Activa las notificaciones para que los mensajes de {displayPartnerName} lleguen directo al bloqueo de tu celular.
-          </p>
-          <button className="btn btn--primary btn--sm btn--full" onClick={requestNotificationPermission}>
-            Activar notificaciones en el celular
-          </button>
-        </div>
-      )}
 
-      {notifPermission === 'granted' && (
-        <div className="row row--center" style={{ padding: '6px 0 2px' }}>
-          <button
-            className="btn btn--ghost btn--sm"
-            onClick={() => triggerLockscreenNotification(displayPartnerName, '¡Las notificaciones están 100% activas en tu celular! 💖')}
-            style={{ fontSize: '11px', color: 'var(--color-accent-light)', opacity: 0.85 }}
-          >
-            🔔 Probar notificación de prueba
-          </button>
-        </div>
-      )}
 
       {/* Messages area */}
       <div style={{
