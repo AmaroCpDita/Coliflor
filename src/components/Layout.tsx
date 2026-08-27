@@ -326,19 +326,50 @@ export default function Layout() {
         </NavLink>
       </nav>
 
-      {/* Bell Notification Center Drawer / Modal */}
+      {/* Bell Notification Center Drawer (Sliding from Right Edge) */}
       {showNotifCenter && (
-        <div className="modal-backdrop" onClick={() => setShowNotifCenter(false)}>
-          <div className="modal animate-fade-in" onClick={(e) => e.stopPropagation()} style={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
-            <div className="modal__handle" />
-            
-            <div className="row row--between" style={{ marginBottom: 'var(--space-md)', paddingBottom: 'var(--space-xs)', borderBottom: '1px solid var(--color-border)' }}>
+        <div
+          className="modal-backdrop"
+          onClick={() => setShowNotifCenter(false)}
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'stretch',
+            padding: 0,
+            background: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            zIndex: 9999,
+          }}
+        >
+          <div
+            className="animate-slide-in-right"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '88%',
+              maxWidth: '380px',
+              height: '100dvh',
+              background: '#12141c',
+              borderLeft: '1px solid var(--color-border-accent)',
+              boxShadow: '-12px 0 36px rgba(0, 0, 0, 0.6)',
+              padding: 'calc(var(--safe-top) + 20px) 20px 30px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-md)',
+              overflowY: 'auto',
+            }}
+          >
+            <div className="row row--between" style={{ paddingBottom: 'var(--space-xs)', borderBottom: '1px solid var(--color-border)' }}>
               <div className="row row--gap-xs">
                 <IconBellHeader />
-                <h3 style={{ fontSize: 'var(--font-size-base)' }}>Historial de Actividad</h3>
+                <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 700 }}>Historial de Actividad</h3>
               </div>
-              <button className="btn btn--ghost btn--xs" onClick={() => setShowNotifCenter(false)} style={{ color: 'var(--color-text-secondary)' }}>
-                Cerrar ✕
+              <button
+                className="btn btn--ghost btn--xs"
+                onClick={() => setShowNotifCenter(false)}
+                style={{ color: 'var(--color-text-secondary)', fontSize: '12px' }}
+              >
+                Esconder ✕
               </button>
             </div>
 
@@ -374,12 +405,12 @@ export default function Layout() {
               )}
             </div>
 
-            <div style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-sm)', borderTop: '1px solid var(--color-border)' }}>
+            <div style={{ marginTop: 'auto', paddingTop: 'var(--space-sm)', borderTop: '1px solid var(--color-border)' }}>
               <button
                 className="btn btn--secondary btn--full btn--sm"
                 onClick={() => setShowNotifCenter(false)}
               >
-                Entendido
+                Esconder panel ✕
               </button>
             </div>
           </div>

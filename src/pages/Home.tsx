@@ -444,34 +444,94 @@ export default function Home() {
           )}
         </div>
 
-        {/* Notitas de Amor Launcher Button Pill */}
-        <button
-          className="btn btn--secondary btn--full row row--between animate-fade-in"
-          onClick={() => setShowNotesDrawer(true)}
+        {/* CARD 1: Note Received from Partner (READ-ONLY) */}
+        <div
+          className="glass-card text-center stack stack--xs animate-fade-in"
           style={{
-            padding: '14px 18px',
-            background: 'linear-gradient(135deg, rgba(229, 197, 115, 0.14) 0%, rgba(22, 24, 34, 0.85) 100%)',
-            border: '1px solid var(--color-border-accent)',
-            borderRadius: 'var(--radius-xl)',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
-            cursor: 'pointer',
+            padding: 'var(--space-md)',
+            background: 'linear-gradient(180deg, rgba(229, 197, 115, 0.08) 0%, rgba(22, 23, 32, 0.6) 100%)',
+            borderColor: 'var(--color-border-accent)',
           }}
         >
-          <div className="row row--gap-sm">
-            <span style={{ fontSize: '1.3rem' }}>💌</span>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-accent-light)' }}>
-                Notitas de Amor
-              </div>
-              <div className="text-secondary" style={{ fontSize: '10px' }}>
-                {rawReceivedNote ? '¡Tienes una notita lista para leer!' : 'Escribe una notita especial para tu pareja'}
-              </div>
-            </div>
+          <div className="text-secondary text-center" style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+            Notita de {partnerName} para ti
           </div>
-          <span style={{ fontSize: '11px', color: 'var(--color-accent-light)', fontWeight: 700, background: 'rgba(229, 197, 115, 0.12)', padding: '4px 10px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border-accent)' }}>
-            Abrir ➔
-          </span>
-        </button>
+
+          <p style={{ fontSize: 'var(--font-size-xs)', fontStyle: 'italic', color: 'var(--color-text-primary)', lineHeight: 1.5, fontWeight: 500, margin: '4px 0' }}>
+            "{receivedNoteDisplay}"
+          </p>
+        </div>
+
+        {/* CARD 2: My Sent Note to Partner (EDITABLE BY ME) */}
+        <div
+          className="glass-card text-center stack stack--xs animate-fade-in"
+          style={{
+            padding: 'var(--space-md)',
+            background: 'var(--color-bg-card)',
+            borderColor: 'var(--color-border)',
+          }}
+        >
+          <div className="text-secondary text-center" style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+            Tu notita enviada a {partnerName}
+          </div>
+
+          {!showEditNoteForm ? (
+            <>
+              <p style={{ fontSize: 'var(--font-size-xs)', fontStyle: 'italic', color: 'var(--color-text-secondary)', lineHeight: 1.5, fontWeight: 500, margin: '4px 0 6px' }}>
+                "{mySentNote}"
+              </p>
+
+              <button
+                className="btn btn--secondary btn--sm btn--full row row--center row--gap-xs"
+                onClick={handleOpenEditNote}
+                style={{
+                  fontSize: '11px',
+                  padding: '6px 12px',
+                  background: 'rgba(229, 197, 115, 0.12)',
+                  borderColor: 'var(--color-border-accent)',
+                  color: 'var(--color-accent-light)',
+                  fontWeight: 600,
+                }}
+              >
+                <IconEdit />
+                <span>Enviar notita a {partnerName}</span>
+              </button>
+            </>
+          ) : (
+            <form onSubmit={handleSaveNote} className="stack stack--xs animate-fade-in" style={{ marginTop: '4px' }}>
+              <textarea
+                className="input"
+                rows={3}
+                placeholder={`Escribe una notita especial para ${partnerName}...`}
+                value={noteInput}
+                onChange={(e) => setNoteInput(e.target.value)}
+                style={{ resize: 'none', fontSize: 'var(--font-size-xs)', padding: 'var(--space-sm)' }}
+                autoFocus
+                required
+              />
+
+              <div className="row row--gap-xs" style={{ marginTop: '4px' }}>
+                <button
+                  type="submit"
+                  className="btn btn--primary btn--sm"
+                  style={{ flex: 1, fontSize: '11px', padding: '6px' }}
+                  disabled={savingNote || !noteInput.trim()}
+                >
+                  {savingNote ? 'Guardando...' : 'Guardar y enviar'}
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  style={{ fontSize: '11px', padding: '6px' }}
+                  onClick={() => setShowEditNoteForm(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
 
         {/* Dynamic Interactive Section Shortcut Cards */}
         <div className="stack stack--md">
