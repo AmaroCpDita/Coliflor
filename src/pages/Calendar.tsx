@@ -249,7 +249,7 @@ export default function Calendar() {
     const eventTitle = title.trim() || defaultTitle;
     const eventNote = note.trim() || undefined;
 
-    if (isMockMode || tableMissing) {
+    if (isMockMode) {
       const newEvt: CalendarEvent = {
         id: 'evt-' + Date.now(),
         couple_id: couple.id || 'local',
@@ -288,27 +288,7 @@ export default function Calendar() {
         });
 
       if (insErr) {
-        if (insErr.message.includes('calendar_events')) {
-          setTableMissing(true);
-          const newEvt: CalendarEvent = {
-            id: 'evt-' + Date.now(),
-            couple_id: couple.id,
-            event_date: selectedDate,
-            category,
-            title: eventTitle,
-            note: eventNote,
-            created_by: profile.id,
-            created_at: new Date().toISOString(),
-          };
-          setEventsMap(prev => {
-            const map = new Map(prev);
-            const list = map.get(selectedDate) || [];
-            map.set(selectedDate, [...list, newEvt]);
-            return map;
-          });
-        } else {
-          throw insErr;
-        }
+        console.warn('Calendar event insert warning:', insErr);
       }
 
       // Send push notification message to partner
@@ -325,8 +305,8 @@ export default function Calendar() {
           sender_id: profile.id,
           content: `📅 ¡${myName} agregó un evento al calendario (${formattedDate}): "${eventTitle}"!`,
         });
-      } catch {
-        // Non-fatal fallback
+      } catch (notifErr) {
+        console.warn('Calendar notification send warning:', notifErr);
       }
 
       setTitle('');
@@ -334,7 +314,7 @@ export default function Calendar() {
       setShowAddForm(false);
       await fetchEventsAndPhotos();
     } catch (err: any) {
-      setError(err?.message || 'Error al guardar el evento');
+      setError(err?.message || 'Error al guardar evento');
     } finally {
       setSaving(false);
     }
