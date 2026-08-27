@@ -134,24 +134,35 @@ export default function Settings() {
           <button
             type="button"
             className="btn btn--secondary btn--full row row--center row--gap-xs"
-            onClick={async () => {
+            onClick={() => {
+              if (typeof Notification === 'undefined') {
+                alert('Las notificaciones no están soportadas en este navegador o falta agregar la app a la Pantalla de Inicio en iPhone.');
+                return;
+              }
+
               try {
-                if (typeof window !== 'undefined') {
-                  const win = window as any;
-                  if (win.OneSignalDeferred) {
-                    win.OneSignalDeferred.push(async function(OneSignal: any) {
-                      if (OneSignal.Notifications) {
-                        await OneSignal.Notifications.requestPermission();
-                        alert('¡Notificaciones activadas en OneSignal para este dispositivo!');
-                      }
-                    });
-                  } else if (typeof Notification !== 'undefined') {
-                    await Notification.requestPermission();
-                    alert('¡Permiso de notificaciones activado!');
+                Notification.requestPermission().then((perm) => {
+                  if (perm === 'granted') {
+                    alert('¡Excelente! Notificaciones activadas con éxito.');
+                    const win = window as any;
+                    if (win.OneSignalDeferred) {
+                      win.OneSignalDeferred.push(async function(OneSignal: any) {
+                        try {
+                          if (profile?.id) await OneSignal.login(profile.id);
+                          if (OneSignal.Notifications) await OneSignal.Notifications.requestPermission();
+                        } catch {}
+                      });
+                    }
+                  } else if (perm === 'denied') {
+                    alert('El permiso está denegado en tu teléfono. Ve a Ajustes de tu iPhone -> Notificaciones -> Coliflor y actívalo.');
+                  } else {
+                    alert('Estado de permiso: ' + perm);
                   }
-                }
-              } catch (e) {
-                alert('No se pudo activar el permiso: ' + e);
+                }).catch((e) => {
+                  alert('Error al solicitar permiso: ' + e);
+                });
+              } catch (err) {
+                alert('Excepción: ' + err);
               }
             }}
             style={{ background: 'rgba(229, 197, 115, 0.12)', borderColor: 'var(--color-border-accent)', color: 'var(--color-accent-light)' }}
