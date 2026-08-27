@@ -45,7 +45,7 @@ function IconMessageLarge() {
 }
 
 export default function Messages() {
-  const { couple, profile, partner, refreshProfile, isMockMode } = useAuth();
+  const { user, couple, profile, partner, refreshProfile, isMockMode } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -345,11 +345,12 @@ export default function Messages() {
     );
   }
 
-  // Group messages by date
+  // Group messages by date with strict chronological sorting
+  const sortedMessages = [...messages].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   const groupedMessages: { date: string; messages: Message[] }[] = [];
   let currentDate = '';
   
-  messages.forEach(msg => {
+  sortedMessages.forEach(msg => {
     const msgDate = new Date(msg.created_at).toLocaleDateString('es-CL', {
       timeZone: 'America/Santiago',
       day: 'numeric',
@@ -468,14 +469,22 @@ export default function Messages() {
             </div>
 
             {group.messages.map((msg) => {
-              const isMe = msg.sender_id === profile.id;
+              const isMe = Boolean(
+                (profile?.id && msg.sender_id === profile.id) ||
+                (user?.id && msg.sender_id === user.id)
+              );
               return (
                 <div key={msg.id} className={`message-row ${isMe ? 'message-row--me' : 'message-row--partner'}`}>
                   <div className={`message-bubble ${isMe ? 'message-bubble--me' : 'message-bubble--partner'}`}>
+                    {!isMe && (
+                      <div className="message-sender-label">
+                        {displayPartnerName}
+                      </div>
+                    )}
                     <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
                       {msg.content}
                     </div>
-                    <div className="message-time" style={{ textAlign: 'right', marginTop: '2px' }}>
+                    <div className="message-time" style={{ textAlign: isMe ? 'right' : 'left' }}>
                       {formatTime(msg.created_at)}
                     </div>
                   </div>
