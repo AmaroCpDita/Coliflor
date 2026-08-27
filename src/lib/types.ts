@@ -24,6 +24,8 @@ export interface Couple {
   recoveries_reset_month: string; // date string YYYY-MM-DD
   user1_note?: string;
   user2_note?: string;
+  user1_partner_nickname?: string;
+  user2_partner_nickname?: string;
   daily_note?: string;
   daily_note_updated_by?: string;
   created_at: string;

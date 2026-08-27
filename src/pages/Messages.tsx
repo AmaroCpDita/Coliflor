@@ -1,5 +1,5 @@
 // ============================================================
-// Coliflor — Messages Page (Realtime Chat with Push Notifications)
+// Coliflor — Messages Page (Realtime Chat with Nickname Support)
 // ============================================================
 
 import { useEffect, useState, useRef, useCallback } from 'react';
@@ -27,6 +27,15 @@ function IconBell() {
   );
 }
 
+function IconEdit() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+}
+
 function IconMessageLarge() {
   return (
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(242,242,247,0.3)" strokeWidth="1.5">
@@ -36,18 +45,37 @@ function IconMessageLarge() {
 }
 
 export default function Messages() {
-  const { couple, profile, partner, isMockMode } = useAuth();
+  const { couple, profile, partner, refreshProfile, isMockMode } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   );
-  
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const partnerName = partner ? partner.display_name : 'Tu pareja';
+
+  // Determine user1 vs user2 role
+  const isUser1 = couple ? couple.user1_id === profile?.id : true;
+  const dbNickname = isUser1 ? couple?.user1_partner_nickname : couple?.user2_partner_nickname;
+
+  // Nickname state
+  const [partnerNickname, setPartnerNickname] = useState<string>(() => {
+    return dbNickname || localStorage.getItem('partner_nickname_' + (partner?.id || 'default')) || '';
+  });
+  const [showNicknameModal, setShowNicknameModal] = useState(false);
+  const [nicknameInput, setNicknameInput] = useState('');
+
+  useEffect(() => {
+    if (dbNickname) {
+      setPartnerNickname(dbNickname);
+    }
+  }, [dbNickname]);
+
+  const displayPartnerName = partnerNickname.trim() || partnerName;
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -62,7 +90,7 @@ export default function Messages() {
       const perm = await Notification.requestPermission();
       setNotifPermission(perm);
       if (perm === 'granted') {
-        triggerLockscreenNotification('Coliflor', '¡Notificaciones de pantalla de bloqueo activadas con éxito! 💖');
+        triggerLockscreenNotification('Coliflor', '¡Notificaciones de pantalla de bloqueo activadas con éxito! 💛');
       } else if (perm === 'denied') {
         alert('Las notificaciones fueron denegadas. Ve a la configuración de tu celular o navegador para permitirlas.');
       }
@@ -89,12 +117,12 @@ export default function Messages() {
       try {
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
           navigator.serviceWorker.ready.then(reg => {
-            reg.showNotification(`💜 ${sender}`, notifOptions as any);
+            reg.showNotification(`💛 ${sender}`, notifOptions as any);
           }).catch(() => {
-            new Notification(`💜 ${sender}`, notifOptions);
+            new Notification(`💛 ${sender}`, notifOptions);
           });
         } else {
-          new Notification(`💜 ${sender}`, notifOptions);
+          new Notification(`💛 ${sender}`, notifOptions);
         }
       } catch (e) {
         console.warn('Direct notification fallback:', e);
@@ -160,7 +188,7 @@ export default function Messages() {
 
           // Trigger lockscreen notification if message is from partner
           if (msg.sender_id !== profile?.id) {
-            triggerLockscreenNotification(partnerName, msg.content);
+            triggerLockscreenNotification(displayPartnerName, msg.content);
           }
         }
       )
@@ -169,7 +197,7 @@ export default function Messages() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [couple?.id, scrollToBottom, isMockMode, profile?.id, partnerName, triggerLockscreenNotification]);
+  }, [couple?.id, scrollToBottom, isMockMode, profile?.id, displayPartnerName, triggerLockscreenNotification]);
 
   // Smart Polling Backup (Every 3 seconds) for 100% constant sync + notifications
   useEffect(() => {
@@ -191,7 +219,7 @@ export default function Messages() {
 
           if (newPartnerMsgs.length > 0) {
             newPartnerMsgs.forEach(m => {
-              triggerLockscreenNotification(partnerName, m.content);
+              triggerLockscreenNotification(displayPartnerName, m.content);
             });
           }
 
@@ -206,7 +234,7 @@ export default function Messages() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [couple?.id, isMockMode, profile?.id, partnerName, scrollToBottom, triggerLockscreenNotification]);
+  }, [couple?.id, isMockMode, profile?.id, displayPartnerName, scrollToBottom, triggerLockscreenNotification]);
 
   const handleSend = async () => {
     if (!input.trim() || !couple || !profile || sending) return;
@@ -255,6 +283,36 @@ export default function Messages() {
     } finally {
       setSending(false);
       inputRef.current?.focus();
+    }
+  };
+
+  const handleSaveNickname = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const val = nicknameInput.trim();
+    setPartnerNickname(val);
+
+    if (partner?.id) {
+      localStorage.setItem('partner_nickname_' + partner.id, val);
+    } else {
+      localStorage.setItem('partner_nickname_default', val);
+    }
+    setShowNicknameModal(false);
+
+    if (couple && !isMockMode) {
+      try {
+        const updatePayload = isUser1
+          ? { user1_partner_nickname: val }
+          : { user2_partner_nickname: val };
+
+        await supabase
+          .from('couples')
+          .update(updatePayload)
+          .eq('id', couple.id);
+
+        await refreshProfile();
+      } catch (err) {
+        console.warn('Nickname DB sync warning:', err);
+      }
     }
   };
 
@@ -322,11 +380,32 @@ export default function Messages() {
       }}>
         <div className="row row--between">
           <div>
-            <div style={{ fontWeight: 600 }}>{partnerName}</div>
-            <div className="text-secondary" style={{ fontSize: 'var(--font-size-xs)' }}>
-              Mensajes en pantalla de bloqueo
+            <div className="row row--gap-xs">
+              <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-primary)' }}>
+                {displayPartnerName}
+              </span>
+              {partnerNickname && (
+                <span className="text-secondary" style={{ fontSize: '11px', opacity: 0.7 }}>
+                  ({partnerName})
+                </span>
+              )}
+            </div>
+            <div className="text-secondary" style={{ fontSize: '10px' }}>
+              Mensajes en vivo
             </div>
           </div>
+
+          <button
+            className="btn btn--ghost btn--xs row row--gap-xs"
+            onClick={() => {
+              setNicknameInput(partnerNickname);
+              setShowNicknameModal(true);
+            }}
+            style={{ fontSize: '11px', color: 'var(--color-accent-light)', padding: '4px 8px' }}
+          >
+            <IconEdit />
+            <span>{partnerNickname ? 'Apodo' : 'Poner apodo'}</span>
+          </button>
         </div>
       </div>
 
@@ -338,7 +417,7 @@ export default function Messages() {
             <span style={{ fontWeight: 600 }}>Notificaciones de pantalla de bloqueo</span>
           </div>
           <p className="text-secondary" style={{ fontSize: '11px', marginBottom: '8px' }}>
-            Activa las notificaciones para que los mensajes de {partnerName} lleguen directo al bloqueo de tu celular.
+            Activa las notificaciones para que los mensajes de {displayPartnerName} lleguen directo al bloqueo de tu celular.
           </p>
           <button className="btn btn--primary btn--sm btn--full" onClick={requestNotificationPermission}>
             Activar notificaciones en el celular
@@ -350,7 +429,7 @@ export default function Messages() {
         <div className="row row--center" style={{ padding: '6px 0 2px' }}>
           <button
             className="btn btn--ghost btn--sm"
-            onClick={() => triggerLockscreenNotification('Coliflor', '¡Las notificaciones están 100% activas en tu celular! 💖')}
+            onClick={() => triggerLockscreenNotification(displayPartnerName, '¡Las notificaciones están 100% activas en tu celular! 💖')}
             style={{ fontSize: '11px', color: 'var(--color-accent-light)', opacity: 0.85 }}
           >
             🔔 Probar notificación de prueba
@@ -372,7 +451,7 @@ export default function Messages() {
             <IconMessageLarge />
             <div className="empty-state__title" style={{ marginTop: 'var(--space-sm)' }}>Sin mensajes aún</div>
             <div className="empty-state__text">
-              Envía el primer mensaje a {partnerName}
+              Envía el primer mensaje a {displayPartnerName}
             </div>
           </div>
         )}
@@ -380,33 +459,23 @@ export default function Messages() {
         {groupedMessages.map((group) => (
           <div key={group.date}>
             <div className="text-center" style={{ margin: 'var(--space-md) 0' }}>
-              <span className="text-secondary" style={{
-                fontSize: 'var(--font-size-xs)',
-                background: 'var(--color-bg-secondary)',
-                padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-full)',
-              }}>
+              <span className="text-secondary" style={{ fontSize: '10px', textTransform: 'capitalize', background: 'var(--color-bg-secondary)', padding: '2px 10px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
                 {group.date}
               </span>
             </div>
+
             {group.messages.map((msg) => {
-              const isMine = msg.sender_id === profile.id;
+              const isMe = msg.sender_id === profile.id;
               return (
-                <div
-                  key={msg.id}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: isMine ? 'flex-end' : 'flex-start',
-                    marginBottom: 'var(--space-xs)',
-                  }}
-                >
-                  <div className={`message-bubble ${isMine ? 'message-bubble--sent' : 'message-bubble--received'}`}>
-                    {msg.content}
+                <div key={msg.id} className={`message-row ${isMe ? 'message-row--me' : 'message-row--partner'}`}>
+                  <div className={`message-bubble ${isMe ? 'message-bubble--me' : 'message-bubble--partner'}`}>
+                    <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+                      {msg.content}
+                    </div>
+                    <div className="message-time" style={{ textAlign: 'right', marginTop: '2px' }}>
+                      {formatTime(msg.created_at)}
+                    </div>
                   </div>
-                  <span className="message-time" style={{ textAlign: isMine ? 'right' : 'left' }}>
-                    {formatTime(msg.created_at)}
-                  </span>
                 </div>
               );
             })}
@@ -415,36 +484,94 @@ export default function Messages() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input area */}
+      {/* Input bar */}
       <div style={{
-        padding: 'var(--space-md) var(--space-lg)',
-        paddingBottom: 'calc(var(--safe-bottom) + 80px)',
+        padding: 'var(--space-sm) var(--space-md)',
+        paddingBottom: 'calc(var(--safe-bottom) + 70px)',
         borderTop: '1px solid var(--color-border)',
-        background: 'rgba(13, 14, 18, 0.85)',
+        background: 'rgba(13, 14, 18, 0.9)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
       }}>
-        <div className="row row--gap-sm">
+        <div className="row row--gap-xs" style={{ alignItems: 'flex-end' }}>
           <input
             ref={inputRef}
             type="text"
             className="input"
-            placeholder="Escribe un mensaje..."
+            placeholder={`Escribe a ${displayPartnerName}...`}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            style={{ flex: 1 }}
+            style={{ borderRadius: 'var(--radius-full)', padding: '10px 16px', fontSize: 'var(--font-size-sm)' }}
           />
+
           <button
             className="btn btn--primary"
             onClick={handleSend}
             disabled={!input.trim() || sending}
-            style={{ padding: 'var(--space-md)', minWidth: '48px' }}
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '50%',
+              padding: 0,
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
             <IconSend />
           </button>
         </div>
       </div>
+
+      {/* Edit Nickname Modal */}
+      {showNicknameModal && (
+        <div className="modal-backdrop" onClick={() => setShowNicknameModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal__handle" />
+            <form onSubmit={handleSaveNickname} className="stack stack--md">
+              <div className="text-center">
+                <h3>Apodo para {partnerName}</h3>
+                <p className="text-secondary" style={{ fontSize: 'var(--font-size-xs)', marginTop: '4px' }}>
+                  Elige un apodo cariñoso que aparecerá en tus mensajes y notificaciones.
+                </p>
+              </div>
+
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="Ej: Mi Vida, Javi, Amor, Mi Reina"
+                  value={nicknameInput}
+                  onChange={(e) => setNicknameInput(e.target.value)}
+                  maxLength={30}
+                  autoFocus
+                />
+              </div>
+
+              <div className="row row--gap-sm">
+                <button type="submit" className="btn btn--primary btn--full">
+                  Guardar apodo
+                </button>
+                {partnerNickname && (
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--full"
+                    onClick={() => {
+                      setPartnerNickname('');
+                      if (partner?.id) localStorage.removeItem('partner_nickname_' + partner.id);
+                      setShowNicknameModal(false);
+                    }}
+                  >
+                    Borrar apodo
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
