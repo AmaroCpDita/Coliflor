@@ -657,6 +657,19 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 @keyframes heartPulse {
   0%, 100% { transform: scale(1); opacity: 0.85; filter: drop-shadow(0 0 4px rgba(229,197,115,0.4)); }
   50% { transform: scale(1.12); opacity: 1; filter: drop-shadow(0 0 16px rgba(229,197,115,0.8)); }
