@@ -84,6 +84,21 @@ export default function Layout() {
     partnerNameRef.current = partnerName;
   }, [profile?.id, couple, partner, partnerName]);
 
+  // Lock background page scroll when notification drawer is open
+  useEffect(() => {
+    if (showNotifCenter) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [showNotifCenter]);
+
   // Fetch Activity / System notifications
   const fetchActivityLogs = useCallback(async () => {
     if (!couple?.id || isMockMode) return;
