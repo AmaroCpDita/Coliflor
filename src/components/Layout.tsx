@@ -254,51 +254,6 @@ export default function Layout() {
 
   return (
     <>
-      {/* Floating Top Header Bell Icon Button */}
-      <div style={{
-        position: 'fixed',
-        top: 'calc(var(--safe-top) + 12px)',
-        right: '16px',
-        zIndex: 90,
-      }}>
-        <button
-          onClick={() => {
-            setShowNotifCenter(true);
-            setHasUnread(false);
-          }}
-          className="btn btn--ghost"
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            padding: 0,
-            background: 'rgba(24, 26, 36, 0.85)',
-            border: '1px solid var(--color-border-accent)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-          }}
-        >
-          <IconBellHeader />
-          {hasUnread && (
-            <span style={{
-              position: 'absolute',
-              top: '6px',
-              right: '6px',
-              width: '9px',
-              height: '9px',
-              borderRadius: '50%',
-              background: '#e07a7a',
-              boxShadow: '0 0 8px #e07a7a',
-            }} />
-          )}
-        </button>
-      </div>
-
       <Outlet />
 
       {/* Floating Navigation Dock */}
@@ -373,6 +328,33 @@ export default function Layout() {
             </>
           )}
         </NavLink>
+
+        {/* Bell Activity Notification Button inside Navigation Dock */}
+        <button
+          onClick={() => {
+            setShowNotifCenter(true);
+            setHasUnread(false);
+          }}
+          className="dock-item"
+          style={{ position: 'relative', border: 'none', background: 'transparent', cursor: 'pointer' }}
+          title="Notificaciones"
+        >
+          <div className="dock-item__icon">
+            <IconBellHeader />
+          </div>
+          {hasUnread && (
+            <span style={{
+              position: 'absolute',
+              top: '6px',
+              right: '6px',
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#e07a7a',
+              boxShadow: '0 0 8px #e07a7a',
+            }} />
+          )}
+        </button>
 
         <NavLink
           to="/settings"
