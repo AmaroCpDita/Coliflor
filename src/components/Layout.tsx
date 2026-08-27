@@ -1,5 +1,5 @@
 // ============================================================
-// Coliflor — Layout Component (Clean 5-Tab Navigation & Lacticonecta Header Bell)
+// Coliflor — Layout Component (Clean 5-Tab Navigation & Triple Realtime Push Notification Engine)
 // ============================================================
 
 import { useEffect, useRef, useCallback, useState } from 'react';
@@ -84,7 +84,7 @@ export default function Layout() {
     partnerNameRef.current = partnerName;
   }, [profile?.id, couple, partner, partnerName]);
 
-  // Lock background page scroll when notification drawer is open
+  // Lock background scroll when notification drawer is open
   useEffect(() => {
     if (showNotifCenter) {
       document.body.style.overflow = 'hidden';
@@ -128,6 +128,13 @@ export default function Layout() {
   useEffect(() => {
     fetchActivityLogs();
   }, [fetchActivityLogs]);
+
+  const getPartnerNickname = useCallback(() => {
+    const c = coupleRef.current;
+    const isUser1 = c ? c.user1_id === profileIdRef.current : true;
+    const dbNickname = isUser1 ? c?.user1_partner_nickname : c?.user2_partner_nickname;
+    return dbNickname || localStorage.getItem('partner_nickname_' + (partnerRef.current?.id || 'default')) || partnerNameRef.current;
+  }, []);
 
   // Global Push Notification Trigger
   const triggerGlobalNotification = useCallback((sender: string, text: string) => {
@@ -183,43 +190,77 @@ export default function Layout() {
       if (lastNotifiedMsgIdRef.current === msg.id) return;
       lastNotifiedMsgIdRef.current = msg.id;
 
-      const c = coupleRef.current;
-      const isUser1 = c ? c.user1_id === profileIdRef.current : true;
-      const dbNickname = isUser1 ? c?.user1_partner_nickname : c?.user2_partner_nickname;
-      const partnerNickname = dbNickname || localStorage.getItem('partner_nickname_' + (partnerRef.current?.id || 'default')) || partnerNameRef.current;
-
+      const partnerNickname = getPartnerNickname();
       triggerGlobalNotification(partnerNickname, msg.content);
     } catch (err) {
       console.warn('Error processing notification:', err);
     }
-  }, [triggerGlobalNotification]);
+  }, [getPartnerNickname, triggerGlobalNotification]);
 
-  // Realtime WebSocket Listener (Global across all pages)
+  // Triple Realtime Listener for messages, calendar_events, and couples tables
   useEffect(() => {
     if (!couple?.id || isMockMode) return;
 
-    const channel = supabase
-      .channel(`global-notifications-${couple.id}`)
+    // 1. Messages Realtime Channel
+    const msgChannel = supabase
+      .channel(`global-msg-notifs-${couple.id}`)
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `couple_id=eq.${couple.id}`,
-        },
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `couple_id=eq.${couple.id}` },
         (payload) => {
           processIncomingMessage(payload.new);
         }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [couple?.id, isMockMode, processIncomingMessage]);
+    // 2. Calendar Events Realtime Channel
+    const calChannel = supabase
+      .channel(`global-cal-notifs-${couple.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'calendar_events', filter: `couple_id=eq.${couple.id}` },
+        (payload) => {
+          const evt = payload.new as any;
+          if (evt && evt.created_by !== profileIdRef.current) {
+            const calNotifKey = `cal_evt_${evt.id}`;
+            if (lastNotifiedMsgIdRef.current !== calNotifKey) {
+              lastNotifiedMsgIdRef.current = calNotifKey;
+              const partnerNickname = getPartnerNickname();
+              triggerGlobalNotification(partnerNickname, `📅 ¡Agregó un evento al calendario: "${evt.title || 'Nuevo evento'}"!`);
+            }
+          }
+        }
+      )
+      .subscribe();
 
-  // Smart Polling Backup (Every 3 seconds) for 100% guaranteed notifications
+    // 3. Couple Notes Realtime Channel
+    const noteChannel = supabase
+      .channel(`global-note-notifs-${couple.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'couples', filter: `id=eq.${couple.id}` },
+        (payload) => {
+          const updatedCouple = payload.new as any;
+          if (updatedCouple && updatedCouple.daily_note_updated_by && updatedCouple.daily_note_updated_by !== profileIdRef.current) {
+            const noteNotifKey = `note_upd_${updatedCouple.daily_note_updated_by}_${updatedCouple.daily_note}`;
+            if (lastNotifiedMsgIdRef.current !== noteNotifKey) {
+              lastNotifiedMsgIdRef.current = noteNotifKey;
+              const partnerNickname = getPartnerNickname();
+              triggerGlobalNotification(partnerNickname, `💌 ¡Te envió una notita nueva en el inicio!`);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(msgChannel);
+      supabase.removeChannel(calChannel);
+      supabase.removeChannel(noteChannel);
+    };
+  }, [couple?.id, isMockMode, getPartnerNickname, processIncomingMessage, triggerGlobalNotification]);
+
+  // Smart Polling Backup (Every 3 seconds) for 100% guaranteed fresh notifications
   useEffect(() => {
     if (!couple?.id || isMockMode) return;
 
@@ -244,7 +285,8 @@ export default function Layout() {
           data.forEach(m => {
             if (m.sender_id !== profileIdRef.current) {
               const msgTime = new Date(m.created_at).getTime();
-              if (Date.now() - msgTime < 15000) {
+              // Only trigger lockscreen notification if message arrived within the last 2 minutes (120,000ms)
+              if (Date.now() - msgTime < 120000) {
                 processIncomingMessage(m);
               }
             }
