@@ -75,22 +75,26 @@ export default function Messages() {
     if (typeof Notification === 'undefined') return;
 
     if (Notification.permission === 'granted') {
+      const uniqueTag = 'coliflor-msg-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6);
+      const notifOptions = {
+        body: text,
+        icon: '/logo.png',
+        badge: '/logo.png',
+        vibrate: [200, 100, 200, 100, 200],
+        tag: uniqueTag,
+        renotify: true,
+        data: { url: '/messages' },
+      };
+
       try {
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
           navigator.serviceWorker.ready.then(reg => {
-            reg.showNotification(`💜 ${sender}`, {
-              body: text,
-              icon: '/logo.png',
-              badge: '/logo.png',
-              vibrate: [200, 100, 200],
-              tag: 'coliflor-' + Date.now(),
-              data: { url: '/messages' },
-            } as any);
+            reg.showNotification(`💜 ${sender}`, notifOptions as any);
           }).catch(() => {
-            new Notification(`💜 ${sender}`, { body: text, icon: '/logo.png' });
+            new Notification(`💜 ${sender}`, notifOptions);
           });
         } else {
-          new Notification(`💜 ${sender}`, { body: text, icon: '/logo.png' });
+          new Notification(`💜 ${sender}`, notifOptions);
         }
       } catch (e) {
         console.warn('Direct notification fallback:', e);
@@ -167,7 +171,7 @@ export default function Messages() {
     };
   }, [couple?.id, scrollToBottom, isMockMode, profile?.id, partnerName, triggerLockscreenNotification]);
 
-  // Smart Polling Backup (Every 3 seconds) for 100% constant sync
+  // Smart Polling Backup (Every 3 seconds) for 100% constant sync + notifications
   useEffect(() => {
     if (!couple || isMockMode) return;
 
@@ -181,6 +185,16 @@ export default function Messages() {
 
       if (data && data.length > 0) {
         setMessages(prev => {
+          const newPartnerMsgs = data.filter(
+            d => !prev.some(p => p.id === d.id) && d.sender_id !== profile?.id
+          );
+
+          if (newPartnerMsgs.length > 0) {
+            newPartnerMsgs.forEach(m => {
+              triggerLockscreenNotification(partnerName, m.content);
+            });
+          }
+
           const hasNew = data.some(d => !prev.some(p => p.id === d.id));
           if (hasNew || data.length !== prev.length) {
             setTimeout(scrollToBottom, 100);
@@ -192,7 +206,7 @@ export default function Messages() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [couple?.id, isMockMode, scrollToBottom]);
+  }, [couple?.id, isMockMode, profile?.id, partnerName, scrollToBottom, triggerLockscreenNotification]);
 
   const handleSend = async () => {
     if (!input.trim() || !couple || !profile || sending) return;
