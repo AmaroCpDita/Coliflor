@@ -1,6 +1,4 @@
-// ============================================================
-// Coliflor — OneSignal Push Notification Utility
-// ============================================================
+import { supabase } from './supabase';
 
 export const ONESIGNAL_APP_ID = 'c8182906-bc83-480e-8a97-c60611034162';
 
@@ -8,7 +6,7 @@ export async function sendOneSignalPush(partnerId: string, title: string, text: 
   if (!partnerId) return;
 
   try {
-    // 1. Try OneSignal Web SDK postNotification
+    // 1. Opcional: Intentar mostrar una notificación en la misma app si OneSignal está cargado localmente
     const win = window as any;
     if (win.OneSignalDeferred) {
       win.OneSignalDeferred.push(async function(OneSignal: any) {
@@ -26,20 +24,18 @@ export async function sendOneSignalPush(partnerId: string, title: string, text: 
       });
     }
 
-    // 2. Direct OneSignal API Push Endpoint
-    await fetch('https://onesignal.com/api/v1/notifications', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        app_id: ONESIGNAL_APP_ID,
-        include_external_user_ids: [partnerId],
-        contents: { es: text, en: text },
-        headings: { es: `💛 ${title}`, en: `💛 ${title}` },
-        url: 'https://coliflor.vercel.app/messages',
-      }),
+    // 2. Enviar el Push de manera segura usando Supabase Edge Functions (Para iPhone cerrado / Background)
+    const { data, error } = await supabase.functions.invoke('push-notify', {
+      body: {
+        partnerId,
+        title,
+        text
+      }
     });
+
+    if (error) {
+      console.warn('Edge Function Push Error:', error);
+    }
   } catch (e) {
     console.warn('OneSignal Push Send Warning:', e);
   }
