@@ -118,6 +118,48 @@ export default function Settings() {
           </p>
         </div>
 
+        {/* Lockscreen Push Notification Activation Card */}
+        <div className="glass-card glass-card--accent">
+          <div className="row row--gap-sm" style={{ marginBottom: 'var(--space-xs)' }}>
+            <span style={{ fontSize: '1.2rem' }}>🔔</span>
+            <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 600, color: 'var(--color-accent-light)' }}>
+              Notificaciones de Pantalla de Bloqueo
+            </h3>
+          </div>
+
+          <p className="text-secondary" style={{ fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-md)', lineHeight: 1.5 }}>
+            Presiona este botón directamente desde el ícono de la pantalla de inicio para permitir avisos en tiempo real con el celular bloqueado.
+          </p>
+
+          <button
+            type="button"
+            className="btn btn--secondary btn--full row row--center row--gap-xs"
+            onClick={async () => {
+              try {
+                if (typeof window !== 'undefined') {
+                  const win = window as any;
+                  if (win.OneSignalDeferred) {
+                    win.OneSignalDeferred.push(async function(OneSignal: any) {
+                      if (OneSignal.Notifications) {
+                        await OneSignal.Notifications.requestPermission();
+                        alert('¡Notificaciones activadas en OneSignal para este dispositivo!');
+                      }
+                    });
+                  } else if (typeof Notification !== 'undefined') {
+                    await Notification.requestPermission();
+                    alert('¡Permiso de notificaciones activado!');
+                  }
+                }
+              } catch (e) {
+                alert('No se pudo activar el permiso: ' + e);
+              }
+            }}
+            style={{ background: 'rgba(229, 197, 115, 0.12)', borderColor: 'var(--color-border-accent)', color: 'var(--color-accent-light)' }}
+          >
+            <span>🔔 Activar Permiso de Bloqueo en este Dispositivo</span>
+          </button>
+        </div>
+
         {/* Edit My Profile */}
         <div className="glass-card">
           <div className="row row--gap-sm" style={{ marginBottom: 'var(--space-md)' }}>
