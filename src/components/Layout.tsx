@@ -1,8 +1,11 @@
 // ============================================================
-// Coliflor — Layout Component (Floating Glass Capsule Navigation)
+// Coliflor — Layout Component (Global App Navigation & Push Notifications)
 // ============================================================
 
+import { useEffect, useRef, useCallback } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 function IconHome({ active }: { active: boolean }) {
   return (
@@ -59,6 +62,76 @@ function IconSettings({ active }: { active: boolean }) {
 }
 
 export default function Layout() {
+  const { couple, profile, partner, isMockMode } = useAuth();
+  const partnerName = partner ? partner.display_name : 'Tu pareja';
+
+  const profileIdRef = useRef(profile?.id);
+  useEffect(() => {
+    profileIdRef.current = profile?.id;
+  }, [profile?.id]);
+
+  // Global Push Notification Trigger (Runs anywhere in the app)
+  const triggerGlobalNotification = useCallback((sender: string, text: string) => {
+    if (typeof Notification === 'undefined') return;
+
+    if (Notification.permission === 'granted') {
+      const notifOptions = {
+        body: text,
+        icon: '/logo.png',
+        badge: '/logo.png',
+        vibrate: [200, 100, 200, 100, 200],
+        renotify: true,
+        data: { url: '/messages' },
+      };
+
+      try {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
+          navigator.serviceWorker.ready.then(reg => {
+            reg.showNotification(`💛 ${sender}`, notifOptions as any);
+          }).catch(() => {
+            new Notification(`💛 ${sender}`, notifOptions);
+          });
+        } else {
+          new Notification(`💛 ${sender}`, notifOptions);
+        }
+      } catch (e) {
+        console.warn('Global notification error:', e);
+      }
+    }
+  }, []);
+
+  // Global Realtime Listener for messages across all pages (Home, Quiz, Calendar, Streak)
+  useEffect(() => {
+    if (!couple || isMockMode) return;
+
+    const channel = supabase
+      .channel('global-app-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `couple_id=eq.${couple.id}`,
+        },
+        (payload) => {
+          const msg = payload.new as any;
+          if (msg && msg.sender_id !== profileIdRef.current) {
+            const isUser1 = couple.user1_id === profileIdRef.current;
+            const dbNickname = isUser1 ? couple.user1_partner_nickname : couple.user2_partner_nickname;
+            const partnerNickname = dbNickname || localStorage.getItem('partner_nickname_' + (partner?.id || 'default')) || partnerName;
+
+            triggerGlobalNotification(partnerNickname, msg.content);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [couple, isMockMode, partner?.id, partnerName, triggerGlobalNotification]);
+
   return (
     <>
       <Outlet />
