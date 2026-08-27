@@ -16,10 +16,11 @@ function IconFlame() {
   );
 }
 
-function IconSparkles() {
+function IconQuizCard() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e5c573" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z" />
+      <path d="M9 11l3 3L22 4" />
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
     </svg>
   );
 }
@@ -539,7 +540,7 @@ export default function Home() {
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}>
-                    <IconSparkles />
+                    <IconQuizCard />
                   </div>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-primary)' }}>
