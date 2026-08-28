@@ -75,6 +75,9 @@ export default function Messages() {
 
   const displayPartnerName = partnerNickname.trim() || partnerName;
 
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [activeContextMenu, setActiveContextMenu] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -88,17 +91,16 @@ export default function Messages() {
   }, [profile?.id]);
 
   const requestNotificationPermission = async () => {
-    if (typeof Notification === 'undefined') {
-      alert('Tu navegador no soporta notificaciones push. Asegúrate de estar navegando por HTTPS.');
-      return;
-    }
     try {
-      const perm = await Notification.requestPermission();
-      setNotifPermission(perm);
-      if (perm === 'granted') {
-        triggerLockscreenNotification('Coliflor', '¡Notificaciones de pantalla de bloqueo activadas con éxito! 💛');
-      } else if (perm === 'denied') {
-        alert('Las notificaciones fueron denegadas. Ve a la configuración de tu celular o navegador para permitirlas.');
+      const win = window as any;
+      if (win.OneSignal) {
+        await win.OneSignal.Slidedown.promptPush();
+      } else if (typeof Notification !== 'undefined') {
+        const perm = await Notification.requestPermission();
+        setNotifPermission(perm);
+        if (perm === 'granted') {
+          triggerLockscreenNotification('Coliflor', '¡Notificaciones activadas!');
+        }
       }
     } catch (err) {
       console.error('Error requesting notification permission:', err);
@@ -191,6 +193,19 @@ export default function Messages() {
           setTimeout(scrollToBottom, 100);
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `couple_id=eq.${couple.id}`,
+        },
+        (payload) => {
+          const msg = payload.new as Message;
+          setMessages(prev => prev.map(m => m.id === msg.id ? msg : m));
+        }
+      )
       .subscribe();
 
     return () => {
@@ -248,13 +263,19 @@ export default function Messages() {
     }
 
     try {
+      const payload: any = {
+        couple_id: couple.id,
+        sender_id: profile.id,
+        content,
+      };
+      
+      if (replyingTo) {
+        payload.reply_to_id = replyingTo.id;
+      }
+
       const { data, error } = await supabase
         .from('messages')
-        .insert({
-          couple_id: couple.id,
-          sender_id: profile.id,
-          content,
-        })
+        .insert(payload)
         .select()
         .single();
 
@@ -277,7 +298,18 @@ export default function Messages() {
       console.error('Error sending message:', err);
     } finally {
       setSending(false);
+      setReplyingTo(null);
       inputRef.current?.focus();
+    }
+  };
+
+  const handleDeleteMessage = async (msgId: string) => {
+    setActiveContextMenu(null);
+    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, is_deleted: true } : m));
+    try {
+      await supabase.from('messages').update({ is_deleted: true }).eq('id', msgId);
+    } catch (e) {
+      console.warn('Error deleting message:', e);
     }
   };
 
@@ -337,12 +369,15 @@ export default function Messages() {
     );
   }
 
-  // Filter out system activity notifications (💌, 📅, 📸, 🩹) from chat bubbles so chat is 100% pure text
+  // Filter out system activity notifications and deleted messages
   const chatMessages = messages.filter(msg => {
+    if (msg.is_deleted) return false;
     const isSystem = msg.content.startsWith('💌') || 
                      msg.content.startsWith('📅') || 
                      msg.content.startsWith('📸') || 
-                     msg.content.startsWith('🩹');
+                     msg.content.startsWith('🩹') ||
+                     msg.content.startsWith('🔥') ||
+                     msg.content.startsWith('📊');
     return !isSystem;
   });
 
@@ -448,14 +483,43 @@ export default function Messages() {
                 (profile?.id && msg.sender_id === profile.id) ||
                 (user?.id && msg.sender_id === user.id)
               );
+              const repliedMsg = msg.reply_to_id ? messages.find(m => m.id === msg.reply_to_id) : null;
+              
               return (
-                <div key={msg.id} className={`message-row ${isMe ? 'message-row--me' : 'message-row--partner'}`}>
-                  <div className={`message-bubble ${isMe ? 'message-bubble--me' : 'message-bubble--partner'}`}>
+                <div key={msg.id} className={`message-row ${isMe ? 'message-row--me' : 'message-row--partner'}`} style={{ position: 'relative' }}>
+                  <div 
+                    className={`message-bubble ${isMe ? 'message-bubble--me' : 'message-bubble--partner'}`}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setActiveContextMenu(msg.id);
+                    }}
+                    onClick={() => setActiveContextMenu(msg.id === activeContextMenu ? null : msg.id)}
+                  >
                     {!isMe && (
                       <div className="message-sender-label">
                         {displayPartnerName}
                       </div>
                     )}
+                    
+                    {repliedMsg && !repliedMsg.is_deleted && (
+                      <div style={{ 
+                        background: 'rgba(0,0,0,0.15)', 
+                        padding: '6px 8px', 
+                        borderRadius: '6px', 
+                        marginBottom: '4px',
+                        borderLeft: `3px solid ${isMe ? 'rgba(255,255,255,0.5)' : 'var(--color-primary)'}`,
+                        fontSize: '11px',
+                        opacity: 0.8
+                      }}>
+                        <div style={{ fontWeight: 600, marginBottom: '2px' }}>
+                          {repliedMsg.sender_id === profile?.id ? 'Tú' : displayPartnerName}
+                        </div>
+                        <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {repliedMsg.content}
+                        </div>
+                      </div>
+                    )}
+                    
                     <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
                       {msg.content}
                     </div>
@@ -463,6 +527,33 @@ export default function Messages() {
                       {formatTime(msg.created_at)}
                     </div>
                   </div>
+                  
+                  {activeContextMenu === msg.id && (
+                    <div 
+                      className="glass-card animate-scale-in"
+                      style={{ 
+                        position: 'absolute', 
+                        top: '50%', 
+                        [isMe ? 'right' : 'left']: 'calc(100% - 20px)',
+                        transform: 'translateY(-50%)',
+                        zIndex: 10,
+                        padding: '4px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '2px',
+                        minWidth: '120px'
+                      }}
+                    >
+                      <button className="btn btn--ghost btn--sm" style={{ justifyContent: 'flex-start', padding: '6px 12px' }} onClick={() => { setReplyingTo(msg); setActiveContextMenu(null); }}>
+                        Responder
+                      </button>
+                      {isMe && (
+                        <button className="btn btn--ghost btn--sm" style={{ justifyContent: 'flex-start', padding: '6px 12px', color: 'var(--color-error)' }} onClick={() => handleDeleteMessage(msg.id)}>
+                          Eliminar
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -479,7 +570,24 @@ export default function Messages() {
         background: 'rgba(13, 14, 18, 0.9)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
+        {replyingTo && (
+          <div className="row row--between" style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-md) var(--radius-md) 0 0', marginBottom: '8px', borderLeft: '3px solid var(--color-primary)' }}>
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-primary)' }}>
+                Respondiendo a {replyingTo.sender_id === profile?.id ? 'ti mismo' : displayPartnerName}
+              </div>
+              <div style={{ fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--color-text-secondary)' }}>
+                {replyingTo.content}
+              </div>
+            </div>
+            <button className="btn btn--ghost" style={{ padding: '4px', minWidth: 'auto' }} onClick={() => setReplyingTo(null)}>
+              ✕
+            </button>
+          </div>
+        )}
         <div className="row row--gap-xs" style={{ alignItems: 'flex-end' }}>
           <input
             ref={inputRef}
@@ -510,6 +618,12 @@ export default function Messages() {
             <IconSend />
           </button>
         </div>
+        {notifPermission === 'default' && !isMockMode && (
+          <div style={{ background: 'var(--color-primary)', padding: 'var(--space-xs) var(--space-md)', textAlign: 'center', cursor: 'pointer', borderTop: '1px solid var(--color-border)', marginTop: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }} onClick={requestNotificationPermission}>
+            <span style={{ fontSize: '11px', marginRight: '8px' }}>🔔 Activa las notificaciones push para saber cuándo te escribe</span>
+            <span style={{ fontSize: '11px', color: '#fff', textDecoration: 'underline', fontWeight: 'bold' }}>Activar</span>
+          </div>
+        )}
       </div>
 
       {/* Edit Nickname Modal */}

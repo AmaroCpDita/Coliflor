@@ -167,6 +167,8 @@ CREATE TABLE IF NOT EXISTS messages (
   couple_id UUID NOT NULL REFERENCES couples(id) ON DELETE CASCADE,
   sender_id UUID NOT NULL REFERENCES profiles(id),
   content TEXT NOT NULL,
+  reply_to_id UUID REFERENCES messages(id) ON DELETE SET NULL,
+  is_deleted BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

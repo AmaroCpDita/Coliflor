@@ -230,8 +230,8 @@ export default function Quiz() {
         setMyResponse(resp);
       } else {
         const pushText = partnerResponse
-          ? `¡${myName} respondió! Tus resultados de sintonía están listos para comparar.`
-          : `${myName} ya respondió el cuestionario de hoy, ¡faltas tú!`;
+          ? `📊 ¡${myName} respondió! Tus resultados de sintonía están listos para comparar.`
+          : `📊 ${myName} ya respondió el cuestionario de hoy, ¡faltas tú!`;
 
         try {
           await supabase.from('messages').insert({
@@ -269,7 +269,7 @@ export default function Quiz() {
       await supabase.from('messages').insert({
         couple_id: couple.id,
         sender_id: profile.id,
-        content: `¡${partnerName}! ${myName} te está esperando para ver su sintonía del día en el cuestionario.`,
+        content: `📊 ¡${partnerName}! ${myName} te está esperando para ver su sintonía del día en el cuestionario.`,
       });
     } catch (err) {
       console.error('Error sending nudge:', err);

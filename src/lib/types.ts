@@ -96,6 +96,8 @@ export interface Message {
   couple_id: string;
   sender_id: string;
   content: string;
+  reply_to_id?: string | null;
+  is_deleted?: boolean;
   created_at: string;
 }
 

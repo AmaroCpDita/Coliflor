@@ -135,7 +135,9 @@ export default function Layout() {
           m.content.startsWith('💌') || 
           m.content.startsWith('📅') || 
           m.content.startsWith('📸') || 
-          m.content.startsWith('🩹')
+          m.content.startsWith('🩹') ||
+          m.content.startsWith('🔥') ||
+          m.content.startsWith('📊')
         );
         setActivityLogs(systemNotifs as Message[]);
       }
@@ -232,7 +234,9 @@ export default function Layout() {
       const isSystem = msg.content.startsWith('💌') || 
                        msg.content.startsWith('📅') || 
                        msg.content.startsWith('📸') || 
-                       msg.content.startsWith('🩹');
+                       msg.content.startsWith('🩹') ||
+                       msg.content.startsWith('🔥') ||
+                       msg.content.startsWith('📊');
 
       if (isSystem) {
         setActivityLogs(prev => [msg, ...prev.filter(p => p.id !== msg.id)]);
@@ -336,7 +340,9 @@ export default function Layout() {
             m.content.startsWith('💌') || 
             m.content.startsWith('📅') || 
             m.content.startsWith('📸') || 
-            m.content.startsWith('🩹')
+            m.content.startsWith('🩹') ||
+            m.content.startsWith('🔥') ||
+            m.content.startsWith('📊')
           );
           setActivityLogs(systemNotifs as Message[]);
         }
