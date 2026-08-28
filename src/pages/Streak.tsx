@@ -266,7 +266,7 @@ export default function Streak() {
 
     setPreviewFile(file);
     setPreviewUrl(URL.createObjectURL(file));
-    setFlipHorizontal(true); // Default to mirrored for front camera
+    setFlipHorizontal(false); // Default to false since we can't detect front/rear camera
   };
 
   const handleConfirmUpload = async () => {
@@ -460,20 +460,48 @@ export default function Streak() {
             <div className="text-center" style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
               Vista previa de tu fotografía
             </div>
-            <img 
-              src={previewUrl} 
-              alt="Preview" 
-              style={{ 
-                width: '100%', 
-                aspectRatio: '3/4', 
-                objectFit: 'cover', 
-                borderRadius: 'var(--radius-md)', 
-                transform: flipHorizontal ? 'scaleX(-1)' : 'none',
-                transition: 'transform 0.2s ease'
-              }} 
-            />
-
-            
+            <div style={{ position: 'relative' }}>
+              <img 
+                src={previewUrl} 
+                alt="Preview" 
+                style={{ 
+                  width: '100%', 
+                  aspectRatio: '3/4', 
+                  objectFit: 'cover', 
+                  borderRadius: 'var(--radius-md)', 
+                  transform: flipHorizontal ? 'scaleX(-1)' : 'none',
+                  transition: 'transform 0.2s ease',
+                  display: 'block'
+                }} 
+              />
+              <button 
+                className="btn btn--secondary" 
+                onClick={() => setFlipHorizontal(!flipHorizontal)} 
+                disabled={uploading}
+                style={{ 
+                  position: 'absolute', 
+                  bottom: '12px', 
+                  right: '12px', 
+                  padding: '8px 12px',
+                  borderRadius: 'var(--radius-full)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                  fontSize: '11px',
+                  backgroundColor: 'rgba(255,255,255,0.15)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  color: '#fff',
+                  border: '1px solid rgba(255,255,255,0.2)'
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                  <polyline points="17 1 21 5 17 9" />
+                  <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                  <polyline points="7 23 3 19 7 15" />
+                  <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                </svg>
+                Voltear (Espejo)
+              </button>
+            </div>
 
             <div className="row row--gap-sm">
               <button className="btn btn--primary btn--full" onClick={handleConfirmUpload} disabled={uploading}>
