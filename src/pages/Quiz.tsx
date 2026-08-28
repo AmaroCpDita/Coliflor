@@ -21,7 +21,7 @@ function IconCheck() {
 
 function IconGoldHeart({ size = 28 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="#e5c573" stroke="#e5c573" strokeWidth="2">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   );
@@ -38,7 +38,7 @@ function IconBell() {
 
 function IconClock() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e5c573" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
       <polyline points="12 6 12 12 16 14" />
     </svg>
@@ -309,7 +309,7 @@ export default function Quiz() {
             </div>
 
             <div className="row row--gap-xs" style={{
-              background: 'rgba(229, 197, 115, 0.12)',
+              background: 'var(--color-accent-glow)',
               border: '1px solid var(--color-border-accent)',
               padding: '4px 10px',
               borderRadius: 'var(--radius-full)',
