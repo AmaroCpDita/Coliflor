@@ -70,7 +70,7 @@ function IconGoldHeart({ size = 20 }: { size?: number }) {
   );
 }
 
-const DEFAULT_DEDICATION = 'Toda la vida agradeceré el momento en que llegaste a mi vida y cambiaste todo. Te amo con todo mi ser.';
+const DEFAULT_DEDICATION = '¡Escribe aquí tu primera notita! Ámame mucho y dime cosas bonitas 💛';
 
 export default function Home() {
   const { user, profile, couple, partner, refreshProfile, isMockMode } = useAuth();

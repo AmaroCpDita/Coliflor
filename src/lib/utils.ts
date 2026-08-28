@@ -164,7 +164,7 @@ export function getCalendarDays(year: number, month: number): Array<{ date: stri
  * Compress an image file before upload.
  * Returns a Blob of max 1200px wide, JPEG quality 0.7.
  */
-export function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promise<Blob> {
+export function compressImage(file: File, maxWidth = 1200, quality = 0.7, flipHorizontal = false): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -188,7 +188,13 @@ export function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promi
         return;
       }
       
+      if (flipHorizontal) {
+        ctx.translate(width, 0);
+        ctx.scale(-1, 1);
+      }
+      
       ctx.drawImage(img, 0, 0, width, height);
+      
       canvas.toBlob(
         (blob) => {
           if (blob) resolve(blob);

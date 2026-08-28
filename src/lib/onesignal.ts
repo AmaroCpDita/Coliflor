@@ -25,7 +25,7 @@ export async function sendOneSignalPush(partnerId: string, title: string, text: 
     }
 
     // 2. Enviar el Push de manera segura usando Supabase Edge Functions (Para iPhone cerrado / Background)
-    const { data, error } = await supabase.functions.invoke('super-action', {
+    const { data, error } = await supabase.functions.invoke('push-notify', {
       body: {
         partnerId,
         title,
