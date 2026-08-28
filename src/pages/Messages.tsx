@@ -76,9 +76,11 @@ const MessageRow = ({
   onStartSelection,
   onReply
 }: any) => {
-  const [translateX, setTranslateX] = useState(0);
   const startXRef = useRef<number | null>(null);
   const startYRef = useRef<number | null>(null);
+  const currentDragXRef = useRef<number>(0);
+  const bubbleRef = useRef<HTMLDivElement>(null);
+  const iconRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<any>(null);
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -102,7 +104,16 @@ const MessageRow = ({
       if (deltaY > 20) {
          if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
          startXRef.current = null;
-         setTranslateX(0);
+         
+         // Reset DOM manually
+         currentDragXRef.current = 0;
+         if (bubbleRef.current) {
+           bubbleRef.current.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+           bubbleRef.current.style.transform = 'translateX(0px)';
+         }
+         if (iconRef.current) {
+           iconRef.current.style.opacity = '0';
+         }
          return;
       }
       
@@ -112,7 +123,14 @@ const MessageRow = ({
       }
 
       if (deltaX > 0 && deltaX < 80) {
-        setTranslateX(deltaX);
+        currentDragXRef.current = deltaX;
+        if (bubbleRef.current) {
+          bubbleRef.current.style.transform = `translateX(${deltaX}px)`;
+          bubbleRef.current.style.transition = 'none';
+        }
+        if (iconRef.current) {
+          iconRef.current.style.opacity = Math.min(deltaX / 50, 1).toString();
+        }
       }
     }
   };
@@ -123,10 +141,20 @@ const MessageRow = ({
       longPressTimerRef.current = null;
     }
     if (startXRef.current !== null) {
-      if (translateX > 50) {
+      if (currentDragXRef.current > 50) {
         onReply(msg);
       }
-      setTranslateX(0);
+      
+      // Reset DOM manually
+      currentDragXRef.current = 0;
+      if (bubbleRef.current) {
+        bubbleRef.current.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        bubbleRef.current.style.transform = 'translateX(0px)';
+      }
+      if (iconRef.current) {
+        iconRef.current.style.opacity = '0';
+      }
+      
       startXRef.current = null;
     }
   };
@@ -172,12 +200,14 @@ const MessageRow = ({
         if (!selectionMode) e.preventDefault();
       }}
     >
-      <div style={{
+      <div 
+        ref={iconRef}
+        style={{
         position: 'absolute',
         left: '20px',
         top: '50%',
         transform: 'translateY(-50%)',
-        opacity: Math.min(translateX / 50, 1),
+        opacity: 0,
         color: 'var(--color-primary)',
         pointerEvents: 'none'
       }}>
@@ -197,10 +227,11 @@ const MessageRow = ({
       )}
 
       <div 
+        ref={bubbleRef}
         className={`message-bubble ${isMe ? 'message-bubble--me' : 'message-bubble--partner'}`}
         style={{ 
-          transform: `translateX(${translateX}px)`, 
-          transition: translateX === 0 ? 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)' : 'none',
+          transform: 'translateX(0px)',
+          transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
           flex: 1,
           pointerEvents: selectionMode ? 'none' : 'auto',
           maxWidth: selectionMode ? 'calc(80% - 32px)' : '80%'
