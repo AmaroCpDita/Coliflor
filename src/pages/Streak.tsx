@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase';
 import { getTodayInTimezone, compressImage, formatDate, formatTime } from '../lib/utils';
 import { MAX_RECOVERIES_PER_MONTH } from '../lib/types';
 import type { StreakPhoto, StreakRecovery } from '../lib/types';
+import Lightbox from '../components/Lightbox';
 
 // --- SVG Icons ---
 function IconFlameLarge() {
@@ -90,6 +91,7 @@ export default function Streak() {
   const [usingRecovery, setUsingRecovery] = useState(false);
   const [flipHorizontal, setFlipHorizontal] = useState(false);
   const [history, setHistory] = useState<HistoryDay[]>([]);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [selectedHistoryDay, setSelectedHistoryDay] = useState<HistoryDay | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -264,7 +266,7 @@ export default function Streak() {
 
     setPreviewFile(file);
     setPreviewUrl(URL.createObjectURL(file));
-    setFlipHorizontal(false); // Reset on new photo
+    setFlipHorizontal(true); // Default to mirrored for front camera
   };
 
   const handleConfirmUpload = async () => {
@@ -471,20 +473,7 @@ export default function Streak() {
               }} 
             />
 
-            <button 
-              className="btn btn--ghost btn--full" 
-              onClick={() => setFlipHorizontal(!flipHorizontal)} 
-              disabled={uploading}
-              style={{ fontSize: 'var(--font-size-xs)' }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
-                <polyline points="17 1 21 5 17 9" />
-                <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-                <polyline points="7 23 3 19 7 15" />
-                <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-              </svg>
-              Voltear (Efecto Espejo)
-            </button>
+            
 
             <div className="row row--gap-sm">
               <button className="btn btn--primary btn--full" onClick={handleConfirmUpload} disabled={uploading}>
@@ -506,7 +495,7 @@ export default function Streak() {
               <div className="photo-card">
                 {todayPhotos.myPhoto && myPhotoUrl ? (
                   <>
-                    <img src={myPhotoUrl} alt="Mi foto" className="photo-card__image" />
+                    <img src={myPhotoUrl} alt="Mi foto" className="photo-card__image" onClick={() => setLightboxUrl(myPhotoUrl)} style={{ cursor: 'pointer' }} />
                     <div className="photo-card__label">
                       {formatTime(todayPhotos.myPhoto.uploaded_at)}
                     </div>
@@ -529,7 +518,7 @@ export default function Streak() {
                 {todayPhotos.partnerPhoto ? (
                   todayPhotos.myPhoto && partnerPhotoUrl ? (
                     <>
-                      <img src={partnerPhotoUrl} alt={`Foto de ${partnerName}`} className="photo-card__image" />
+                      <img src={partnerPhotoUrl} alt={`Foto de ${partnerName}`} className="photo-card__image" onClick={() => setLightboxUrl(partnerPhotoUrl)} style={{ cursor: 'pointer' }} />
                       <div className="photo-card__label">
                         {formatTime(todayPhotos.partnerPhoto.uploaded_at)}
                       </div>
@@ -565,7 +554,7 @@ export default function Streak() {
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          capture="environment"
+          capture="user"
           onChange={handleFileSelected}
           style={{ display: 'none' }}
         />
@@ -621,6 +610,7 @@ export default function Streak() {
           </div>
         )}
       </div>
+      <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
     </div>
   );
 }

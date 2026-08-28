@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { getCalendarDays, getMonthName, getTodayInTimezone, formatDate, getNowInTimezone } from '../lib/utils';
 import type { CalendarEvent, EventCategory, StreakPhoto } from '../lib/types';
+import Lightbox from '../components/Lightbox';
 
 interface CategoryConfig {
   id: EventCategory;
@@ -75,6 +76,7 @@ export default function Calendar() {
   // Selected date modal state
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedDayPhotos, setSelectedDayPhotos] = useState<DayPhotos | null>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   
@@ -590,7 +592,12 @@ export default function Calendar() {
                       </div>
                       {selectedDayPhotos.myPhotoUrl ? (
                         <div className="stack stack--xs">
-                          <img src={selectedDayPhotos.myPhotoUrl} alt="Foto" style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />
+                          <img 
+                            src={selectedDayPhotos.myPhotoUrl} 
+                            alt="Foto" 
+                            style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} 
+                            onClick={() => setLightboxUrl(selectedDayPhotos.myPhotoUrl || null)}
+                          />
                           <a
                             href={selectedDayPhotos.myPhotoUrl}
                             download={`coliflor-${selectedDate}-${myName}.jpg`}
@@ -615,7 +622,12 @@ export default function Calendar() {
                       </div>
                       {selectedDayPhotos.partnerPhotoUrl ? (
                         <div className="stack stack--xs">
-                          <img src={selectedDayPhotos.partnerPhotoUrl} alt="Foto" style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />
+                          <img 
+                            src={selectedDayPhotos.partnerPhotoUrl} 
+                            alt="Foto" 
+                            style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} 
+                            onClick={() => setLightboxUrl(selectedDayPhotos.partnerPhotoUrl || null)}
+                          />
                           <a
                             href={selectedDayPhotos.partnerPhotoUrl}
                             download={`coliflor-${selectedDate}-${partnerName}.jpg`}
@@ -729,6 +741,8 @@ export default function Calendar() {
           </div>
         </div>
       )}
+
+      <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
     </div>
   );
 }
