@@ -4,12 +4,13 @@
 
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { formatDate } from '../lib/utils';
 
 function IconUser() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e07a7a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-accent)' }}>
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
     </svg>
@@ -18,7 +19,7 @@ function IconUser() {
 
 function IconHeart() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="#e07a7a" stroke="#e07a7a" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--color-accent)' }}>
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   );
@@ -44,6 +45,7 @@ function IconLogOut() {
 
 export default function Settings() {
   const { user, profile, couple, partner, refreshProfile, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
   const [relationshipStart, setRelationshipStart] = useState(couple?.relationship_start || '');
@@ -114,8 +116,41 @@ export default function Settings() {
         <div>
           <h2>Configuración</h2>
           <p className="text-secondary" style={{ marginTop: 'var(--space-xs)', fontSize: 'var(--font-size-sm)' }}>
-            Administra tu perfil y los datos de la pareja
+            Administra tu perfil, los datos de la pareja y la apariencia.
           </p>
+        </div>
+
+        {/* Theme Toggle */}
+        <div className="glass-card row row--between">
+          <div>
+            <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 600 }}>Tema Visual</h3>
+            <p className="text-secondary" style={{ fontSize: 'var(--font-size-xs)' }}>
+              {theme === 'dark' ? 'Modo Oscuro activado' : 'Modo Claro activado'}
+            </p>
+          </div>
+          <button 
+            className="btn btn--secondary" 
+            onClick={toggleTheme}
+            style={{ borderRadius: 'var(--radius-full)', padding: '10px' }}
+          >
+            {theme === 'dark' ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            )}
+          </button>
         </div>
 
 

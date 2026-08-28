@@ -76,6 +76,35 @@
   --z-toast: 300;
 }
 
+:root[data-theme='light'] {
+  --color-bg-primary: #fcf7ef;
+  --color-bg-secondary: #f6e8cc;
+  --color-bg-tertiary: #eeddb6;
+  --color-bg-card: rgba(246, 232, 204, 0.85);
+  --color-bg-card-hover: rgba(238, 221, 182, 0.9);
+
+  --color-border: rgba(0, 0, 0, 0.06);
+  --color-border-hover: rgba(0, 0, 0, 0.12);
+  --color-border-accent: rgba(217, 111, 111, 0.3);
+
+  --color-accent: #d96f6f;
+  --color-accent-hover: #c45b5b;
+  --color-accent-light: #ebb5b5;
+  --color-accent-glow: rgba(217, 111, 111, 0.12);
+
+  --gradient-accent: linear-gradient(135deg, #d96f6f 0%, #c45b5b 100%);
+  --gradient-accent-soft: linear-gradient(135deg, rgba(217, 111, 111, 0.15) 0%, rgba(196, 91, 91, 0.08) 100%);
+  --gradient-card: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 100%);
+
+  --color-text-primary: #2d2a26;
+  --color-text-secondary: #736d65;
+  --color-text-tertiary: #999187;
+  
+  --color-success: #4ade80;
+  --color-warning: #e5c573;
+  --color-error: #f87171;
+}
+
 /* Reset & Base */
 *, *::before, *::after {
   box-sizing: border-box;
