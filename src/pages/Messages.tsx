@@ -79,9 +79,30 @@ const MessageRow = ({
   const startXRef = useRef<number | null>(null);
   const startYRef = useRef<number | null>(null);
   const currentDragXRef = useRef<number>(0);
+  const rowRef = useRef<HTMLDivElement>(null);
   const bubbleRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<any>(null);
+
+  useEffect(() => {
+    const el = rowRef.current;
+    if (!el) return;
+    
+    const handleNativeTouchMove = (e: TouchEvent) => {
+      if (selectionMode || startXRef.current === null || startYRef.current === null) return;
+      
+      const deltaX = Math.abs(e.touches[0].clientX - startXRef.current);
+      const deltaY = Math.abs(e.touches[0].clientY - startYRef.current);
+      
+      // If moving horizontally more than vertically, prevent browser navigation
+      if (deltaX > deltaY && deltaX > 5) {
+        e.preventDefault();
+      }
+    };
+
+    el.addEventListener('touchmove', handleNativeTouchMove, { passive: false });
+    return () => el.removeEventListener('touchmove', handleNativeTouchMove);
+  }, [selectionMode]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (selectionMode) return;
@@ -175,6 +196,7 @@ const MessageRow = ({
 
   return (
     <div 
+      ref={rowRef}
       className={`message-row ${isMe ? 'message-row--me' : 'message-row--partner'}`} 
       style={{ 
         position: 'relative',
