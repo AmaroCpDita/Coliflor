@@ -156,7 +156,8 @@ const MessageRow = ({
         transition: 'background 0.2s',
         display: 'flex',
         alignItems: 'center',
-        gap: '12px'
+        gap: '12px',
+        touchAction: 'pan-y'
       }}
       onClick={() => {
         if (selectionMode) onToggleSelection(msg.id);
