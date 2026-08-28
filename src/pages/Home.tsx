@@ -395,7 +395,7 @@ export default function Home() {
                   Notita de {partnerName} para ti
                 </div>
                 <div style={{ fontSize: '20px', fontStyle: 'italic', fontWeight: 700, color: 'var(--color-accent)' }}>
-                  "{receivedNoteDisplay.length > 25 ? receivedNoteDisplay.substring(0, 25) + '...' : receivedNoteDisplay}"
+                  "{receivedNoteDisplay}"
                 </div>
               </div>
             </div>
