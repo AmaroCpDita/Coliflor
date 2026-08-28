@@ -544,7 +544,7 @@ export default function Quiz() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-xs)', marginTop: 'var(--space-xs)' }}>
                       <div style={{
                         padding: 'var(--space-xs) var(--space-sm)',
-                        background: 'rgba(0,0,0,0.25)',
+                        background: 'var(--color-bg-secondary)',
                         borderRadius: 'var(--radius-md)',
                         border: '1px solid var(--color-border)',
                       }}>
@@ -556,7 +556,7 @@ export default function Quiz() {
 
                       <div style={{
                         padding: 'var(--space-xs) var(--space-sm)',
-                        background: 'rgba(0,0,0,0.25)',
+                        background: 'var(--color-bg-secondary)',
                         borderRadius: 'var(--radius-md)',
                         border: '1px solid var(--color-border)',
                       }}>

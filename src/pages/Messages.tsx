@@ -689,7 +689,7 @@ export default function Messages() {
         padding: 'var(--space-md) var(--space-lg)',
         paddingTop: 'calc(var(--safe-top) + var(--space-md))',
         borderBottom: '1px solid var(--color-border)',
-        background: selectionMode ? 'var(--color-primary)' : 'rgba(13, 14, 18, 0.85)',
+        background: selectionMode ? 'var(--color-primary)' : 'var(--color-bg-card)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         transition: 'background 0.3s'
@@ -803,7 +803,7 @@ export default function Messages() {
         padding: 'var(--space-sm) var(--space-md)',
         paddingBottom: 'calc(var(--safe-bottom) + 70px)',
         borderTop: '1px solid var(--color-border)',
-        background: 'rgba(13, 14, 18, 0.9)',
+        background: 'var(--color-bg-card)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         display: 'flex',
