@@ -45,6 +45,202 @@ function IconMessageLarge() {
   );
 }
 
+
+function IconReplyAction() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 17 4 12 9 7" />
+      <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+    </svg>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+  );
+}
+
+const MessageRow = ({
+  msg,
+  isMe,
+  displayPartnerName,
+  profile,
+  repliedMsg,
+  selectionMode,
+  isSelected,
+  onToggleSelection,
+  onStartSelection,
+  onReply
+}: any) => {
+  const [translateX, setTranslateX] = useState(0);
+  const startXRef = useRef<number | null>(null);
+  const startYRef = useRef<number | null>(null);
+  const longPressTimerRef = useRef<any>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (selectionMode) return;
+    startXRef.current = e.touches[0].clientX;
+    startYRef.current = e.touches[0].clientY;
+    
+    longPressTimerRef.current = setTimeout(() => {
+      onStartSelection(msg.id);
+      startXRef.current = null;
+    }, 500);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (selectionMode) return;
+    
+    if (startXRef.current !== null && startYRef.current !== null) {
+      const deltaX = e.touches[0].clientX - startXRef.current;
+      const deltaY = Math.abs(e.touches[0].clientY - startYRef.current);
+      
+      if (deltaY > 20) {
+         if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+         startXRef.current = null;
+         setTranslateX(0);
+         return;
+      }
+      
+      if (Math.abs(deltaX) > 10 && longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+
+      if (deltaX > 0 && deltaX < 80) {
+        setTranslateX(deltaX);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    if (startXRef.current !== null) {
+      if (translateX > 50) {
+        onReply(msg);
+      }
+      setTranslateX(0);
+      startXRef.current = null;
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (selectionMode || e.button !== 0) return;
+    longPressTimerRef.current = setTimeout(() => {
+      onStartSelection(msg.id);
+    }, 500);
+  };
+
+  const handleMouseUp = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  return (
+    <div 
+      className={`message-row ${isMe ? 'message-row--me' : 'message-row--partner'}`} 
+      style={{ 
+        position: 'relative',
+        background: isSelected ? 'rgba(255,255,255,0.1)' : 'transparent',
+        borderRadius: '8px',
+        padding: isSelected ? '4px 8px' : '0',
+        transition: 'background 0.2s',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px'
+      }}
+      onClick={() => {
+        if (selectionMode) onToggleSelection(msg.id);
+      }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onContextMenu={(e) => {
+        if (!selectionMode) e.preventDefault();
+      }}
+    >
+      <div style={{
+        position: 'absolute',
+        left: '20px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        opacity: Math.min(translateX / 50, 1),
+        color: 'var(--color-primary)',
+        pointerEvents: 'none'
+      }}>
+        <IconReplyAction />
+      </div>
+
+      {selectionMode && (
+        <div style={{
+          width: '20px', height: '20px', borderRadius: '50%', 
+          border: `2px solid ${isSelected ? 'var(--color-primary)' : 'rgba(255,255,255,0.3)'}`,
+          background: isSelected ? 'var(--color-primary)' : 'transparent',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0
+        }}>
+          {isSelected && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+        </div>
+      )}
+
+      <div 
+        className={`message-bubble ${isMe ? 'message-bubble--me' : 'message-bubble--partner'}`}
+        style={{ 
+          transform: `translateX(${translateX}px)`, 
+          transition: translateX === 0 ? 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)' : 'none',
+          flex: 1,
+          pointerEvents: selectionMode ? 'none' : 'auto',
+          maxWidth: selectionMode ? 'calc(80% - 32px)' : '80%'
+        }}
+      >
+        {!isMe && (
+          <div className="message-sender-label">
+            {displayPartnerName}
+          </div>
+        )}
+        
+        {repliedMsg && !repliedMsg.is_deleted && (
+          <div style={{ 
+            background: 'rgba(0,0,0,0.15)', 
+            padding: '6px 8px', 
+            borderRadius: '6px', 
+            marginBottom: '4px',
+            borderLeft: `3px solid ${isMe ? 'rgba(255,255,255,0.5)' : 'var(--color-primary)'}`,
+            fontSize: '11px',
+            opacity: 0.8
+          }}>
+            <div style={{ fontWeight: 600, marginBottom: '2px' }}>
+              {repliedMsg.sender_id === profile?.id ? 'Tú' : displayPartnerName}
+            </div>
+            <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {repliedMsg.content}
+            </div>
+          </div>
+        )}
+        
+        <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+          {msg.content}
+        </div>
+        <div className="message-time" style={{ textAlign: isMe ? 'right' : 'left' }}>
+          {formatTime(msg.created_at)}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function Messages() {
   const { user, couple, profile, partner, refreshProfile, isMockMode } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -75,8 +271,9 @@ export default function Messages() {
 
   const displayPartnerName = partnerNickname.trim() || partnerName;
 
-  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
-  const [activeContextMenu, setActiveContextMenu] = useState<string | null>(null);
+    const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -303,15 +500,39 @@ export default function Messages() {
     }
   };
 
-  const handleDeleteMessage = async (msgId: string) => {
-    setActiveContextMenu(null);
-    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, is_deleted: true } : m));
+  
+  const handleToggleSelection = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      if (next.size === 0) setSelectionMode(false);
+      return next;
+    });
+  };
+
+  const handleStartSelection = (id: string) => {
+    setSelectionMode(true);
+    setSelectedIds(new Set([id]));
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar ${selectedIds.size} ${selectedIds.size === 1 ? 'mensaje' : 'mensajes'}?`)) return;
+
+    const ids = Array.from(selectedIds);
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+    
+    setMessages(prev => prev.map(m => ids.includes(m.id) ? { ...m, is_deleted: true } : m));
+
     try {
-      await supabase.from('messages').update({ is_deleted: true }).eq('id', msgId);
+      await supabase.from('messages').update({ is_deleted: true }).in('id', ids);
     } catch (e) {
-      console.warn('Error deleting message:', e);
+      console.warn('Error deleting messages:', e);
     }
   };
+
 
   const handleSaveNickname = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -414,39 +635,56 @@ export default function Messages() {
         padding: 'var(--space-md) var(--space-lg)',
         paddingTop: 'calc(var(--safe-top) + var(--space-md))',
         borderBottom: '1px solid var(--color-border)',
-        background: 'rgba(13, 14, 18, 0.85)',
+        background: selectionMode ? 'var(--color-primary)' : 'rgba(13, 14, 18, 0.85)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
+        transition: 'background 0.3s'
       }}>
-        <div className="row row--between">
-          <div>
-            <div className="row row--gap-xs">
-              <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-primary)' }}>
-                {displayPartnerName}
+        {selectionMode ? (
+          <div className="row row--between">
+            <div className="row row--gap-md">
+              <button className="btn btn--ghost btn--xs" onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); }} style={{ color: '#fff', padding: 0 }}>
+                ✕ Cancelar
+              </button>
+              <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: '#fff' }}>
+                {selectedIds.size} {selectedIds.size === 1 ? 'seleccionado' : 'seleccionados'}
               </span>
-              {partnerNickname && (
-                <span className="text-secondary" style={{ fontSize: '11px', opacity: 0.7 }}>
-                  ({partnerName})
-                </span>
-              )}
             </div>
-            <div className="text-secondary" style={{ fontSize: '10px' }}>
-              Mensajes en vivo
-            </div>
+            <button className="btn btn--ghost btn--xs" onClick={handleBatchDelete} style={{ color: '#fff', padding: 0 }}>
+              <IconTrash />
+            </button>
           </div>
+        ) : (
+          <div className="row row--between">
+            <div>
+              <div className="row row--gap-xs">
+                <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-primary)' }}>
+                  {displayPartnerName}
+                </span>
+                {partnerNickname && (
+                  <span className="text-secondary" style={{ fontSize: '11px', opacity: 0.7 }}>
+                    ({partnerName})
+                  </span>
+                )}
+              </div>
+              <div className="text-secondary" style={{ fontSize: '10px' }}>
+                Mensajes en vivo
+              </div>
+            </div>
 
-          <button
-            className="btn btn--ghost btn--xs row row--gap-xs"
-            onClick={() => {
-              setNicknameInput(partnerNickname);
-              setShowNicknameModal(true);
-            }}
-            style={{ fontSize: '11px', color: 'var(--color-accent-light)', padding: '4px 8px' }}
-          >
-            <IconEdit />
-            <span>{partnerNickname ? 'Apodo' : 'Poner apodo'}</span>
-          </button>
-        </div>
+            <button
+              className="btn btn--ghost btn--xs row row--gap-xs"
+              onClick={() => {
+                setNicknameInput(partnerNickname);
+                setShowNicknameModal(true);
+              }}
+              style={{ fontSize: '11px', color: 'var(--color-accent-light)', padding: '4px 8px' }}
+            >
+              <IconEdit />
+              <span>{partnerNickname ? 'Apodo' : 'Poner apodo'}</span>
+            </button>
+          </div>
+        )}
       </div>
 
 
@@ -486,75 +724,19 @@ export default function Messages() {
               const repliedMsg = msg.reply_to_id ? messages.find(m => m.id === msg.reply_to_id) : null;
               
               return (
-                <div key={msg.id} className={`message-row ${isMe ? 'message-row--me' : 'message-row--partner'}`} style={{ position: 'relative' }}>
-                  <div 
-                    className={`message-bubble ${isMe ? 'message-bubble--me' : 'message-bubble--partner'}`}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      setActiveContextMenu(msg.id);
-                    }}
-                    onClick={() => setActiveContextMenu(msg.id === activeContextMenu ? null : msg.id)}
-                  >
-                    {!isMe && (
-                      <div className="message-sender-label">
-                        {displayPartnerName}
-                      </div>
-                    )}
-                    
-                    {repliedMsg && !repliedMsg.is_deleted && (
-                      <div style={{ 
-                        background: 'rgba(0,0,0,0.15)', 
-                        padding: '6px 8px', 
-                        borderRadius: '6px', 
-                        marginBottom: '4px',
-                        borderLeft: `3px solid ${isMe ? 'rgba(255,255,255,0.5)' : 'var(--color-primary)'}`,
-                        fontSize: '11px',
-                        opacity: 0.8
-                      }}>
-                        <div style={{ fontWeight: 600, marginBottom: '2px' }}>
-                          {repliedMsg.sender_id === profile?.id ? 'Tú' : displayPartnerName}
-                        </div>
-                        <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {repliedMsg.content}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
-                      {msg.content}
-                    </div>
-                    <div className="message-time" style={{ textAlign: isMe ? 'right' : 'left' }}>
-                      {formatTime(msg.created_at)}
-                    </div>
-                  </div>
-                  
-                  {activeContextMenu === msg.id && (
-                    <div 
-                      className="glass-card animate-scale-in"
-                      style={{ 
-                        position: 'absolute', 
-                        top: '50%', 
-                        [isMe ? 'right' : 'left']: 'calc(100% - 20px)',
-                        transform: 'translateY(-50%)',
-                        zIndex: 10,
-                        padding: '4px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '2px',
-                        minWidth: '120px'
-                      }}
-                    >
-                      <button className="btn btn--ghost btn--sm" style={{ justifyContent: 'flex-start', padding: '6px 12px' }} onClick={() => { setReplyingTo(msg); setActiveContextMenu(null); }}>
-                        Responder
-                      </button>
-                      {isMe && (
-                        <button className="btn btn--ghost btn--sm" style={{ justifyContent: 'flex-start', padding: '6px 12px', color: 'var(--color-error)' }} onClick={() => handleDeleteMessage(msg.id)}>
-                          Eliminar
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <MessageRow
+                  key={msg.id}
+                  msg={msg}
+                  isMe={isMe}
+                  displayPartnerName={displayPartnerName}
+                  profile={profile}
+                  repliedMsg={repliedMsg}
+                  selectionMode={selectionMode}
+                  isSelected={selectedIds.has(msg.id)}
+                  onToggleSelection={handleToggleSelection}
+                  onStartSelection={handleStartSelection}
+                  onReply={(m: Message) => setReplyingTo(m)}
+                />
               );
             })}
           </div>
