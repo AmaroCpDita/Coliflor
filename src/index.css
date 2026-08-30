@@ -805,7 +805,7 @@ body {
     display: none !important;
   }
   .chat-input-bar {
-    padding-bottom: calc(var(--safe-bottom) + 12px) !important;
+    padding-bottom: 12px !important;
   }
 }
 
@@ -816,5 +816,5 @@ body:has(textarea:focus) .floating-dock {
 
 body:has(input:focus) .chat-input-bar,
 body:has(textarea:focus) .chat-input-bar {
-  padding-bottom: calc(var(--safe-bottom) + 12px) !important;
+  padding-bottom: 12px !important;
 }
