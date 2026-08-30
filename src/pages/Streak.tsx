@@ -588,12 +588,12 @@ export default function Streak() {
         />
 
         {/* Monthly Recoveries Box */}
-        <div className="glass-card">
+        <div className="glass-card" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
           <div className="row row--between">
             <div className="row row--gap-sm">
-              <IconShield />
+              <span style={{ color: 'var(--color-warning)' }}><IconShield /></span>
               <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
-                Recuperaciones del mes
+                Comodines disponibles
               </span>
             </div>
             <span style={{ fontWeight: 700, color: 'var(--color-warning)', fontSize: 'var(--font-size-sm)' }}>
@@ -601,17 +601,13 @@ export default function Streak() {
             </span>
           </div>
 
-          <p className="text-secondary" style={{ fontSize: 'var(--font-size-xs)', marginTop: 'var(--space-xs)' }}>
-            Se otorgan 5 recuperaciones al mes para reparar la racha del día anterior. No son acumulables.
-          </p>
-
           {recoveriesRemaining > 0 && !showRecovery && (
             <button
               className="btn btn--ghost btn--sm btn--full"
               onClick={() => setShowRecovery(true)}
-              style={{ marginTop: 'var(--space-md)', fontSize: 'var(--font-size-xs)' }}
+              style={{ marginTop: 'var(--space-sm)', fontSize: 'var(--font-size-xs)' }}
             >
-              Usar recuperación para el día de ayer
+              Usar comodín para el día de ayer
             </button>
           )}
 
