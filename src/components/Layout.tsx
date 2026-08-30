@@ -70,6 +70,7 @@ export default function Layout() {
   const [showNotifCenter, setShowNotifCenter] = useState(false);
   const [activityLogs, setActivityLogs] = useState<Message[]>([]);
   const [hasUnread, setHasUnread] = useState(false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   const profileIdRef = useRef(profile?.id);
   const coupleRef = useRef(couple);
@@ -83,6 +84,42 @@ export default function Layout() {
     partnerRef.current = partner;
     partnerNameRef.current = partnerName;
   }, [profile?.id, couple, partner, partnerName]);
+
+  // Detect input focus to hide the floating dock when virtual keyboard is open
+  useEffect(() => {
+    const handleFocus = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA') {
+        setIsKeyboardOpen(true);
+      }
+    };
+    
+    const handleBlur = () => {
+      setIsKeyboardOpen(false);
+    };
+
+    window.addEventListener('focusin', handleFocus);
+    window.addEventListener('focusout', handleBlur);
+    
+    // Also use visualViewport as a fallback/enhancement for Android/iOS
+    const handleResize = () => {
+      if (!window.visualViewport) return;
+      const isShrunk = window.visualViewport.height < window.innerHeight - 150;
+      setIsKeyboardOpen(isShrunk || document.activeElement?.tagName === 'INPUT');
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+    }
+
+    return () => {
+      window.removeEventListener('focusin', handleFocus);
+      window.removeEventListener('focusout', handleBlur);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+      }
+    };
+  }, []);
 
   // Lock background scroll when notification drawer is open
   useEffect(() => {
@@ -364,7 +401,7 @@ export default function Layout() {
       <Outlet context={{ openNotifCenter, hasUnread }} />
 
       {/* Clean 5-Tab Floating Navigation Dock */}
-      <nav className="floating-dock">
+      <nav className="floating-dock" style={{ display: isKeyboardOpen ? 'none' : 'flex' }}>
         <NavLink
           to="/"
           end
