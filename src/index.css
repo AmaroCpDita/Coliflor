@@ -785,16 +785,34 @@ body {
   background: var(--color-border);
   margin: 0 auto var(--space-sm);
   display: none; /* Only useful for bottom sheets */
+/* --- Keyboard Overlap Fix --- */
+.chat-input-bar {
+  padding: var(--space-sm) var(--space-md);
+  padding-bottom: calc(var(--safe-bottom) + 90px);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  transition: padding-bottom 0.2s ease-out;
 }
 
-/* --- Keyboard Overlap Fix --- */
 @media (max-height: 600px) {
   .floating-dock {
     display: none !important;
+  }
+  .chat-input-bar {
+    padding-bottom: calc(var(--safe-bottom) + 12px) !important;
   }
 }
 
 body:has(input:focus) .floating-dock,
 body:has(textarea:focus) .floating-dock {
   display: none !important;
+}
+
+body:has(input:focus) .chat-input-bar,
+body:has(textarea:focus) .chat-input-bar {
+  padding-bottom: calc(var(--safe-bottom) + 12px) !important;
 }

@@ -799,16 +799,7 @@ export default function Messages() {
       </div>
 
       {/* Input bar */}
-      <div style={{
-        padding: 'var(--space-sm) var(--space-md)',
-        paddingBottom: 'calc(var(--safe-bottom) + 70px)',
-        borderTop: '1px solid var(--color-border)',
-        background: 'var(--color-bg-card)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
+      <div className="chat-input-bar">
         {replyingTo && (
           <div className="row row--between" style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-md) var(--radius-md) 0 0', marginBottom: '8px', borderLeft: '3px solid var(--color-primary)' }}>
             <div style={{ flex: 1, overflow: 'hidden' }}>
