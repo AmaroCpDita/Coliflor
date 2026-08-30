@@ -1,4 +1,4 @@
-import { ONESIGNAL_APP_ID } from './onesignal';
+const ONESIGNAL_APP_ID = 'c8182906-bc83-480e-8a97-c60611034162';
 
 const REST_API_KEY = import.meta.env.VITE_ONESIGNAL_REST_API_KEY;
 

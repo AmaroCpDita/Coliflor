@@ -1497,6 +1497,975 @@ export const THEMED_QUIZZES: ThemedQuiz[] = [
       },
     ],
   },
+  {
+    theme: "Comida y Cocina",
+    subtitle: "Nuestros gustos culinarios y aventuras en la cocina",
+    questions: [
+      {
+        question: "Si tuvieras que cocinarme algo para impresionarme, ¿qué harías?",
+        options: [
+          "Algo casero y sencillo, tipo pasta con salsa hecha por mí",
+          "Pediría comida y diría que la hice yo (shh)",
+          "Un postre hermoso tipo brownies o galletas",
+          "Me la jugaría con algo difícil tipo sushi casero",
+        ],
+      },
+      {
+        question: "Cuando pedimos comida juntos, ¿cómo decidimos qué pedir?",
+        options: [
+          "Yo siempre decido porque la otra persona dice 'lo que tú quieras'",
+          "Nos demoramos media hora debatiendo y al final pedimos lo mismo de siempre",
+          "Cada uno pide lo suyo y compartimos un poco",
+          "Pedimos lo que esté en oferta o con cupón",
+        ],
+      },
+      {
+        question: "¿Cuál es tu snack favorito para ver peli juntos?",
+        options: [
+          "Cabritas/palomitas con harto mantequilla",
+          "Papas fritas o nachos con salsa",
+          "Chocolates o dulces variados",
+          "Fruta picada o algo más sano",
+        ],
+      },
+      {
+        question: "Si pudiéramos salir a comer a cualquier lugar del mundo, ¿a dónde irías?",
+        options: [
+          "A un puesto callejero de tacos en México",
+          "A un restaurante italiano romántico con velas",
+          "A probar ramen auténtico en Tokio",
+          "A un lugar con vista al mar y mariscos frescos",
+        ],
+      },
+      {
+        question: "¿Qué opinas de que uno de los dos sea mañoso/a para comer?",
+        options: [
+          "Es tierno, me gusta respetar sus gustos",
+          "Me frustra un poco, pero lo acepto con amor",
+          "Le hago probar cosas nuevas hasta que le gusten",
+          "Yo soy el/la mañoso/a, así que no puedo opinar",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Lenguaje del Amor",
+    subtitle: "Cómo nos demostramos cariño el uno al otro",
+    questions: [
+      {
+        question: "¿Cuál es tu forma favorita de recibir cariño?",
+        options: [
+          "Palabras bonitas y piropo sinceros",
+          "Abrazos, besos y contacto físico",
+          "Que me dediquen tiempo de calidad sin distracciones",
+          "Detallitos o regalos inesperados (aunque sean chiquitos)",
+        ],
+      },
+      {
+        question: "¿Cómo te das cuenta de que tu pareja te quiere sin que te lo diga?",
+        options: [
+          "Cuando se acuerda de los detalles pequeños que le conté",
+          "Cuando me busca para estar juntos sin razón especial",
+          "Cuando me defiende frente a otros o me cuida",
+          "Cuando se preocupa de preguntarme cómo estoy de verdad",
+        ],
+      },
+      {
+        question: "¿Qué te derrite más en la relación?",
+        options: [
+          "Un mensaje largo y profundo de la nada",
+          "Que me abrace fuerte sin decir nada",
+          "Que planee algo especial solo para nosotros",
+          "Que me diga lo orgulloso/a que está de mí",
+        ],
+      },
+      {
+        question: "Cuando tu pareja está triste, ¿qué haces instintivamente?",
+        options: [
+          "Lo/la abrazo y me quedo en silencio acompañándolo/a",
+          "Intento hacerlo/a reír con alguna tontería",
+          "Le pregunto qué pasó y lo escucho atentamente",
+          "Le compro o preparo algo que sé que le gusta",
+        ],
+      },
+      {
+        question: "¿Qué frase simple te llena más el corazón?",
+        options: [
+          "'Estoy orgulloso/a de ti'",
+          "'Extraño estar contigo'",
+          "'Eres lo mejor que me ha pasado'",
+          "'Gracias por ser como eres'",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Ropa y Estilo",
+    subtitle: "Cómo nos vestimos y qué nos gusta del look del otro",
+    questions: [
+      {
+        question: "¿Cuál es tu prenda favorita de tu pareja?",
+        options: [
+          "Su polera/poleron favorita que ya tiene olor a él/ella",
+          "Cuando se arregla especial y se pone algo diferente",
+          "La ropa deportiva o cómoda del día a día",
+          "Cuando usa algo que le regalé",
+        ],
+      },
+      {
+        question: "¿Te gusta que tu pareja te robe la ropa?",
+        options: [
+          "Me encanta, se ve adorable con mi ropa",
+          "Depende de cuál, algunas son sagradas",
+          "Sí, pero después no me la devuelve nunca",
+          "Me da igual, ni me doy cuenta",
+        ],
+      },
+      {
+        question: "Cuando salimos juntos a algo especial, ¿cómo nos coordinamos la ropa?",
+        options: [
+          "Nos mandamos foto antes para ver si combinamos",
+          "Cada uno se viste como quiera, no nos importa",
+          "Uno siempre se viste más arreglado que el otro",
+          "Nos vestimos parecido sin querer, ya nos leemos la mente",
+        ],
+      },
+      {
+        question: "¿Qué estilo de ropa te parece más atractivo en tu pareja?",
+        options: [
+          "Casual y cómodo, como si no se esforzara pero se ve increíble",
+          "Arregladito/a, bien vestido/a con estilo",
+          "Deportivo, tipo buzo o ropa de gym",
+          "Pijama o ropa de casa, verlo/a relajado/a",
+        ],
+      },
+      {
+        question: "¿Qué opinas de la ropa de pareja (poleras iguales, etc.)?",
+        options: [
+          "Es adorable, lo haría al tiro",
+          "Un poco cringe pero lo haría por ti",
+          "Solo si es algo sutil, no tan obvio",
+          "Jamás, eso no va conmigo",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Recuerdos Juntos",
+    subtitle: "Los momentos que nos han marcado como pareja",
+    questions: [
+      {
+        question: "¿Cuál ha sido tu momento favorito juntos hasta ahora?",
+        options: [
+          "El día que nos hicimos novios oficialmente",
+          "Una salida o cita que fue especialmente linda",
+          "Un momento random que nos dio un ataque de risa",
+          "La primera vez que nos dijimos 'te quiero'",
+        ],
+      },
+      {
+        question: "¿Recuerdas qué fue lo primero que pensaste cuando me conociste?",
+        options: [
+          "'Qué lindo/a, me gustaría conocerlo/a mejor'",
+          "'Se ve buena onda, me cae bien'",
+          "No me acuerdo bien, fue natural y gradual",
+          "'Nah, no es mi tipo' (y mira cómo terminamos jaja)",
+        ],
+      },
+      {
+        question: "¿Hay alguna anécdota vergonzosa nuestra que siempre te da risa?",
+        options: [
+          "Sí, y la cuento cada vez que puedo para molestarte",
+          "Sí, pero me da vergüenza y no la cuento a nadie",
+          "Tenemos tantas que no sabría cuál elegir",
+          "La verdad no se me ocurre ninguna",
+        ],
+      },
+      {
+        question: "Si pudieras revivir un día entero que pasamos juntos, ¿cuál sería?",
+        options: [
+          "Nuestra primera cita real",
+          "Un día donde no paramos de reírnos",
+          "Un día donde tuvimos una conversación muy profunda",
+          "Cualquier día normal donde simplemente estuvimos juntos",
+        ],
+      },
+      {
+        question: "¿Qué recuerdo nuestro guardarías en una cápsula del tiempo?",
+        options: [
+          "Una foto juntos de nuestra etapa más feliz",
+          "Un screenshot de una conversación especial",
+          "Un objeto que nos recuerde algo importante",
+          "Una carta escrita a mano el uno al otro",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Miedos y Vulnerabilidades",
+    subtitle: "Lo que no siempre mostramos pero sentimos",
+    questions: [
+      {
+        question: "¿Cuál es tu mayor miedo en una relación?",
+        options: [
+          "Que me dejen de querer con el tiempo",
+          "Perder mi independencia o dejar de ser yo",
+          "No ser suficiente para la otra persona",
+          "Que la rutina mate la emoción que sentimos",
+        ],
+      },
+      {
+        question: "¿Te cuesta decirme cuando algo te molesta de la relación?",
+        options: [
+          "Sí, me lo guardo porque no quiero pelear",
+          "Un poco, pero eventualmente lo digo",
+          "No, soy bien directo/a con lo que siento",
+          "Depende de qué tan grave sea el tema",
+        ],
+      },
+      {
+        question: "¿Alguna vez has tenido miedo de que terminemos?",
+        options: [
+          "Honestamente sí, en algún momento difícil",
+          "No realmente, confío en lo que tenemos",
+          "Solo cuando peleamos fuerte, pero se me pasa rápido",
+          "Prefiero no pensar en eso porque me angustia",
+        ],
+      },
+      {
+        question: "¿Cómo te sientes cuando me ves llorar o pasarla mal?",
+        options: [
+          "Se me parte el corazón, haría lo que fuera por consolarte",
+          "Me siento impotente porque no sé cómo ayudarte",
+          "Me pongo fuerte por fuera pero por dentro me afecta mucho",
+          "Intento buscar soluciones prácticas al problema",
+        ],
+      },
+      {
+        question: "¿Qué es lo más difícil de ser pareja joven?",
+        options: [
+          "No tener plata para hacer todo lo que queremos",
+          "Depender de los horarios y permisos de la familia",
+          "La presión social o las opiniones de los demás",
+          "No tener un espacio propio para estar a solas",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Humor y Risas",
+    subtitle: "Lo que nos hace reír y las bromas internas",
+    questions: [
+      {
+        question: "¿Quién hace reír más al otro?",
+        options: [
+          "Yo, claramente soy el/la chistoso/a de la relación",
+          "Tú, siempre me sacas carcajadas",
+          "Los dos por igual, somos un dúo cómico",
+          "Ninguno, somos más serios pero nos complementamos",
+        ],
+      },
+      {
+        question: "¿Cuál es nuestro chiste interno más sagrado?",
+        options: [
+          "Ese que nadie entiende excepto nosotros y nos morimos de risa",
+          "Un apodo ridículo que nos pusimos",
+          "Una frase que repetimos como loros sin razón",
+          "Todavía no tenemos uno tan especial, pero vendrá",
+        ],
+      },
+      {
+        question: "¿Te gusta que te hagan bromas pesadas con amor?",
+        options: [
+          "Sí, me encanta el humor, aguanto todo",
+          "Depende de la broma, algunas me hacen enojar de verdad",
+          "Solo si después me compensan con mimos",
+          "No me gustan las bromas pesadas, prefiero humor tierno",
+        ],
+      },
+      {
+        question: "¿Cuál es tu reacción cuando tu pareja se ríe incontrolablemente?",
+        options: [
+          "Me contagio y me río igual aunque no sepa de qué",
+          "Me quedo mirándolo/a con cara de enamorado/a",
+          "Le grabo un video porque se ve gracioso/a",
+          "Le pido que me cuente qué es tan chistoso",
+        ],
+      },
+      {
+        question: "Si tuviéramos un canal de YouTube juntos, ¿de qué sería?",
+        options: [
+          "Challenges y retos de pareja chistosos",
+          "Vlogs de nuestra vida cotidiana y citas",
+          "Reaccionando a cosas juntos",
+          "Cocinando desastrosamente juntos",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Planes de Fin de Semana",
+    subtitle: "Cómo aprovechamos nuestro tiempo libre juntos",
+    questions: [
+      {
+        question: "Un sábado perfecto juntos sería...",
+        options: [
+          "Quedarnos en cama hasta tarde y ver series todo el día",
+          "Salir a caminar, tomar un café y explorar la ciudad",
+          "Juntarnos con amigos para hacer algo entretenido",
+          "Cocinar juntos algo rico y disfrutar de una tarde tranquila",
+        ],
+      },
+      {
+        question: "Si tenemos todo el domingo libre sin planes, ¿qué hacemos?",
+        options: [
+          "Improvisamos algo sobre la marcha",
+          "Cada uno hace sus cosas y nos juntamos en la tarde",
+          "Nos quedamos juntos todo el día haciendo nada",
+          "Salimos a algún lado nuevo que no conocemos",
+        ],
+      },
+      {
+        question: "¿Qué plan gratis de fin de semana disfrutas más?",
+        options: [
+          "Ir a un parque a sentarnos y conversar",
+          "Caminar por algún barrio bonito sin rumbo",
+          "Quedarnos en casa cocinando con lo que hay",
+          "Hacer una maratón de pelis con mantas y snacks",
+        ],
+      },
+      {
+        question: "¿Prefieres que planifiquemos las salidas o improvisar?",
+        options: [
+          "Planificar, me gusta saber qué haremos",
+          "Improvisar totalmente, lo mejor es lo espontáneo",
+          "Un mix: tener una idea general pero ser flexibles",
+          "Que tú planifiques y yo solo aparezco",
+        ],
+      },
+      {
+        question: "Si llueve todo el fin de semana, ¿qué hacemos?",
+        options: [
+          "Maratón de serie nueva que queramos empezar",
+          "Jugar juegos de mesa, cartas o videojuegos juntos",
+          "Aprovechar de dormir siesta y acurrucarnos",
+          "Cocinar algo elaborado como proyecto del día",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Fotos y Selfies",
+    subtitle: "Nuestra relación a través de la cámara",
+    questions: [
+      {
+        question: "¿Quién saca más fotos en la relación?",
+        options: [
+          "Yo, tengo el celular lleno de fotos tuyas",
+          "Tú, siempre me estás sacando fotos sin permiso",
+          "Los dos somos igual de fotográficos",
+          "Ninguno, somos pésimos para sacar fotos juntos",
+        ],
+      },
+      {
+        question: "¿Cuántas fotos juntos tenemos en el celular más o menos?",
+        options: [
+          "Muchísimas, el carrete está lleno de nosotros",
+          "Unas cuantas, las justas y necesarias",
+          "Pocas, siempre se nos olvida sacar fotos",
+          "Tenemos más screenshots de conversaciones que fotos",
+        ],
+      },
+      {
+        question: "¿Cuál es tu pose favorita para fotos juntos?",
+        options: [
+          "El clásico selfie con cara pegada",
+          "Que alguien más nos saque la foto para que salga mejor",
+          "Fotos espontáneas sin posar",
+          "Poses chistosas o haciendo caras graciosas",
+        ],
+      },
+      {
+        question: "¿Publicarías una foto nuestra en redes sociales?",
+        options: [
+          "Sí, que todo el mundo sepa que somos pareja",
+          "Solo en historias, no tanto en el feed permanente",
+          "Prefiero que nuestra relación sea más privada",
+          "Solo en fechas especiales como aniversario",
+        ],
+      },
+      {
+        question: "¿Qué harías si encuentras una foto mía fea en tu celular?",
+        options: [
+          "La guardo como tesoro y te la muestro para molestarte",
+          "La borro para proteger tu dignidad",
+          "La pongo de fondo de pantalla para reírme",
+          "Se la mando a tus amigos sin piedad",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Rutinas de Pareja",
+    subtitle: "Las costumbres que hemos creado juntos sin darnos cuenta",
+    questions: [
+      {
+        question: "¿Tenemos alguna rutina diaria juntos que sea sagrada?",
+        options: [
+          "El mensaje de buenos días / buenas noches siempre",
+          "Llamarnos o hablarnos a cierta hora del día",
+          "Mandarnos memes o TikToks durante el día",
+          "No tenemos rutinas fijas, somos más espontáneos",
+        ],
+      },
+      {
+        question: "Si un día no nos hablamos en todo el día, ¿qué pasa?",
+        options: [
+          "Sería súper raro, nunca pasa",
+          "Pasa de vez en cuando y está bien",
+          "Uno de los dos se preocupa y escribe primero",
+          "Nos extrañamos horriblemente",
+        ],
+      },
+      {
+        question: "¿Cuál de estas rutinas te gustaría que tuviéramos?",
+        options: [
+          "Una cita semanal aunque sea algo sencillo",
+          "Cocinar juntos al menos una vez a la semana",
+          "Hacer ejercicio o caminar juntos",
+          "Tener una noche de juegos o pelis fija",
+        ],
+      },
+      {
+        question: "¿Quién es más de rutina y quién más de improvisación?",
+        options: [
+          "Yo soy de rutina, tú improvisas todo",
+          "Tú eres de rutina, yo improviso todo",
+          "Los dos somos de rutina, somos predecibles",
+          "Los dos improvisamos, es un caos hermoso",
+        ],
+      },
+      {
+        question: "¿Qué es lo primero que haces cuando nos juntamos después de no vernos?",
+        options: [
+          "Te abrazo fuerte y no te suelto",
+          "Te doy un beso largo",
+          "Te miro y te digo algo lindo",
+          "Te empiezo a contar todo lo que me pasó desde que no nos vimos",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Sueños y Metas de Vida",
+    subtitle: "Lo que queremos lograr juntos y por separado",
+    questions: [
+      {
+        question: "¿Cuál es tu sueño más grande en la vida?",
+        options: [
+          "Ser profesional exitoso/a en lo que me apasiona",
+          "Viajar por el mundo y conocer muchas culturas",
+          "Tener una familia hermosa y un hogar lleno de amor",
+          "Tener libertad financiera para no preocuparme de plata",
+        ],
+      },
+      {
+        question: "¿Cuándo te imaginas viviendo juntos?",
+        options: [
+          "Apenas podamos, ojalá pronto",
+          "Cuando los dos estemos estables económicamente",
+          "Después de terminar los estudios",
+          "No lo he pensado mucho todavía, estoy enfocado/a en el presente",
+        ],
+      },
+      {
+        question: "¿Te gustaría que trabajáramos en algo juntos algún día?",
+        options: [
+          "Sí, sería genial tener un negocio de pareja",
+          "No, prefiero que cada uno tenga su espacio profesional",
+          "Tal vez algo chico como hobby, no como trabajo principal",
+          "Depende de qué sea, me lo pensaría",
+        ],
+      },
+      {
+        question: "¿Qué meta quieres lograr en los próximos 2 años?",
+        options: [
+          "Terminar o avanzar bien en mis estudios",
+          "Ahorrar plata para algo importante",
+          "Crecer como persona y trabajar en mí mismo/a",
+          "Viajar juntos por primera vez",
+        ],
+      },
+      {
+        question: "Si pudieras vivir en cualquier ciudad del mundo con tu pareja, ¿cuál sería?",
+        options: [
+          "Santiago pero en un depa lindo con terraza",
+          "Barcelona, por la cultura y el mar",
+          "Tokio, por la tecnología y la comida",
+          "Algún pueblito tranquilo en el sur de Chile",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Comunicación y Confianza",
+    subtitle: "Cómo nos contamos las cosas y lo que callamos",
+    questions: [
+      {
+        question: "¿Sientes que puedes contarme absolutamente todo?",
+        options: [
+          "Sí, 100%. No tengo secretos contigo",
+          "Casi todo, hay cosas que me cuesta más",
+          "Sí, pero a veces me toma tiempo abrirme",
+          "Prefiero guardarme algunas cosas para mí",
+        ],
+      },
+      {
+        question: "¿Cómo prefieres que te diga algo que me molestó?",
+        options: [
+          "Directo y al grano, sin vueltas",
+          "Con cuidado y tacto, eligiendo bien las palabras",
+          "Por mensaje primero para que lo proceses, después en persona",
+          "En el momento, no me gusta que se guarden las cosas",
+        ],
+      },
+      {
+        question: "¿Revisarías el celular de tu pareja si tuvieras la oportunidad?",
+        options: [
+          "No, confío plenamente y respeto su privacidad",
+          "La verdad me daría curiosidad pero no lo haría",
+          "Si tuviera motivos para desconfiar, tal vez sí",
+          "Ya lo hemos hecho los dos y no hay dramas",
+        ],
+      },
+      {
+        question: "¿Cómo reaccionas cuando tu pareja tiene un amigo/a cercano del otro sexo?",
+        options: [
+          "Me da igual, confío en mi pareja",
+          "No me molesta pero me gusta conocer a esa persona",
+          "Me genera un poquito de inseguridad pero lo manejo",
+          "Prefiero no pensar en eso la verdad",
+        ],
+      },
+      {
+        question: "¿Qué tan importante es decir 'te amo' todos los días?",
+        options: [
+          "Fundamental, necesito escucharlo y decirlo a diario",
+          "Importante, pero no tiene que ser todos los días",
+          "Las acciones dicen más que las palabras",
+          "Me gusta más cuando sale espontáneo y no por costumbre",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Tradiciones Nuestras",
+    subtitle: "Las costumbres únicas que solo nosotros entendemos",
+    questions: [
+      {
+        question: "¿Tenemos algún lugar que sea 'nuestro lugar' especial?",
+        options: [
+          "Sí, un lugar donde siempre volvemos porque nos trae recuerdos",
+          "No uno fijo, pero hay varios que son especiales",
+          "La verdad donde sea que estemos juntos es especial",
+          "Todavía no, pero me gustaría que tuviéramos uno",
+        ],
+      },
+      {
+        question: "¿Cuál es 'nuestra canción'?",
+        options: [
+          "Tenemos una bien definida que los dos sabemos",
+          "Tenemos varias que nos recuerdan momentos juntos",
+          "No tenemos una oficial, pero hay canciones que me recuerdan a ti",
+          "No somos mucho de tener 'nuestra canción'",
+        ],
+      },
+      {
+        question: "¿Celebramos los aniversarios mensuales (mesiversarios)?",
+        options: [
+          "Sí, cada mes sin falta, con algo especial",
+          "Los primeros meses sí, después se nos fue olvidando",
+          "Solo lo mencionamos por mensaje pero no hacemos nada",
+          "No, esperamos los aniversarios grandes",
+        ],
+      },
+      {
+        question: "¿Qué tradición de pareja te gustaría que creáramos?",
+        options: [
+          "Escribirnos una carta para cada aniversario",
+          "Tener un álbum de fotos que vayamos llenando",
+          "Un viaje anual a algún lugar nuevo",
+          "Una cena especial mensual donde nos arreglamos bonito",
+        ],
+      },
+      {
+        question: "¿Tenemos apodos secretos el uno para el otro?",
+        options: [
+          "Sí, y si alguien los escuchara se moriría de vergüenza ajena",
+          "Usamos los clásicos: amor, bebé, mi vida",
+          "Tenemos uno que inventamos nosotros y es único",
+          "No somos mucho de apodos, nos llamamos por el nombre",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Tecnología y Apps",
+    subtitle: "Cómo usamos la tecnología como pareja",
+    questions: [
+      {
+        question: "¿Cuál es la app que más usamos para comunicarnos?",
+        options: [
+          "WhatsApp, el clásico de los clásicos",
+          "Instagram por los DMs y las historias",
+          "Coliflor obviamente, nuestra app privada 💛",
+          "Llamadas telefónicas normales",
+        ],
+      },
+      {
+        question: "¿Te molesta que tu pareja pase mucho tiempo en el celular cuando están juntos?",
+        options: [
+          "Sí, cuando estamos juntos quiero atención",
+          "Un poco, pero yo también lo hago",
+          "No me molesta si no es todo el rato",
+          "Literalmente los dos estamos pegados al celular juntos",
+        ],
+      },
+      {
+        question: "¿Compartirías tus contraseñas de redes con tu pareja?",
+        options: [
+          "Ya las compartimos, no tenemos nada que esconder",
+          "Sí, si me las pide se las doy sin problema",
+          "Prefiero que no, cada uno con su privacidad",
+          "No he pensado en eso, nunca me las ha pedido",
+        ],
+      },
+      {
+        question: "¿Qué haces cuando tu pareja sube una foto y se ve increíble?",
+        options: [
+          "Le doy like y le comento algo lindo al tiro",
+          "Le mando mensaje privado diciéndole lo hermoso/a que se ve",
+          "Lo miro y me siento orgulloso/a pero no siempre comento",
+          "Le saco screenshot y se lo mando diciendo 'te ves perfecto/a'",
+        ],
+      },
+      {
+        question: "¿Jugamos videojuegos juntos o alguno juega solo?",
+        options: [
+          "Jugamos juntos online y nos encanta",
+          "Uno juega y el otro mira y opina",
+          "Cada uno juega sus propios juegos",
+          "Ninguno juega videojuegos realmente",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Vida Universitaria",
+    subtitle: "Cómo equilibramos los estudios y el amor",
+    questions: [
+      {
+        question: "¿Cómo manejan cuando uno tiene prueba y el otro quiere juntarse?",
+        options: [
+          "El que tiene prueba estudia y el otro entiende sin drama",
+          "Estudiamos juntos (aunque sea una excusa para estar juntos)",
+          "A veces cuesta, pero priorizamos los estudios",
+          "Nos juntamos igual y después sufrimos con la nota",
+        ],
+      },
+      {
+        question: "¿Te gustaría que estudiáramos en el mismo lugar?",
+        options: [
+          "Sí, sería genial vernos todos los días",
+          "No necesariamente, está bien tener nuestros propios espacios",
+          "Me da un poco de miedo que sea mucho, pero sería lindo",
+          "Ya estamos en el mismo lugar y me encanta",
+        ],
+      },
+      {
+        question: "¿Quién ayuda más al otro con los estudios?",
+        options: [
+          "Yo siempre lo/la ayudo a estudiar",
+          "Él/ella me explica todo con paciencia",
+          "Nos ayudamos mutuamente según la materia",
+          "Cada uno se las arregla solo/a",
+        ],
+      },
+      {
+        question: "¿Cómo te sientes cuando tu pareja saca buena nota?",
+        options: [
+          "Súper orgulloso/a, lo celebro como si fuera mía",
+          "Feliz pero también un poco celoso/a si a mí me fue mal",
+          "Le digo que es un/a genio y le mando felicitaciones",
+          "Normal, confío en que es inteligente y le va bien",
+        ],
+      },
+      {
+        question: "Si tuviéramos que hacer un trabajo juntos para la u, ¿cómo sería?",
+        options: [
+          "Un desastre, terminaríamos peleando",
+          "Seríamos el mejor equipo de todos",
+          "Uno haría todo y el otro pondría el nombre nomás",
+          "Nos costaría concentrarnos pero lo sacaríamos adelante",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Aventuras Soñadas",
+    subtitle: "Todo lo que queremos hacer juntos algún día",
+    questions: [
+      {
+        question: "¿Qué aventura loca harías conmigo si no tuviéramos límites?",
+        options: [
+          "Tirarnos en paracaídas o bungee jumping juntos",
+          "Recorrer un país entero en auto o mochileando",
+          "Nadar con delfines o bucear en un arrecife",
+          "Acampar en la montaña bajo las estrellas",
+        ],
+      },
+      {
+        question: "Si nos ganáramos un viaje sorpresa, ¿a dónde te gustaría ir?",
+        options: [
+          "A una playa paradisíaca con agua cristalina",
+          "A una ciudad europea llena de historia y cultura",
+          "A un destino aventurero como Nueva Zelanda",
+          "A un lugar cerca pero especial, como el sur de Chile",
+        ],
+      },
+      {
+        question: "¿Cuál es la experiencia que más quieres vivir conmigo?",
+        options: [
+          "Nuestro primer viaje juntos, el que sea",
+          "Vivir juntos por primera vez",
+          "Ir a un concierto de nuestro artista favorito",
+          "Conocer un lugar que siempre hemos soñado",
+        ],
+      },
+      {
+        question: "Si pudiéramos tener un día perfecto sin preocupaciones, ¿cómo sería?",
+        options: [
+          "Playa, sol, helado y tú. Nada más",
+          "Una aventura: montaña, trekking y fogata",
+          "Un día de spa y relajo total juntos",
+          "Recorrer una ciudad nueva probando comida en cada esquina",
+        ],
+      },
+      {
+        question: "¿Qué es lo primero que harías si pudiéramos mudarnos juntos mañana?",
+        options: [
+          "Cocinar juntos nuestra primera cena en casa",
+          "Decorar todo el departamento a nuestro gusto",
+          "Quedarnos en pijama todo el día sin que nadie nos moleste",
+          "Invitar a los amigos a conocer nuestro nuevo hogar",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Personalidades Opuestas",
+    subtitle: "En qué somos distintos y cómo nos complementamos",
+    questions: [
+      {
+        question: "¿Quién es más madrugador/a y quién más trasnochador/a?",
+        options: [
+          "Yo madrugo, tú te quedas dormido/a hasta tarde",
+          "Tú madrugas, yo soy búho nocturno",
+          "Los dos somos trasnochadores, no conocemos el amanecer",
+          "Los dos somos madrugadores, somos abuelos jóvenes",
+        ],
+      },
+      {
+        question: "¿Quién es más ordenado/a?",
+        options: [
+          "Yo, y a veces me desespera el desorden del otro",
+          "Tú, yo soy un desastre pero con estilo",
+          "Los dos somos igual de desordenados",
+          "Los dos somos bastante ordenados",
+        ],
+      },
+      {
+        question: "¿Quién es más emocional y quién más racional?",
+        options: [
+          "Yo soy más emocional, tú eres más frío/a",
+          "Tú eres más emocional, yo soy más cabeza fría",
+          "Los dos somos súper emocionales y lloramos con todo",
+          "Los dos somos bastante racionales",
+        ],
+      },
+      {
+        question: "¿Quién es más sociable y quién más introvertido/a?",
+        options: [
+          "Yo soy más sociable, tú prefieres estar tranquilo/a",
+          "Tú eres más sociable, yo prefiero ambientes pequeños",
+          "Los dos somos sociables y nos encanta salir",
+          "Los dos somos introvertidos y nos entendemos perfecto",
+        ],
+      },
+      {
+        question: "¿Nuestras diferencias nos hacen más fuertes o nos complican?",
+        options: [
+          "Nos hacen más fuertes, nos complementamos perfecto",
+          "A veces complican pero aprendemos del otro",
+          "Depende del día y del tema",
+          "Somos más parecidos de lo que la gente cree",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "El Futuro Cercano",
+    subtitle: "Lo que viene para nosotros en los próximos meses",
+    questions: [
+      {
+        question: "¿Qué es lo que más te ilusiona de nuestro futuro próximo?",
+        options: [
+          "Nuestro próximo aniversario y cómo lo celebraremos",
+          "Algún plan que tengamos pendiente juntos",
+          "Simplemente seguir construyendo lo nuestro día a día",
+          "La posibilidad de vivir nuevas experiencias juntos",
+        ],
+      },
+      {
+        question: "¿Qué meta de pareja quieres que logremos este año?",
+        options: [
+          "Fortalecer nuestra comunicación y confianza",
+          "Tener una experiencia nueva juntos (viaje, concierto, etc.)",
+          "Ahorrar para algo especial juntos",
+          "Conocer mejor a las familias del otro",
+        ],
+      },
+      {
+        question: "¿Cómo te imaginas nuestra relación dentro de un año?",
+        options: [
+          "Más fuertes y enamorados que nunca",
+          "Con más experiencias juntos y más unidos",
+          "Ojalá viviendo juntos o con planes de hacerlo",
+          "No me imagino tanto, prefiero vivir el presente",
+        ],
+      },
+      {
+        question: "¿Qué regalo te gustaría que te diera en nuestro próximo aniversario?",
+        options: [
+          "Una experiencia juntos: cena, paseo, o actividad",
+          "Algo hecho a mano o personalizado con significado",
+          "Un regalo material que sepa que quiero hace rato",
+          "Tu tiempo y atención, es lo que más valoro",
+        ],
+      },
+      {
+        question: "¿Qué es lo que más valoras de lo que hemos construido juntos?",
+        options: [
+          "La confianza y honestidad que nos tenemos",
+          "Las risas y los buenos momentos que hemos vivido",
+          "El apoyo incondicional en los momentos difíciles",
+          "El amor genuino que se siente cada día",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Música y Conciertos",
+    subtitle: "Lo que escuchamos y lo que soñamos ver en vivo",
+    questions: [
+      {
+        question: "¿Qué tipo de música escuchamos más cuando estamos juntos?",
+        options: [
+          "Reggaetón o urbano para perrear juntos",
+          "Pop o indie que nos gusta a los dos",
+          "Baladas románticas que nos ponen cursis",
+          "Un mix de todo, nuestros gustos son muy diferentes",
+        ],
+      },
+      {
+        question: "¿A qué artista te morirías por ver en vivo conmigo?",
+        options: [
+          "Bad Bunny, para cantar y bailar como locos",
+          "Taylor Swift, para llorar y gritar cada canción",
+          "Coldplay, para vivir un espectáculo de luces épico",
+          "Otro artista que amamos los dos",
+        ],
+      },
+      {
+        question: "¿Le dedicas canciones a tu pareja?",
+        options: [
+          "Sí, todo el tiempo le mando canciones con significado",
+          "A veces, cuando encuentro una que me recuerda a él/ella",
+          "No explícitamente, pero hay canciones que escucho pensando en él/ella",
+          "No soy mucho de dedicar canciones pero las disfruto",
+        ],
+      },
+      {
+        question: "¿Cantamos juntos en el auto o en la casa?",
+        options: [
+          "Sí, y lo hacemos terrible pero con todo el corazón",
+          "Uno canta y el otro se muere de vergüenza ajena",
+          "Cantamos bajito cada uno en su mundo",
+          "No cantamos, somos más de puro escuchar",
+        ],
+      },
+      {
+        question: "¿Qué canción bailarías conmigo en nuestra boda algún día?",
+        options: [
+          "Una balada lenta y romántica para abrazarnos",
+          "Algo movido para que la fiesta explote",
+          "Nuestra canción especial, la que sea que tengamos",
+          "Es muy pronto para pensar en eso, pero sería lindo",
+        ],
+      },
+    ],
+  },
+  {
+    theme: "Dormir Juntos",
+    subtitle: "Cómo nos imaginamos compartir la cama algún día",
+    questions: [
+      {
+        question: "¿Cómo te imaginas que dormirías conmigo?",
+        options: [
+          "Abrazados toda la noche como koalas",
+          "Empezaríamos abrazados pero cada uno se iría a su lado",
+          "Yo robo todas las mantas y tú sufrirías",
+          "Tú roncas / te mueves mucho y sería una aventura",
+        ],
+      },
+      {
+        question: "¿Qué lado de la cama prefieres?",
+        options: [
+          "El de la pared, me siento más seguro/a",
+          "El del borde, necesito escapar fácil",
+          "Me da igual, donde sea que estés tú",
+          "El de la mesita de noche para dejar el celular",
+        ],
+      },
+      {
+        question: "¿Dormirías con la luz del celular prendida o todo oscuro?",
+        options: [
+          "Todo oscuro, soy sensible a la luz",
+          "Con un poquito de luz tenue no me molesta",
+          "Con el celular en la mano hasta que me quede dormido/a",
+          "Con la tele prendida de fondo para dormir",
+        ],
+      },
+      {
+        question: "¿Qué es lo primero que harías al despertar junto a tu pareja?",
+        options: [
+          "Mirarlo/a dormir un ratito antes de que despierte",
+          "Darle un beso y acurrucarme",
+          "Ir a preparar desayuno para sorprenderlo/a",
+          "Revisar el celular y después mimarlo/a",
+        ],
+      },
+      {
+        question: "¿Siesta juntos: sí o no?",
+        options: [
+          "Sí, es de las mejores cosas de la vida",
+          "Sí, pero yo me duermo de verdad y tú solo descansas",
+          "No logro dormir siesta, pero me quedo haciendo cucharita",
+          "No me gustan las siestas, prefiero hacer algo",
+        ],
+      },
+    ],
+  },
 ];
 
 /**

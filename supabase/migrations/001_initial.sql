@@ -98,7 +98,6 @@ CREATE TABLE IF NOT EXISTS calendar_days (
 
 ALTER TABLE calendar_days ENABLE ROW LEVEL SECURITY;
 
-  );
 
 -- ============================================================
 -- 4. STREAK PHOTOS
@@ -326,50 +325,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE;
 
--- Function: Create a couple (called when second user joins)
-CREATE OR REPLACE FUNCTION create_couple(
-  p_invite_code TEXT,
-  p_relationship_start DATE DEFAULT NULL
-)
-RETURNS UUID AS $$
-DECLARE
-  v_creator_id UUID;
-  v_joiner_id UUID := auth.uid();
-  v_couple_id UUID;
-  v_start_date DATE;
-BEGIN
-  -- Find the creator by invite code
-  SELECT id INTO v_creator_id
-  FROM profiles
-  WHERE invite_code = p_invite_code AND couple_id IS NULL;
-
-  IF v_creator_id IS NULL THEN
-    RAISE EXCEPTION 'Invalid invite code or user already in a couple';
-  END IF;
-
-  IF v_creator_id = v_joiner_id THEN
-    RAISE EXCEPTION 'Cannot join your own couple';
-  END IF;
-
-  -- Check joiner is not already in a couple
-  IF (SELECT couple_id FROM profiles WHERE id = v_joiner_id) IS NOT NULL THEN
-    RAISE EXCEPTION 'You are already in a couple';
-  END IF;
-
-  v_start_date := COALESCE(p_relationship_start, CURRENT_DATE);
-
-  -- Create the couple
-  INSERT INTO couples (user1_id, user2_id, relationship_start)
-  VALUES (v_creator_id, v_joiner_id, v_start_date)
-  RETURNING id INTO v_couple_id;
-
-  -- Update both profiles
-  UPDATE profiles SET couple_id = v_couple_id, invite_code = NULL WHERE id = v_creator_id;
-  UPDATE profiles SET couple_id = v_couple_id, invite_code = NULL WHERE id = v_joiner_id;
-
-  RETURN v_couple_id;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function: Upload photo and check streak
 -- Called after a photo is uploaded to storage
