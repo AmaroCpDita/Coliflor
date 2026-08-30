@@ -785,6 +785,8 @@ body {
   background: var(--color-border);
   margin: 0 auto var(--space-sm);
   display: none; /* Only useful for bottom sheets */
+}
+
 /* --- Keyboard Overlap Fix --- */
 .chat-input-bar {
   padding: var(--space-sm) var(--space-md);
