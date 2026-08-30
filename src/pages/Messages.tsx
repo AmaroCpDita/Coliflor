@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatTime } from '../lib/utils';
-import { sendOneSignalPush } from '../lib/onesignal';
+import { sendPushNotification } from '../lib/push';
 import type { Message } from '../lib/types';
 
 function IconSend() {
@@ -543,7 +543,7 @@ export default function Messages() {
       // Send push notification to partner
       if (partner?.id) {
         const myName = profile?.display_name || user?.user_metadata?.display_name || 'Tu pareja';
-        sendOneSignalPush(partner.id, myName, content);
+        sendPushNotification(partner.id, myName, content);
       }
     } catch (err: any) {
       console.error('Error sending message:', err);

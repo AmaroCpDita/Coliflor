@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { daysSince, generateInviteCode, formatDate } from '../lib/utils';
 import { supabase } from '../lib/supabase';
-import { sendOneSignalPush } from '../lib/onesignal';
+import { sendPushNotification } from '../lib/push';
 
 function IconFlame() {
   return (
@@ -225,7 +225,7 @@ export default function Home() {
           }
 
           if (partner?.id) {
-            sendOneSignalPush(partner.id, myName, `💌 ¡${myName} te envió una notita nueva en el inicio!`);
+            sendPushNotification(partner.id, myName, `💌 ¡${myName} te envió una notita nueva en el inicio!`);
           }
         }
 
