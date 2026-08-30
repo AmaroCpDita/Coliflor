@@ -12,9 +12,21 @@ import type { StreakPhoto, StreakRecovery } from '../lib/types';
 import Lightbox from '../components/Lightbox';
 
 // --- SVG Icons ---
-function IconFlameLarge() {
+function IconFlameLarge({ active = false, size = 48 }: { active?: boolean; size?: number }) {
+  const fill = active ? "var(--color-accent-glow)" : "transparent";
+  const stroke = active ? "var(--color-accent)" : "var(--color-text-tertiary)";
+  const animation = active ? "heartPulse 2s infinite" : "none";
+  const scale = active ? 1.1 : 1;
+
   return (
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#e07a7a" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <svg 
+      width={size} height={size} viewBox="0 0 24 24" 
+      fill={fill} 
+      stroke={stroke} 
+      strokeWidth="1.75" 
+      strokeLinecap="round" strokeLinejoin="round"
+      style={{ animation, transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)', transform: `scale(${scale})` }}
+    >
       <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
     </svg>
   );
@@ -417,21 +429,45 @@ export default function Streak() {
       <div className="stack stack--xl stagger-children">
         {/* Header Hero */}
         <div className="text-center" style={{ paddingTop: 'var(--space-md)' }}>
-          <div style={{ display: 'inline-flex', padding: 'var(--space-md)', background: 'var(--gradient-accent-soft)', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border-accent)', marginBottom: 'var(--space-md)' }}>
-            <IconFlameLarge />
+          <div style={{ 
+            display: 'inline-flex', 
+            padding: 'var(--space-md)', 
+            background: dayComplete ? 'var(--gradient-accent-soft)' : 'var(--color-bg-secondary)', 
+            borderRadius: 'var(--radius-full)', 
+            border: dayComplete ? '1px solid var(--color-border-accent)' : '1px solid var(--color-border)', 
+            marginBottom: 'var(--space-md)',
+            transition: 'all 0.4s ease'
+          }}>
+            <IconFlameLarge active={dayComplete} />
           </div>
           <div>
-            <div className="stat-value" style={{ fontSize: 'var(--font-size-4xl)', color: 'var(--color-accent-light)' }}>
+            <div 
+              className="stat-value" 
+              style={{ 
+                fontSize: '5rem', 
+                fontWeight: 900,
+                letterSpacing: '-2px',
+                background: dayComplete ? 'var(--gradient-accent)' : 'linear-gradient(135deg, #a39b90 0%, #736d65 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                lineHeight: 1,
+                transition: 'all 0.4s ease',
+                textShadow: dayComplete ? '0px 10px 20px rgba(217, 111, 111, 0.2)' : 'none'
+              }}
+            >
               {couple.current_streak}
             </div>
-            <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', marginTop: 'var(--space-xs)' }}>
-              días consecutivos de racha
+            <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', marginTop: 'var(--space-sm)', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              Días consecutivos
             </p>
           </div>
           {couple.max_streak > 0 && (
-            <p className="text-secondary" style={{ fontSize: 'var(--font-size-xs)', marginTop: 'var(--space-sm)' }}>
-              Récord máximo: {couple.max_streak} días
-            </p>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--color-bg-secondary)', padding: '4px 12px', borderRadius: 'var(--radius-full)', marginTop: 'var(--space-md)' }}>
+              <IconFlameLarge active={false} size={16} />
+              <span className="text-secondary" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
+                Récord máximo: {couple.max_streak}
+              </span>
+            </div>
           )}
         </div>
 
