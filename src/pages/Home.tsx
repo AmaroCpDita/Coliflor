@@ -117,7 +117,6 @@ export default function Home() {
   const [error, setError] = useState('');
   
   // Realtime updates state for quick actions
-  const [calendarEventsCount, setCalendarEventsCount] = useState(3);
   const [quizStatus, setQuizStatus] = useState('Nuevo');
 
   // Sync mySentNote when couple changes
@@ -449,11 +448,8 @@ export default function Home() {
                 <div style={{ color: 'var(--color-text-primary)', marginBottom: '16px' }}>
                   <IconCalendar />
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '8px', lineHeight: 1.2 }}>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)', lineHeight: 1.2 }}>
                   Calendario
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                  {calendarEventsCount} eventos
                 </div>
               </div>
             </Link>
