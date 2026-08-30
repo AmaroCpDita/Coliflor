@@ -625,6 +625,20 @@ export default function Messages() {
     }
   };
 
+  // Lock body scroll to prevent rubber-banding and whole-page scroll
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalOverscroll = document.body.style.overscrollBehaviorY;
+    
+    document.body.style.overflow = 'hidden';
+    document.body.style.overscrollBehaviorY = 'none'; // Prevent pull-to-refresh bounce
+    
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.overscrollBehaviorY = originalOverscroll;
+    };
+  }, []);
+
   if (!profile) return null;
 
   if (!couple) {
