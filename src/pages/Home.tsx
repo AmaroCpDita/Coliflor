@@ -302,57 +302,64 @@ export default function Home() {
           </div>
         )}
 
-        {/* Hero Card */}
+        {/* Hero Card with Custom Background Image */}
         <div className="glass-card text-center animate-fade-in" style={{
           padding: 'var(--space-2xl) var(--space-md)',
-          background: 'var(--color-bg-secondary)',
+          background: `
+            linear-gradient(to bottom, rgba(13, 14, 18, 0.2) 0%, rgba(13, 14, 18, 0.9) 100%),
+            url('/hero-bg.jpg') center/cover no-repeat
+          `,
           borderRadius: '32px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.05)',
-          border: '1px solid var(--color-border)',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+          border: 'none',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center'
+          alignItems: 'center',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
           {/* Avatar Row */}
           <div className="row row--center" style={{ gap: '12px', marginBottom: '16px' }}>
             <div style={{
               width: '48px', height: '48px', borderRadius: '50%',
-              background: 'var(--color-accent-glow)', border: '1px solid var(--color-border-accent)',
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+              backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 600, fontSize: '18px', color: 'var(--color-text-primary)'
+              fontWeight: 600, fontSize: '18px', color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.3)'
             }}>
               {myName.charAt(0)}
             </div>
             <IconGoldHeart size={24} />
             <div style={{
               width: '48px', height: '48px', borderRadius: '50%',
-              background: 'var(--color-accent-glow)', border: '1px solid var(--color-border-accent)',
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+              backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 600, fontSize: '18px', color: 'var(--color-text-primary)'
+              fontWeight: 600, fontSize: '18px', color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.3)'
             }}>
               {partnerName.charAt(0)}
             </div>
           </div>
 
-          <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '24px', color: 'var(--color-text-primary)' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '24px', color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
             {myName} & {partnerName}
           </h2>
 
-          <div style={{ textTransform: 'uppercase', fontSize: '12px', letterSpacing: '2px', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
-            {theme === 'dark' ? 'Llevan juntos' : ''}
+          <div style={{ textTransform: 'uppercase', fontSize: '12px', letterSpacing: '2px', fontWeight: 600, color: 'rgba(255,255,255,0.8)', marginBottom: '8px', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+            Llevan juntos
           </div>
           
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '24px' }}>
-            <span style={{ fontSize: '64px', fontWeight: 700, color: 'var(--color-accent)', lineHeight: 1 }}>
+            <span style={{ fontSize: '64px', fontWeight: 700, color: '#ffffff', textShadow: '0 4px 16px rgba(0,0,0,0.6)', lineHeight: 1 }}>
               {daysCount}
             </span>
-            <span style={{ fontSize: '20px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
-              {theme === 'dark' ? 'días' : 'días juntos'}
+            <span style={{ fontSize: '20px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+              días
             </span>
           </div>
 
           {couple && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text-secondary)', fontSize: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '12px', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
               <IconCalendar />
               <span>Desde el {formatDate(couple.relationship_start, 'long')}</span>
             </div>
