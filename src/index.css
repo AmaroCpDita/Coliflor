@@ -786,3 +786,15 @@ body {
   margin: 0 auto var(--space-sm);
   display: none; /* Only useful for bottom sheets */
 }
+
+/* --- Keyboard Overlap Fix --- */
+@media (max-height: 600px) {
+  .floating-dock {
+    display: none !important;
+  }
+}
+
+body:has(input:focus) .floating-dock,
+body:has(textarea:focus) .floating-dock {
+  display: none !important;
+}
