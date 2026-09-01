@@ -142,8 +142,10 @@ export default function Calendar() {
     }
 
     setLoading(true);
-    const firstDay = `${year}-${String(month).padStart(2, '0')}-01`;
-    const lastDay = `${year}-${String(month).padStart(2, '0')}-${new Date(year, month, 0).getDate()}`;
+    // Use the actual visible date range from the calendar grid (includes overflow days)
+    const visibleDays = getCalendarDays(year, month);
+    const firstDay = visibleDays[0].date;
+    const lastDay = visibleDays[visibleDays.length - 1].date;
 
     try {
       const [{ data: eventsData, error: mErr }, { data: photosData }] = await Promise.all([
@@ -496,7 +498,7 @@ export default function Calendar() {
                       width: '100%',
                     }}>
                       <span
-                        title="Foto de racha guardada"
+                        title="Racha"
                         style={{
                           width: '12px',
                           height: '2px',
@@ -553,7 +555,7 @@ export default function Calendar() {
                 boxShadow: '0 0 4px var(--color-accent-light)',
               }} />
               <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                Foto de racha guardada
+                Racha
               </span>
             </div>
           </div>
