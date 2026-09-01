@@ -18,6 +18,7 @@ interface CategoryConfig {
 interface DayPhotos {
   myPhotoUrl?: string;
   partnerPhotoUrl?: string;
+  hasPhoto?: boolean;
 }
 
 const CATEGORIES: CategoryConfig[] = [
@@ -60,13 +61,20 @@ function IconCamera() {
       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
       <circle cx="12" cy="13" r="4" />
     </svg>
-  );
-}
-
-const calendarCache = {
-  eventsMap: new Map<string, CalendarEvent[]>(),
-  photosMap: new Map<string, DayPhotos>(),
+const loadCache = () => {
+  try {
+    const e = localStorage.getItem('calendar_cache_events');
+    const p = localStorage.getItem('calendar_cache_photos');
+    return {
+      eventsMap: e ? new Map(JSON.parse(e)) : new Map(),
+      photosMap: p ? new Map(JSON.parse(p)) : new Map(),
+    };
+  } catch {
+    return { eventsMap: new Map(), photosMap: new Map() };
+  }
 };
+
+const calendarCache = loadCache();
 
 export default function Calendar() {
   const { couple, profile, partner, isMockMode } = useAuth();
@@ -168,22 +176,41 @@ export default function Calendar() {
         });
         calendarCache.eventsMap = map;
         setEventsMap(map);
+        localStorage.setItem('calendar_cache_events', JSON.stringify(Array.from(map.entries())));
       }
 
       if (photosData) {
         const pMap = new Map<string, DayPhotos>();
+        
+        // 1. Inmediatamente marcar que hay fotos para mostrar la racha al instante
         for (const p of photosData as StreakPhoto[]) {
           const existing = pMap.get(p.photo_date) || {};
-          const { data } = await supabase.storage.from('photos').createSignedUrl(p.storage_path, 3600);
-          if (p.user_id === profile.id) {
-            existing.myPhotoUrl = data?.signedUrl || undefined;
-          } else {
-            existing.partnerPhotoUrl = data?.signedUrl || undefined;
-          }
+          existing.hasPhoto = true;
           pMap.set(p.photo_date, existing);
         }
-        calendarCache.photosMap = pMap;
-        setPhotosMap(pMap);
+        
+        calendarCache.photosMap = new Map(pMap);
+        setPhotosMap(new Map(pMap));
+        localStorage.setItem('calendar_cache_photos', JSON.stringify(Array.from(pMap.entries())));
+
+        // 2. Cargar las URLs de las fotos en paralelo (asíncrono) para no bloquear la interfaz
+        await Promise.all((photosData as StreakPhoto[]).map(async (p) => {
+          const existing = pMap.get(p.photo_date)!;
+          try {
+            const { data } = await supabase.storage.from('photos').createSignedUrl(p.storage_path, 3600);
+            if (p.user_id === profile.id) {
+              existing.myPhotoUrl = data?.signedUrl || undefined;
+            } else {
+              existing.partnerPhotoUrl = data?.signedUrl || undefined;
+            }
+          } catch (e) {
+            console.error('Error fetching photo url', e);
+          }
+        }));
+        
+        calendarCache.photosMap = new Map(pMap);
+        setPhotosMap(new Map(pMap));
+        localStorage.setItem('calendar_cache_photos', JSON.stringify(Array.from(pMap.entries())));
       }
     } catch {
       setTableMissing(true);
@@ -405,7 +432,7 @@ export default function Calendar() {
               const isToday = dateStr === today;
               const dayEvents = eventsMap.get(dateStr) || [];
               const dayPhotos = photosMap.get(dateStr);
-              const hasPhotos = Boolean(dayPhotos?.myPhotoUrl || dayPhotos?.partnerPhotoUrl);
+              const hasPhotos = Boolean(dayPhotos?.hasPhoto || dayPhotos?.myPhotoUrl || dayPhotos?.partnerPhotoUrl);
               
               // Get primary category for day background tinting
               const primaryCategory = dayEvents[0]?.category;
