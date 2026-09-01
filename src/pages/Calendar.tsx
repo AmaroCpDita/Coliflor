@@ -63,6 +63,11 @@ function IconCamera() {
   );
 }
 
+const calendarCache = {
+  eventsMap: new Map<string, CalendarEvent[]>(),
+  photosMap: new Map<string, DayPhotos>(),
+};
+
 export default function Calendar() {
   const { couple, profile, partner, isMockMode } = useAuth();
   const now = getNowInTimezone();
@@ -70,8 +75,8 @@ export default function Calendar() {
   const [month, setMonth] = useState(now.month);
   
   // Events and photos maps for visible month
-  const [eventsMap, setEventsMap] = useState<Map<string, CalendarEvent[]>>(new Map());
-  const [photosMap, setPhotosMap] = useState<Map<string, DayPhotos>>(new Map());
+  const [eventsMap, setEventsMap] = useState<Map<string, CalendarEvent[]>>(calendarCache.eventsMap);
+  const [photosMap, setPhotosMap] = useState<Map<string, DayPhotos>>(calendarCache.photosMap);
   
   // Selected date modal state
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -114,6 +119,7 @@ export default function Calendar() {
         list.push(evt);
         map.set(evt.event_date, list);
       });
+      calendarCache.eventsMap = map;
       setEventsMap(map);
 
       // Mock photos
@@ -122,6 +128,7 @@ export default function Calendar() {
         myPhotoUrl: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=600&auto=format&fit=crop&q=80',
         partnerPhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
       });
+      calendarCache.photosMap = pMap;
       setPhotosMap(pMap);
       return;
     }
@@ -159,6 +166,7 @@ export default function Calendar() {
           list.push(evt);
           map.set(evt.event_date, list);
         });
+        calendarCache.eventsMap = map;
         setEventsMap(map);
       }
 
@@ -174,6 +182,7 @@ export default function Calendar() {
           }
           pMap.set(p.photo_date, existing);
         }
+        calendarCache.photosMap = pMap;
         setPhotosMap(pMap);
       }
     } catch {
@@ -421,16 +430,44 @@ export default function Calendar() {
                     {dayObj.day}
                   </span>
 
-                  {/* Non-invasive indicator dots */}
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '3px',
-                    display: 'flex',
-                    gap: '2px',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    {hasPhotos && (
+                  {/* Top indicator dots (Notes/Events) */}
+                  {dayEvents.length > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '4px',
+                      display: 'flex',
+                      gap: '2px',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '100%',
+                    }}>
+                      {Array.from(new Set(dayEvents.map(e => e.category))).slice(0, 3).map((category, idx) => {
+                        const eventCatConf = CATEGORIES.find(c => c.id === category);
+                        return (
+                          <span
+                            key={idx}
+                            style={{
+                              width: '4px',
+                              height: '4px',
+                              borderRadius: '50%',
+                              backgroundColor: eventCatConf?.color || '#e5c573',
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Bottom indicator (Streak photo) */}
+                  {hasPhotos && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '3px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '100%',
+                    }}>
                       <span
                         title="Foto de racha guardada"
                         style={{
@@ -439,25 +476,10 @@ export default function Calendar() {
                           borderRadius: '1px',
                           backgroundColor: 'var(--color-accent-light)',
                           boxShadow: '0 0 4px var(--color-accent-light)',
-                          marginBottom: '1px'
                         }}
                       />
-                    )}
-                    {dayEvents.length > 0 && Array.from(new Set(dayEvents.map(e => e.category))).slice(0, 3).map((category, idx) => {
-                      const eventCatConf = CATEGORIES.find(c => c.id === category);
-                      return (
-                        <span
-                          key={idx}
-                          style={{
-                            width: '4px',
-                            height: '4px',
-                            borderRadius: '50%',
-                            backgroundColor: eventCatConf?.color || '#e5c573',
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
+                    </div>
+                  )}
                 </button>
               );
             })}
