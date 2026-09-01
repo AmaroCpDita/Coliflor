@@ -432,18 +432,19 @@ export default function Calendar() {
                   }}>
                     {hasPhotos && (
                       <span
-                        title="Foto guardada"
+                        title="Foto de racha guardada"
                         style={{
-                          width: '4px',
-                          height: '4px',
-                          borderRadius: '50%',
+                          width: '12px',
+                          height: '2px',
+                          borderRadius: '1px',
                           backgroundColor: 'var(--color-accent-light)',
                           boxShadow: '0 0 4px var(--color-accent-light)',
+                          marginBottom: '1px'
                         }}
                       />
                     )}
-                    {dayEvents.length > 0 && dayEvents.slice(0, 2).map((evt, idx) => {
-                      const eventCatConf = CATEGORIES.find(c => c.id === evt.category);
+                    {dayEvents.length > 0 && Array.from(new Set(dayEvents.map(e => e.category))).slice(0, 3).map((category, idx) => {
+                      const eventCatConf = CATEGORIES.find(c => c.id === category);
                       return (
                         <span
                           key={idx}
@@ -496,11 +497,11 @@ export default function Calendar() {
             ))}
             <div className="row row--gap-xs" style={{ padding: '4px 0' }}>
               <span style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
+                width: '12px',
+                height: '2px',
+                borderRadius: '1px',
                 backgroundColor: 'var(--color-accent-light)',
-                boxShadow: '0 0 6px var(--color-accent-light)',
+                boxShadow: '0 0 4px var(--color-accent-light)',
               }} />
               <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
                 Foto de racha guardada
