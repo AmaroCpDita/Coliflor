@@ -289,9 +289,9 @@ export default function Streak() {
       dayMap.set(p.photo_date, existing);
     });
 
-    // Build 7-day timeline (yesterday back to 7 days ago)
+    // Build 7-day timeline (7 days ago forward to yesterday)
     const historyList: HistoryDay[] = [];
-    for (let i = 1; i <= 7; i++) {
+    for (let i = 7; i >= 1; i--) {
       const d = new Date(today + 'T12:00:00');
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
