@@ -1,5 +1,6 @@
 // ============================================================
-// Coliflor — Streak Page (Ultra-Complete Matte Design)
+// Coliflor — Streak Page (Enhanced with Broken Streak Visual,
+// Recovery Photo Upload, and 7-Day Timeline)
 // ============================================================
 
 import { useEffect, useState, useRef, useCallback } from 'react';
@@ -12,11 +13,12 @@ import type { StreakPhoto, StreakRecovery } from '../lib/types';
 import Lightbox from '../components/Lightbox';
 
 // --- SVG Icons ---
-function IconFlameLarge({ active = false, size = 48 }: { active?: boolean; size?: number }) {
-  const fill = active ? "var(--color-accent-glow)" : "transparent";
-  const stroke = active ? "var(--color-accent)" : "var(--color-text-tertiary)";
-  const animation = active ? "heartPulse 2s infinite" : "none";
-  const scale = active ? 1.1 : 1;
+function IconFlameLarge({ active = false, broken = false, size = 48 }: { active?: boolean; broken?: boolean; size?: number }) {
+  const fill = broken ? 'rgba(248, 113, 113, 0.15)' : active ? "var(--color-accent-glow)" : "transparent";
+  const stroke = broken ? '#f87171' : active ? "var(--color-accent)" : "var(--color-text-tertiary)";
+  const animation = broken ? 'streakCrack 0.6s ease-out' : active ? "heartPulse 2s infinite" : "none";
+  const scale = broken ? 0.95 : active ? 1.1 : 1;
+  const opacity = broken ? 0.6 : 1;
 
   return (
     <svg 
@@ -25,7 +27,7 @@ function IconFlameLarge({ active = false, size = 48 }: { active?: boolean; size?
       stroke={stroke} 
       strokeWidth="1.75" 
       strokeLinecap="round" strokeLinejoin="round"
-      style={{ animation, transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)', transform: `scale(${scale})` }}
+      style={{ animation, transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)', transform: `scale(${scale})`, opacity }}
     >
       <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
     </svg>
@@ -75,6 +77,24 @@ function IconClock() {
   );
 }
 
+function IconBrokenHeart() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      <line x1="12" y1="8" x2="12" y2="16" />
+    </svg>
+  );
+}
+
+function IconX() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
 interface DayPhotos {
   date: string;
   myPhoto: StreakPhoto | null;
@@ -93,6 +113,7 @@ interface HistoryDay {
 export default function Streak() {
   const { couple, profile, partner, refreshProfile, isMockMode } = useAuth();
   const [todayPhotos, setTodayPhotos] = useState<DayPhotos>({ date: '', myPhoto: null, partnerPhoto: null });
+  const [yesterdayPhotos, setYesterdayPhotos] = useState<DayPhotos>({ date: '', myPhoto: null, partnerPhoto: null });
   const [myPhotoUrl, setMyPhotoUrl] = useState<string | null>(null);
   const [partnerPhotoUrl, setPartnerPhotoUrl] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<File | null>(null);
@@ -100,16 +121,34 @@ export default function Streak() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [showRecovery, setShowRecovery] = useState(false);
+  const [recoveryStep, setRecoveryStep] = useState<'confirm' | 'photo' | 'uploading'>('confirm');
+  const [recoveryPreviewFile, setRecoveryPreviewFile] = useState<File | null>(null);
+  const [recoveryPreviewUrl, setRecoveryPreviewUrl] = useState<string | null>(null);
   const [usingRecovery, setUsingRecovery] = useState(false);
   const [flipHorizontal, setFlipHorizontal] = useState(false);
+  const [recoveryFlip, setRecoveryFlip] = useState(false);
   const [history, setHistory] = useState<HistoryDay[]>([]);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
-  const [selectedHistoryDay, setSelectedHistoryDay] = useState<HistoryDay | null>(null);
+  const [yesterdayRecovered, setYesterdayRecovered] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recoveryFileInputRef = useRef<HTMLInputElement>(null);
 
   const today = getTodayInTimezone();
+  const yesterday = (() => {
+    const d = new Date(today + 'T12:00:00');
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  })();
+
   const recoveriesRemaining = couple ? MAX_RECOVERIES_PER_MONTH - couple.recoveries_used : 0;
   const dayComplete = todayPhotos.myPhoto !== null && todayPhotos.partnerPhoto !== null;
+
+  // Detect broken streak: yesterday wasn't complete AND wasn't recovered
+  const yesterdayComplete = yesterdayPhotos.myPhoto !== null && yesterdayPhotos.partnerPhoto !== null;
+  const streakBroken = !yesterdayComplete && !yesterdayRecovered && couple !== null && couple.current_streak === 0;
+  
+  // Detect who is missing photo for yesterday (for recovery)
+  const iMissedYesterday = yesterdayPhotos.myPhoto === null;
 
   const fetchTodayPhotos = useCallback(async () => {
     if (!couple || !profile) return;
@@ -165,6 +204,32 @@ export default function Streak() {
     }
   }, [couple?.id, profile?.id, today, isMockMode]);
 
+  // Fetch yesterday's photos to detect broken streak
+  const fetchYesterdayPhotos = useCallback(async () => {
+    if (!couple || !profile || isMockMode) return;
+
+    const [{ data: photos }, { data: recoveries }] = await Promise.all([
+      supabase
+        .from('streak_photos')
+        .select('*')
+        .eq('couple_id', couple.id)
+        .eq('photo_date', yesterday),
+      supabase
+        .from('streak_recoveries')
+        .select('*')
+        .eq('couple_id', couple.id)
+        .eq('recovered_date', yesterday),
+    ]);
+
+    if (photos) {
+      const myPhoto = photos.find((p: StreakPhoto) => p.user_id === profile.id) || null;
+      const partnerPhoto = photos.find((p: StreakPhoto) => p.user_id !== profile.id) || null;
+      setYesterdayPhotos({ date: yesterday, myPhoto, partnerPhoto });
+    }
+
+    setYesterdayRecovered(Boolean(recoveries && recoveries.length > 0));
+  }, [couple?.id, profile?.id, yesterday, isMockMode]);
+
   const fetchHistory = useCallback(async () => {
     if (!couple || !profile) return;
 
@@ -175,8 +240,6 @@ export default function Streak() {
           myPhoto: { id: 'h1', couple_id: 'mock', user_id: 'amaro', photo_date: '2026-08-25', storage_path: '', uploaded_at: '2026-08-25T19:00:00Z' },
           partnerPhoto: { id: 'h2', couple_id: 'mock', user_id: 'javiera', photo_date: '2026-08-25', storage_path: '', uploaded_at: '2026-08-25T19:05:00Z' },
           isRecovered: false,
-          myPhotoUrl: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=600&auto=format&fit=crop&q=80',
-          partnerPhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
         },
         {
           date: '2026-08-24',
@@ -189,23 +252,25 @@ export default function Streak() {
           myPhoto: { id: 'h3', couple_id: 'mock', user_id: 'amaro', photo_date: '2026-08-23', storage_path: '', uploaded_at: '2026-08-23T20:00:00Z' },
           partnerPhoto: { id: 'h4', couple_id: 'mock', user_id: 'javiera', photo_date: '2026-08-23', storage_path: '', uploaded_at: '2026-08-23T20:15:00Z' },
           isRecovered: false,
-          myPhotoUrl: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&auto=format&fit=crop&q=80',
-          partnerPhotoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&auto=format&fit=crop&q=80',
         },
       ];
       setHistory(mockHist);
       return;
     }
 
-    // Fetch past photos & recoveries
+    // Fetch last 7 days of photos & recoveries
+    const sevenDaysAgo = new Date(today + 'T12:00:00');
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+
     const [{ data: photos }, { data: recoveries }] = await Promise.all([
       supabase
         .from('streak_photos')
         .select('*')
         .eq('couple_id', couple.id)
+        .gte('photo_date', sevenDaysAgoStr)
         .lt('photo_date', today)
-        .order('photo_date', { ascending: false })
-        .limit(20),
+        .order('photo_date', { ascending: false }),
       supabase
         .from('streak_recoveries')
         .select('*')
@@ -213,33 +278,40 @@ export default function Streak() {
         .order('recovered_date', { ascending: false }),
     ]);
 
-    if (photos) {
-      const dayMap = new Map<string, { myPhoto: StreakPhoto | null; partnerPhoto: StreakPhoto | null }>();
-      
-      photos.forEach((p: StreakPhoto) => {
-        const existing = dayMap.get(p.photo_date) || { myPhoto: null, partnerPhoto: null };
-        if (p.user_id === profile.id) existing.myPhoto = p;
-        else existing.partnerPhoto = p;
-        dayMap.set(p.photo_date, existing);
-      });
+    const recoveryDates = new Set((recoveries || []).map((r: StreakRecovery) => r.recovered_date));
+    const dayMap = new Map<string, { myPhoto: StreakPhoto | null; partnerPhoto: StreakPhoto | null }>();
 
-      const recoveryDates = new Set((recoveries || []).map((r: StreakRecovery) => r.recovered_date));
+    // Build map from photos
+    (photos || []).forEach((p: StreakPhoto) => {
+      const existing = dayMap.get(p.photo_date) || { myPhoto: null, partnerPhoto: null };
+      if (p.user_id === profile.id) existing.myPhoto = p;
+      else existing.partnerPhoto = p;
+      dayMap.set(p.photo_date, existing);
+    });
 
-      const historyList: HistoryDay[] = Array.from(dayMap.entries()).map(([date, val]) => ({
-        date,
+    // Build 7-day timeline (yesterday back to 7 days ago)
+    const historyList: HistoryDay[] = [];
+    for (let i = 1; i <= 7; i++) {
+      const d = new Date(today + 'T12:00:00');
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const val = dayMap.get(dateStr) || { myPhoto: null, partnerPhoto: null };
+      historyList.push({
+        date: dateStr,
         myPhoto: val.myPhoto,
         partnerPhoto: val.partnerPhoto,
-        isRecovered: recoveryDates.has(date),
-      }));
-
-      setHistory(historyList);
+        isRecovered: recoveryDates.has(dateStr),
+      });
     }
-  }, [couple?.id, profile?.id, today]);
+
+    setHistory(historyList);
+  }, [couple?.id, profile?.id, today, isMockMode]);
 
   useEffect(() => {
     fetchTodayPhotos();
+    fetchYesterdayPhotos();
     fetchHistory();
-  }, [fetchTodayPhotos, fetchHistory]);
+  }, [fetchTodayPhotos, fetchYesterdayPhotos, fetchHistory]);
 
   // Realtime
   useEffect(() => {
@@ -257,6 +329,7 @@ export default function Streak() {
         },
         () => {
           fetchTodayPhotos();
+          fetchYesterdayPhotos();
           fetchHistory();
           refreshProfile();
         }
@@ -266,7 +339,7 @@ export default function Streak() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [couple?.id, fetchTodayPhotos, fetchHistory, refreshProfile]);
+  }, [couple?.id, fetchTodayPhotos, fetchYesterdayPhotos, fetchHistory, refreshProfile]);
 
   const handleOpenCamera = () => {
     fileInputRef.current?.click();
@@ -275,10 +348,9 @@ export default function Streak() {
   const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setPreviewFile(file);
     setPreviewUrl(URL.createObjectURL(file));
-    setFlipHorizontal(false); // Default to false since we can't detect front/rear camera
+    setFlipHorizontal(false);
   };
 
   const handleConfirmUpload = async () => {
@@ -307,7 +379,7 @@ export default function Streak() {
 
       if (rpcError) throw rpcError;
 
-      // Send push notification message to partner
+      // Send push notification
       try {
         const myName = profile.display_name || 'Tú';
         const hasPartnerPhoto = Boolean(todayPhotos.partnerPhoto);
@@ -345,62 +417,108 @@ export default function Streak() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  // --- Recovery Flow ---
+  const handleStartRecovery = () => {
+    setShowRecovery(true);
+    // If I'm the one who missed, go to photo step; otherwise just confirm
+    setRecoveryStep(iMissedYesterday ? 'confirm' : 'confirm');
+    setRecoveryPreviewFile(null);
+    setRecoveryPreviewUrl(null);
+    setRecoveryFlip(false);
+    setError('');
+  };
+
+  const handleRecoveryFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setRecoveryPreviewFile(file);
+    setRecoveryPreviewUrl(URL.createObjectURL(file));
+    setRecoveryFlip(false);
+  };
+
   const handleUseRecovery = async () => {
-    if (!couple || usingRecovery) return;
+    if (!couple || !profile || usingRecovery) return;
+    
+    // If I missed yesterday's photo, require photo upload first
+    if (iMissedYesterday && recoveryStep === 'confirm') {
+      setRecoveryStep('photo');
+      return;
+    }
+
     setUsingRecovery(true);
+    setRecoveryStep('uploading');
     setError('');
 
     try {
-      const yesterday = new Date(today + 'T12:00:00');
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
-
+      // Step 1: Apply recovery
       const { error: rpcError } = await supabase.rpc('use_streak_recovery', {
         p_couple_id: couple.id,
-        p_date: yesterdayStr,
+        p_date: yesterday,
       });
 
       if (rpcError) throw rpcError;
 
-      // Send recovery notification
-      try {
-        const myName = profile?.display_name || 'Tú';
-        if (profile) {
-          await supabase.from('messages').insert({
-            couple_id: couple.id,
-            sender_id: profile.id,
-            content: `🩹 ¡${myName} usó un comodín de recuperación! La racha volvió a estar activa.`,
+      // Step 2: Upload recovery photo if I missed it
+      if (iMissedYesterday && recoveryPreviewFile) {
+        const compressed = await compressImage(recoveryPreviewFile, 1200, 0.7, recoveryFlip);
+        const storagePath = `${couple.id}/${yesterday}/${profile.id}.jpg`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('photos')
+          .upload(storagePath, compressed, {
+            contentType: 'image/jpeg',
+            upsert: true,
           });
-        }
-      } catch {
-        // Ignore notification fallback
+
+        if (uploadError) throw uploadError;
+
+        const { error: photoError } = await supabase.rpc('register_recovery_photo', {
+          p_couple_id: couple.id,
+          p_storage_path: storagePath,
+          p_photo_date: yesterday,
+        });
+
+        if (photoError) console.warn('Recovery photo registration warning:', photoError);
       }
 
-      await refreshProfile();
-      await fetchHistory();
+      // Send notification
+      try {
+        const myName = profile.display_name || 'Tú';
+        await supabase.from('messages').insert({
+          couple_id: couple.id,
+          sender_id: profile.id,
+          content: `🩹 ¡${myName} usó un comodín de recuperación! La racha volvió a estar activa.`,
+        });
+      } catch {
+        // Ignore
+      }
+
+      // Cleanup
+      if (recoveryPreviewUrl) URL.revokeObjectURL(recoveryPreviewUrl);
+      setRecoveryPreviewFile(null);
+      setRecoveryPreviewUrl(null);
       setShowRecovery(false);
+      setRecoveryStep('confirm');
+
+      await refreshProfile();
+      await fetchYesterdayPhotos();
+      await fetchHistory();
     } catch (err: any) {
       setError(err?.message || 'Error al aplicar recuperación');
+      setRecoveryStep('confirm');
     } finally {
       setUsingRecovery(false);
+      if (recoveryFileInputRef.current) recoveryFileInputRef.current.value = '';
     }
   };
 
-  const inspectHistoryDay = async (h: HistoryDay) => {
-    let myUrl = h.myPhotoUrl;
-    let partnerUrl = h.partnerPhotoUrl;
-
-    if (h.myPhoto && !myUrl) {
-      const { data } = await supabase.storage.from('photos').createSignedUrl(h.myPhoto.storage_path, 3600);
-      if (data) myUrl = data.signedUrl;
-    }
-
-    if (h.partnerPhoto && !partnerUrl) {
-      const { data } = await supabase.storage.from('photos').createSignedUrl(h.partnerPhoto.storage_path, 3600);
-      if (data) partnerUrl = data.signedUrl;
-    }
-
-    setSelectedHistoryDay({ ...h, myPhotoUrl: myUrl, partnerPhotoUrl: partnerUrl });
+  const handleCancelRecovery = () => {
+    if (recoveryPreviewUrl) URL.revokeObjectURL(recoveryPreviewUrl);
+    setRecoveryPreviewFile(null);
+    setRecoveryPreviewUrl(null);
+    setShowRecovery(false);
+    setRecoveryStep('confirm');
+    setError('');
   };
 
   if (!profile) return null;
@@ -424,6 +542,14 @@ export default function Streak() {
 
   const partnerName = partner ? partner.display_name : 'Tu pareja';
 
+  // Timeline day status helper
+  const getDayStatus = (h: HistoryDay): 'complete' | 'recovered' | 'broken' | 'partial' => {
+    if (h.myPhoto && h.partnerPhoto) return 'complete';
+    if (h.isRecovered) return 'recovered';
+    if (h.myPhoto || h.partnerPhoto) return 'partial';
+    return 'broken';
+  };
+
   return (
     <div className="page">
       <div className="stack stack--xl stagger-children">
@@ -432,13 +558,17 @@ export default function Streak() {
           <div style={{ 
             display: 'inline-flex', 
             padding: 'var(--space-md)', 
-            background: dayComplete ? 'var(--gradient-accent-soft)' : 'var(--color-bg-secondary)', 
+            background: streakBroken
+              ? 'rgba(248, 113, 113, 0.08)'
+              : dayComplete ? 'var(--gradient-accent-soft)' : 'var(--color-bg-secondary)', 
             borderRadius: 'var(--radius-full)', 
-            border: dayComplete ? '1px solid var(--color-border-accent)' : '1px solid var(--color-border)', 
+            border: streakBroken
+              ? '1px solid rgba(248, 113, 113, 0.3)'
+              : dayComplete ? '1px solid var(--color-border-accent)' : '1px solid var(--color-border)', 
             marginBottom: 'var(--space-md)',
             transition: 'all 0.4s ease'
           }}>
-            <IconFlameLarge active={dayComplete} />
+            <IconFlameLarge active={dayComplete} broken={streakBroken} />
           </div>
           <div>
             <div 
@@ -447,12 +577,13 @@ export default function Streak() {
                 fontSize: '5rem', 
                 fontWeight: 900,
                 letterSpacing: '-2px',
-                background: dayComplete ? 'var(--gradient-accent)' : 'linear-gradient(135deg, #a39b90 0%, #736d65 100%)',
+                background: streakBroken
+                  ? 'linear-gradient(135deg, #f87171 0%, #991b1b 100%)'
+                  : dayComplete ? 'var(--gradient-accent)' : 'linear-gradient(135deg, #a39b90 0%, #736d65 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 lineHeight: 1,
                 transition: 'all 0.4s ease',
-                textShadow: dayComplete ? '0px 10px 20px rgba(217, 111, 111, 0.2)' : 'none'
               }}
             >
               {couple.current_streak}
@@ -470,6 +601,41 @@ export default function Streak() {
             </div>
           )}
         </div>
+
+        {/* BROKEN STREAK BANNER */}
+        {streakBroken && (
+          <div className="streak-broken-banner animate-fade-in">
+            <div className="row row--center row--gap-sm" style={{ marginBottom: '8px' }}>
+              <IconBrokenHeart />
+              <span style={{ fontWeight: 700, color: '#f87171', fontSize: 'var(--font-size-base)' }}>
+                La racha se perdió
+              </span>
+            </div>
+            <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', textAlign: 'center', marginBottom: '12px' }}>
+              {!yesterdayPhotos.myPhoto && !yesterdayPhotos.partnerPhoto
+                ? 'Ninguno subió foto ayer.'
+                : yesterdayPhotos.myPhoto
+                  ? `Solo tú subiste foto ayer. ${partnerName} no subió la suya.`
+                  : `Solo ${partnerName} subió foto ayer. Te faltó la tuya.`
+              }
+            </p>
+            {recoveriesRemaining > 0 && (
+              <button
+                className="btn btn--full"
+                onClick={handleStartRecovery}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(251, 191, 36, 0.1))',
+                  border: '1px solid rgba(251, 191, 36, 0.4)',
+                  color: '#fbbf24',
+                  fontWeight: 700,
+                  fontSize: 'var(--font-size-sm)',
+                }}
+              >
+                🛡️ Usar comodín de recuperación ({recoveriesRemaining} restantes)
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Date Display */}
         <div className="text-center">
@@ -623,46 +789,77 @@ export default function Streak() {
           style={{ display: 'none' }}
         />
 
-        {/* Monthly Recoveries Box */}
-        <div className="glass-card" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-          <div className="row row--between">
-            <div className="row row--gap-sm">
-              <span style={{ color: 'var(--color-warning)' }}><IconShield /></span>
-              <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
-                Comodines disponibles
+        {/* Recovery file input */}
+        <input
+          ref={recoveryFileInputRef}
+          type="file"
+          accept="image/*"
+          capture="user"
+          onChange={handleRecoveryFileSelected}
+          style={{ display: 'none' }}
+        />
+
+        {/* Monthly Recoveries Box (only show if streak is NOT broken — otherwise the banner above handles it) */}
+        {!streakBroken && (
+          <div className="glass-card" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+            <div className="row row--between">
+              <div className="row row--gap-sm">
+                <span style={{ color: 'var(--color-warning)' }}><IconShield /></span>
+                <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
+                  Comodines disponibles
+                </span>
+              </div>
+              <span style={{ fontWeight: 700, color: 'var(--color-warning)', fontSize: 'var(--font-size-sm)' }}>
+                {recoveriesRemaining}/{MAX_RECOVERIES_PER_MONTH}
               </span>
             </div>
-            <span style={{ fontWeight: 700, color: 'var(--color-warning)', fontSize: 'var(--font-size-sm)' }}>
-              {recoveriesRemaining}/{MAX_RECOVERIES_PER_MONTH}
-            </span>
+
+            {recoveriesRemaining > 0 && !showRecovery && (
+              <button
+                className="btn btn--ghost btn--sm btn--full"
+                onClick={handleStartRecovery}
+                style={{ marginTop: 'var(--space-sm)', fontSize: 'var(--font-size-xs)' }}
+              >
+                Usar comodín para el día de ayer
+              </button>
+            )}
           </div>
+        )}
 
-          {recoveriesRemaining > 0 && !showRecovery && (
-            <button
-              className="btn btn--ghost btn--sm btn--full"
-              onClick={() => setShowRecovery(true)}
-              style={{ marginTop: 'var(--space-sm)', fontSize: 'var(--font-size-xs)' }}
-            >
-              Usar comodín para el día de ayer
-            </button>
-          )}
+        {/* 7-Day Timeline */}
+        {history.length > 0 && (
+          <div className="stack stack--sm">
+            <h4 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-secondary)', paddingLeft: '8px' }}>
+              ÚLTIMOS 7 DÍAS
+            </h4>
+            <div className="streak-timeline">
+              {history.map((h) => {
+                const status = getDayStatus(h);
+                const dayNum = new Date(h.date + 'T12:00:00').getDate();
+                const dayName = new Date(h.date + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'short' });
 
-          {showRecovery && (
-            <div className="stack stack--sm" style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--color-border)' }}>
-              <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                ¿Recuperar el día de ayer? Esto mantendrá la continuidad de la racha.
-              </p>
-              <div className="row row--gap-sm">
-                <button className="btn btn--primary btn--sm" style={{ flex: 1 }} onClick={handleUseRecovery} disabled={usingRecovery}>
-                  {usingRecovery ? 'Recuperando...' : 'Confirmar'}
-                </button>
-                <button className="btn btn--secondary btn--sm" style={{ flex: 1 }} onClick={() => setShowRecovery(false)}>
-                  Cancelar
-                </button>
-              </div>
+                return (
+                  <div 
+                    key={h.date} 
+                    className={`streak-timeline__day streak-timeline__day--${status}`}
+                    title={formatDate(h.date, 'long')}
+                  >
+                    <div className="streak-timeline__label">{dayName}</div>
+                    <div className="streak-timeline__circle">
+                      {status === 'complete' && <IconCheck />}
+                      {status === 'recovered' && <IconShield />}
+                      {status === 'broken' && <IconX />}
+                      {status === 'partial' && (
+                        <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>½</span>
+                      )}
+                    </div>
+                    <div className="streak-timeline__num">{dayNum}</div>
+                  </div>
+                );
+              })}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {error && (
           <div className="toast toast--error" style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}>
@@ -670,6 +867,141 @@ export default function Streak() {
           </div>
         )}
       </div>
+
+      {/* Recovery Modal */}
+      {showRecovery && (
+        <div className="modal-backdrop" onClick={handleCancelRecovery}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal__handle" />
+            <div className="stack stack--lg">
+              {recoveryStep === 'confirm' && (
+                <>
+                  <div className="text-center">
+                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>🛡️</div>
+                    <h3>Recuperar la racha</h3>
+                    <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}>
+                      {iMissedYesterday
+                        ? 'Te faltó la foto de ayer. Súbela ahora para recuperar la racha.'
+                        : `${partnerName} no subió foto ayer. ¿Usar un comodín para mantener la racha?`
+                      }
+                    </p>
+                  </div>
+
+                  <div className="row row--between" style={{ padding: '12px 16px', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)' }}>
+                    <span className="text-secondary" style={{ fontSize: 'var(--font-size-xs)' }}>Comodines restantes</span>
+                    <span style={{ fontWeight: 700, color: 'var(--color-warning)' }}>{recoveriesRemaining}/{MAX_RECOVERIES_PER_MONTH}</span>
+                  </div>
+
+                  <button 
+                    className="btn btn--primary btn--full btn--lg" 
+                    onClick={handleUseRecovery} 
+                    disabled={usingRecovery}
+                  >
+                    {iMissedYesterday ? 'Siguiente: Subir foto de ayer' : (usingRecovery ? 'Recuperando...' : 'Confirmar recuperación')}
+                  </button>
+                  <button className="btn btn--ghost btn--full" onClick={handleCancelRecovery}>
+                    Cancelar
+                  </button>
+                </>
+              )}
+
+              {recoveryStep === 'photo' && (
+                <>
+                  <div className="text-center">
+                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>📸</div>
+                    <h3>Sube tu foto de ayer</h3>
+                    <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}>
+                      Sube la foto que te faltó para el {formatDate(yesterday, 'medium')}
+                    </p>
+                  </div>
+
+                  {recoveryPreviewUrl ? (
+                    <div style={{ position: 'relative' }}>
+                      <img
+                        src={recoveryPreviewUrl}
+                        alt="Recovery preview"
+                        style={{
+                          width: '100%',
+                          aspectRatio: '3/4',
+                          objectFit: 'cover',
+                          borderRadius: 'var(--radius-md)',
+                          transform: recoveryFlip ? 'scaleX(-1)' : 'none',
+                          display: 'block',
+                        }}
+                      />
+                      <button
+                        className="btn btn--secondary"
+                        onClick={() => setRecoveryFlip(!recoveryFlip)}
+                        style={{
+                          position: 'absolute',
+                          bottom: '12px',
+                          right: '12px',
+                          padding: '8px 12px',
+                          borderRadius: 'var(--radius-full)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                          fontSize: '11px',
+                          backgroundColor: 'rgba(255,255,255,0.15)',
+                          backdropFilter: 'blur(10px)',
+                          WebkitBackdropFilter: 'blur(10px)',
+                          color: '#fff',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                        }}
+                      >
+                        Voltear
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      className="btn btn--secondary btn--full btn--lg"
+                      onClick={() => recoveryFileInputRef.current?.click()}
+                      style={{ padding: '32px 16px' }}
+                    >
+                      <IconCamera />
+                      <span>Tomar / elegir foto</span>
+                    </button>
+                  )}
+
+                  <button
+                    className="btn btn--primary btn--full btn--lg"
+                    onClick={handleUseRecovery}
+                    disabled={!recoveryPreviewFile || usingRecovery}
+                  >
+                    {usingRecovery ? 'Recuperando...' : 'Confirmar y recuperar racha'}
+                  </button>
+
+                  {recoveryPreviewUrl && (
+                    <button
+                      className="btn btn--ghost btn--full"
+                      onClick={() => {
+                        URL.revokeObjectURL(recoveryPreviewUrl);
+                        setRecoveryPreviewFile(null);
+                        setRecoveryPreviewUrl(null);
+                        if (recoveryFileInputRef.current) recoveryFileInputRef.current.value = '';
+                      }}
+                    >
+                      Elegir otra foto
+                    </button>
+                  )}
+
+                  <button className="btn btn--ghost btn--full" onClick={handleCancelRecovery}>
+                    Cancelar
+                  </button>
+                </>
+              )}
+
+              {recoveryStep === 'uploading' && (
+                <div className="text-center" style={{ padding: 'var(--space-xl) 0' }}>
+                  <div className="spinner" style={{ margin: '0 auto 16px' }} />
+                  <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)' }}>
+                    Recuperando la racha...
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
     </div>
   );

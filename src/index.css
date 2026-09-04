@@ -867,6 +867,98 @@ body:has(textarea:focus) .chat-input-bar {
 }
 
 /* ============================================================
+   STREAK BROKEN & TIMELINE
+   ============================================================ */
+
+/* Broken streak banner */
+.streak-broken-banner {
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.12) 0%, rgba(153, 27, 27, 0.08) 100%);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md) var(--space-lg);
+  text-align: center;
+}
+
+/* Crack/shake animation for broken flame */
+@keyframes streakCrack {
+  0% { transform: scale(1) rotate(0deg); }
+  15% { transform: scale(0.9) rotate(-5deg); }
+  30% { transform: scale(0.95) rotate(3deg); }
+  45% { transform: scale(0.9) rotate(-3deg); }
+  60% { transform: scale(0.92) rotate(2deg); }
+  75% { transform: scale(0.93) rotate(-1deg); }
+  100% { transform: scale(0.95) rotate(0deg); }
+}
+
+/* 7-Day Timeline */
+.streak-timeline {
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
+  padding: 12px 8px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.streak-timeline__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.streak-timeline__label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.5px;
+}
+
+.streak-timeline__circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-tertiary);
+  transition: all 0.3s ease;
+}
+
+.streak-timeline__num {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+/* Timeline day states */
+.streak-timeline__day--complete .streak-timeline__circle {
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.streak-timeline__day--recovered .streak-timeline__circle {
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.streak-timeline__day--broken .streak-timeline__circle {
+  border-color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.streak-timeline__day--partial .streak-timeline__circle {
+  border-color: var(--color-text-tertiary);
+  border-style: dashed;
+  background: transparent;
+}
+
+
+/* ============================================================
    CELEBRATION SYSTEM
    ============================================================ */
 
