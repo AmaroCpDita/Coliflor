@@ -2,13 +2,16 @@
 // Coliflor — Home Page (Mockup Re-design)
 // ============================================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { daysSince, generateInviteCode, formatDate } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { sendPushNotification } from '../lib/push';
+import { getCelebration } from '../lib/celebrations';
+import Fireworks from '../components/Fireworks';
+import CelebrationBanner from '../components/CelebrationBanner';
 
 function IconFlame() {
   return (
@@ -84,6 +87,14 @@ export default function Home() {
   const [joinCode, setJoinCode] = useState('');
 
   const daysCount = couple ? daysSince(couple.relationship_start) : 0;
+
+  // Celebration detection
+  const celebration = useMemo(() => {
+    if (!couple?.relationship_start) return null;
+    return getCelebration(couple.relationship_start);
+  }, [couple?.relationship_start]);
+  const isCelebrating = celebration !== null;
+  const showConfetti = celebration ? celebration.intensity !== 'low' : false;
   const myName = profile?.display_name || user?.user_metadata?.display_name || 'Tú';
   const partnerName = partner ? partner.display_name : 'Tu pareja';
   const currentCode = generatedCode || profile?.invite_code;
@@ -302,16 +313,30 @@ export default function Home() {
           </div>
         )}
 
+        {/* Celebration Fireworks (canvas overlay) */}
+        {celebration && (
+          <Fireworks
+            intensity={celebration.intensity}
+            colors={celebration.colors}
+            confetti={showConfetti}
+          />
+        )}
+
+        {/* Celebration Banner */}
+        {celebration && (
+          <CelebrationBanner celebration={celebration} />
+        )}
+
         {/* Hero Card with Custom Background Image */}
-        <div className="glass-card text-center animate-fade-in" style={{
+        <div className={`glass-card text-center animate-fade-in ${isCelebrating ? 'hero-card--celebrating' : ''}`} style={{
           padding: 'var(--space-2xl) var(--space-md)',
           background: `
             linear-gradient(to bottom, rgba(13, 14, 18, 0.2) 0%, rgba(13, 14, 18, 0.9) 100%),
             url('/hero-bg.jpg') center/cover no-repeat
           `,
           borderRadius: '32px',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
-          border: 'none',
+          boxShadow: isCelebrating ? undefined : '0 12px 40px rgba(0,0,0,0.3)',
+          border: isCelebrating ? undefined : 'none',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -350,7 +375,10 @@ export default function Home() {
           </div>
           
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '24px' }}>
-            <span style={{ fontSize: '64px', fontWeight: 700, color: '#ffffff', textShadow: '0 4px 16px rgba(0,0,0,0.6)', lineHeight: 1 }}>
+            <span
+              className={isCelebrating ? 'days-counter--celebrating' : ''}
+              style={{ fontSize: '64px', fontWeight: 700, color: '#ffffff', textShadow: isCelebrating ? 'none' : '0 4px 16px rgba(0,0,0,0.6)', lineHeight: 1 }}
+            >
               {daysCount}
             </span>
             <span style={{ fontSize: '20px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>

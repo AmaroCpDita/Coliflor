@@ -865,3 +865,105 @@ body:has(textarea:focus) .chat-input-bar {
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+
+/* ============================================================
+   CELEBRATION SYSTEM
+   ============================================================ */
+
+/* Shimmer sweep overlay for epic celebrations */
+@keyframes celebrationShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.celebration-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 40%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 60%,
+    transparent 100%
+  );
+  animation: celebrationShimmer 3s ease-in-out infinite;
+}
+
+/* Heart pulse for anniversaries */
+@keyframes celebrationHeartPulse {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.15); }
+  50% { transform: scale(1); }
+  75% { transform: scale(1.1); }
+}
+
+.celebration-heart-pulse {
+  animation: celebrationHeartPulse 1.5s ease-in-out infinite;
+}
+
+/* Text glow for epic titles */
+@keyframes celebrationTextGlow {
+  0%, 100% { text-shadow: 0 0 8px rgba(255, 215, 0, 0.3); }
+  50% { text-shadow: 0 0 16px rgba(255, 215, 0, 0.6), 0 0 32px rgba(255, 105, 180, 0.3); }
+}
+
+.celebration-text-glow {
+  animation: celebrationTextGlow 2s ease-in-out infinite;
+}
+
+/* Epic banner border glow animation */
+@keyframes celebrationBorderGlow {
+  0%, 100% { box-shadow: 0 0 12px rgba(255, 215, 0, 0.2), 0 4px 20px rgba(0, 0, 0, 0.2); }
+  50% { box-shadow: 0 0 24px rgba(255, 215, 0, 0.4), 0 0 40px rgba(255, 105, 180, 0.2), 0 4px 20px rgba(0, 0, 0, 0.2); }
+}
+
+.celebration-banner--epic {
+  animation: celebrationBorderGlow 2.5s ease-in-out infinite;
+}
+
+/* Hero card celebrating variant — animated border + subtle glow */
+@keyframes heroCardCelebrate {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(255, 215, 0, 0.15),
+      0 12px 40px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 35px rgba(255, 215, 0, 0.3),
+      0 0 60px rgba(255, 105, 180, 0.15),
+      0 12px 40px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.hero-card--celebrating {
+  animation: heroCardCelebrate 3s ease-in-out infinite;
+  border: 1px solid rgba(255, 215, 0, 0.25) !important;
+}
+
+/* Days counter shimmer for milestones */
+@keyframes daysCounterShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.days-counter--celebrating {
+  background: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #FFD700 25%,
+    #ffffff 50%,
+    #FFD700 75%,
+    #ffffff 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: daysCounterShimmer 3s linear infinite;
+}
