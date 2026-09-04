@@ -104,6 +104,7 @@ export default function Home() {
 
   // Partner note written FOR ME
   const partnerNoteInDb = isUser1 ? couple?.user2_note : couple?.user1_note;
+  const partnerNoteUpdatedAt = isUser1 ? couple?.user2_note_updated_at : couple?.user1_note_updated_at;
   const isDailyNoteFromPartner = Boolean(couple?.daily_note_updated_by && couple.daily_note_updated_by !== profile?.id);
   const legacyNoteInDb = isDailyNoteFromPartner ? couple?.daily_note : null;
   const rawReceivedNote = partnerNoteInDb || legacyNoteInDb;
@@ -111,6 +112,20 @@ export default function Home() {
   const receivedNoteDisplay = (rawReceivedNote && rawReceivedNote.trim())
     ? rawReceivedNote.trim()
     : `${partnerName} aún no ha escrito su notita para ti.`;
+
+  // Helper for relative time
+  const getRelativeTime = (isoString?: string) => {
+    if (!isoString) return '';
+    const diffMs = new Date().getTime() - new Date(isoString).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'hace un momento';
+    if (diffMins < 60) return `hace ${diffMins} min`;
+    const diffHrs = Math.floor(diffMins / 60);
+    if (diffHrs < 24) return `hace ${diffHrs} h`;
+    const diffDays = Math.floor(diffHrs / 24);
+    if (diffDays === 1) return 'ayer';
+    return `hace ${diffDays} días`;
+  };
 
   // My Note FOR MY PARTNER
   const myNoteInDb = isUser1 ? couple?.user1_note : couple?.user2_note;
@@ -205,8 +220,14 @@ export default function Home() {
           daily_note: updatedText,
           daily_note_updated_by: profile?.id,
         };
-        if (isUser1) payload.user1_note = updatedText;
-        else payload.user2_note = updatedText;
+        const nowIso = new Date().toISOString();
+        if (isUser1) {
+          payload.user1_note = updatedText;
+          payload.user1_note_updated_at = nowIso;
+        } else {
+          payload.user2_note = updatedText;
+          payload.user2_note_updated_at = nowIso;
+        }
 
         const { error: updErr } = await supabase
           .from('couples')
@@ -431,6 +452,11 @@ export default function Home() {
                 <div style={{ fontSize: '20px', fontStyle: 'italic', fontWeight: 700, color: 'var(--color-accent)' }}>
                   "{receivedNoteDisplay}"
                 </div>
+                {partnerNoteUpdatedAt && rawReceivedNote && rawReceivedNote.trim() && (
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '6px', fontWeight: 500 }}>
+                    Enviado {getRelativeTime(partnerNoteUpdatedAt)}
+                  </div>
+                )}
               </div>
             </div>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-text-tertiary)' }}>
