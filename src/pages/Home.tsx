@@ -113,18 +113,13 @@ export default function Home() {
     ? rawReceivedNote.trim()
     : `${partnerName} aún no ha escrito su notita para ti.`;
 
-  // Helper for relative time
-  const getRelativeTime = (isoString?: string) => {
+  // Helper for absolute time
+  const getAbsoluteTime = (isoString?: string) => {
     if (!isoString) return '';
-    const diffMs = new Date().getTime() - new Date(isoString).getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 1) return 'hace un momento';
-    if (diffMins < 60) return `hace ${diffMins} min`;
-    const diffHrs = Math.floor(diffMins / 60);
-    if (diffHrs < 24) return `hace ${diffHrs} h`;
-    const diffDays = Math.floor(diffHrs / 24);
-    if (diffDays === 1) return 'ayer';
-    return `hace ${diffDays} días`;
+    const d = new Date(isoString);
+    const dateStr = d.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const timeStr = d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+    return `el ${dateStr} a las ${timeStr}`;
   };
 
   // My Note FOR MY PARTNER
@@ -454,7 +449,7 @@ export default function Home() {
                 </div>
                 {partnerNoteUpdatedAt && rawReceivedNote && rawReceivedNote.trim() && (
                   <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '6px', fontWeight: 500 }}>
-                    Enviado {getRelativeTime(partnerNoteUpdatedAt)}
+                    Subido {getAbsoluteTime(partnerNoteUpdatedAt)}
                   </div>
                 )}
               </div>
