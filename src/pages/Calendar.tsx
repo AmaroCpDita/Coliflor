@@ -359,6 +359,11 @@ export default function Calendar() {
 
   const handleDeleteEvent = async (eventId: string) => {
     if (!couple || saving) return;
+    
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este recuerdo?')) {
+      return;
+    }
+    
     setSaving(true);
 
     if (isMockMode || tableMissing) {
