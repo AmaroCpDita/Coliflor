@@ -582,16 +582,19 @@ export default function Calendar() {
                 className="btn btn--ghost btn--sm"
                 onClick={() => setShowModal(false)}
                 style={{
-                  padding: '6px 10px',
-                  fontSize: 'var(--font-size-sm)',
-                  fontWeight: 700,
-                  color: 'var(--color-text-secondary)',
+                  padding: '0',
+                  fontSize: '18px',
+                  fontWeight: 800,
+                  color: 'var(--color-text-primary)',
                   borderRadius: 'var(--radius-full)',
-                  minWidth: '36px',
-                  minHeight: '36px',
+                  width: '36px',
+                  height: '36px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  background: 'var(--color-bg-secondary)',
+                  border: '1px solid var(--color-border)',
+                  flexShrink: 0,
                 }}
                 aria-label="Cerrar"
               >
