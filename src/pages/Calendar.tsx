@@ -733,6 +733,16 @@ export default function Calendar() {
                           <div className="photo-card__placeholder" style={{ aspectRatio: '3/4', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '11px', color: 'var(--color-info)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                             <span>🛡️</span>
                             <span style={{ fontWeight: 600, padding: '0 12px', textAlign: 'center' }}>Racha recuperada</span>
+                            {selectedDate === '2026-09-07' && (
+                              <button 
+                                className="btn btn--primary btn--sm" 
+                                style={{ marginTop: '8px' }}
+                                onClick={() => tempFileInputRef.current?.click()}
+                                disabled={uploadingPast}
+                              >
+                                {uploadingPast ? 'Subiendo...' : 'Subir foto real'}
+                              </button>
+                            )}
                           </div>
                         ) : selectedDayPhotos.myPhotoUrl ? (
                           <div className="stack stack--xs">
@@ -761,6 +771,16 @@ export default function Calendar() {
                         ) : (
                           <div className="photo-card__placeholder" style={{ aspectRatio: '3/4', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-md)', fontSize: '11px' }}>
                             Sin foto
+                            {selectedDate === '2026-09-07' && (
+                              <button 
+                                className="btn btn--primary btn--sm" 
+                                style={{ marginTop: '8px' }}
+                                onClick={() => tempFileInputRef.current?.click()}
+                                disabled={uploadingPast}
+                              >
+                                {uploadingPast ? 'Subiendo...' : 'Subir foto real'}
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
