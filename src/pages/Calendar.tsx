@@ -202,11 +202,20 @@ export default function Calendar() {
         await Promise.all((photosData as StreakPhoto[]).map(async (p) => {
           const existing = pMap.get(p.photo_date)!;
           try {
-            const { data } = await supabase.storage.from('photos').createSignedUrl(p.storage_path, 3600);
-            if (p.user_id === profile.id) {
-              existing.myPhotoUrl = data?.signedUrl || undefined;
+            const isRecovery = p.storage_path.includes('_recovery');
+            let urlToUse: string | undefined = undefined;
+
+            if (isRecovery) {
+              urlToUse = 'recovery';
             } else {
-              existing.partnerPhotoUrl = data?.signedUrl || undefined;
+              const { data } = await supabase.storage.from('photos').createSignedUrl(p.storage_path, 3600);
+              urlToUse = data?.signedUrl || undefined;
+            }
+
+            if (p.user_id === profile.id) {
+              existing.myPhotoUrl = urlToUse;
+            } else {
+              existing.partnerPhotoUrl = urlToUse;
             }
           } catch (e) {
             console.error('Error fetching photo url', e);
@@ -678,13 +687,23 @@ export default function Calendar() {
                         <div className="text-secondary text-center" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}>
                           {myName}
                         </div>
-                        {selectedDayPhotos.myPhotoUrl ? (
+                        {selectedDayPhotos.myPhotoUrl === 'recovery' ? (
+                          <div className="photo-card__placeholder" style={{ aspectRatio: '3/4', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '11px', color: 'var(--color-info)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <span>🛡️</span>
+                            <span style={{ fontWeight: 600, padding: '0 12px', textAlign: 'center' }}>Racha recuperada</span>
+                          </div>
+                        ) : selectedDayPhotos.myPhotoUrl ? (
                           <div className="stack stack--xs">
                             <img 
                               src={selectedDayPhotos.myPhotoUrl} 
                               alt="Foto" 
                               style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} 
                               onClick={() => setLightboxUrl(selectedDayPhotos.myPhotoUrl || null)}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '';
+                                (e.target as HTMLImageElement).alt = 'Foto no disponible';
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
                             />
                             <a
                               href={selectedDayPhotos.myPhotoUrl}
@@ -708,13 +727,23 @@ export default function Calendar() {
                         <div className="text-secondary text-center" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}>
                           {partnerName}
                         </div>
-                        {selectedDayPhotos.partnerPhotoUrl ? (
+                        {selectedDayPhotos.partnerPhotoUrl === 'recovery' ? (
+                          <div className="photo-card__placeholder" style={{ aspectRatio: '3/4', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '11px', color: 'var(--color-info)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <span>🛡️</span>
+                            <span style={{ fontWeight: 600, padding: '0 12px', textAlign: 'center' }}>Racha recuperada</span>
+                          </div>
+                        ) : selectedDayPhotos.partnerPhotoUrl ? (
                           <div className="stack stack--xs">
                             <img 
                               src={selectedDayPhotos.partnerPhotoUrl} 
                               alt="Foto" 
                               style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} 
                               onClick={() => setLightboxUrl(selectedDayPhotos.partnerPhotoUrl || null)}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '';
+                                (e.target as HTMLImageElement).alt = 'Foto no disponible';
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
                             />
                             <a
                               href={selectedDayPhotos.partnerPhotoUrl}
