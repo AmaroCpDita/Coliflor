@@ -5,7 +5,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { getCalendarDays, getMonthName, getTodayInTimezone, formatDate, getNowInTimezone } from '../lib/utils';
+import { getCalendarDays, getMonthName, getTodayInTimezone, formatDate, getNowInTimezone, compressImage } from '../lib/utils';
 import type { CalendarEvent, EventCategory, StreakPhoto } from '../lib/types';
 import Lightbox from '../components/Lightbox';
 
@@ -112,6 +112,48 @@ export default function Calendar() {
 
   const partnerName = partner ? partner.display_name : 'Tu pareja';
   const myName = profile?.display_name || 'Tú';
+
+  // Temporario: Subir foto pasada
+  const [uploadingPast, setUploadingPast] = useState(false);
+  const tempFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleTempUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !couple || !profile) return;
+    
+    setUploadingPast(true);
+    setError('');
+
+    try {
+      const compressed = await compressImage(file, 1200, 0.7, false);
+      const storagePath = `${couple.id}/${selectedDate}/${partner ? partner.id : profile.id}.jpg`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('photos')
+        .upload(storagePath, compressed, {
+          contentType: 'image/jpeg',
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Update the DB record to point to the real photo instead of recovery
+      const targetUserId = partner ? partner.id : profile.id;
+      await supabase.from('streak_photos')
+        .update({ storage_path: storagePath })
+        .eq('couple_id', couple.id)
+        .eq('photo_date', selectedDate)
+        .eq('user_id', targetUserId);
+
+      await fetchEventsAndPhotos();
+      alert('¡Foto subida con éxito!');
+    } catch (err: any) {
+      alert('Error al subir: ' + err.message);
+    } finally {
+      setUploadingPast(false);
+      if (tempFileInputRef.current) tempFileInputRef.current.value = '';
+    }
+  };
 
   const fetchEventsAndPhotos = useCallback(async () => {
     if (!couple || !profile) return;
@@ -731,6 +773,16 @@ export default function Calendar() {
                           <div className="photo-card__placeholder" style={{ aspectRatio: '3/4', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '11px', color: 'var(--color-info)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                             <span>🛡️</span>
                             <span style={{ fontWeight: 600, padding: '0 12px', textAlign: 'center' }}>Racha recuperada</span>
+                            {selectedDate === '2026-09-07' && (
+                              <button 
+                                className="btn btn--primary btn--sm" 
+                                style={{ marginTop: '8px' }}
+                                onClick={() => tempFileInputRef.current?.click()}
+                                disabled={uploadingPast}
+                              >
+                                {uploadingPast ? 'Subiendo...' : 'Subir foto real'}
+                              </button>
+                            )}
                           </div>
                         ) : selectedDayPhotos.partnerPhotoUrl ? (
                           <div className="stack stack--xs">
@@ -759,8 +811,19 @@ export default function Calendar() {
                         ) : (
                           <div className="photo-card__placeholder" style={{ aspectRatio: '3/4', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-md)', fontSize: '11px' }}>
                             Sin foto
+                            {selectedDate === '2026-09-07' && (
+                              <button 
+                                className="btn btn--primary btn--sm" 
+                                style={{ marginTop: '8px' }}
+                                onClick={() => tempFileInputRef.current?.click()}
+                                disabled={uploadingPast}
+                              >
+                                {uploadingPast ? 'Subiendo...' : 'Subir foto real'}
+                              </button>
+                            )}
                           </div>
                         )}
+                        <input type="file" accept="image/*" ref={tempFileInputRef} style={{ display: 'none' }} onChange={handleTempUpload} />
                       </div>
                     </div>
                   </div>
