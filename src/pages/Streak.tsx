@@ -143,12 +143,17 @@ export default function Streak() {
   const recoveriesRemaining = couple ? MAX_RECOVERIES_PER_MONTH - couple.recoveries_used : 0;
   const dayComplete = todayPhotos.myPhoto !== null && todayPhotos.partnerPhoto !== null;
 
-  // Detect broken streak: yesterday wasn't complete AND wasn't recovered
-  const yesterdayComplete = yesterdayPhotos.myPhoto !== null && yesterdayPhotos.partnerPhoto !== null;
-  const streakBroken = !yesterdayComplete && !yesterdayRecovered && couple !== null && couple.current_streak === 0;
+  // Detect broken streak: trust backend current_streak as source of truth.
+  // The backend tracks streak correctly even after cleanup_old_photos runs.
+  const streakBroken = couple !== null && couple.current_streak === 0 && !yesterdayRecovered;
   
-  // Detect who is missing photo for yesterday (for recovery)
+  // Detect who is missing photo for yesterday (for recovery).
+  // Note: If cleanup already ran, both will be null — but if streak is broken
+  // and we have partial data, use it to determine who missed.
   const iMissedYesterday = yesterdayPhotos.myPhoto === null;
+  const partnerMissedYesterday = yesterdayPhotos.partnerPhoto === null;
+  // If both are null (cleanup ran), we can't tell who missed — both get the option
+  const bothMissedOrUnknown = iMissedYesterday && partnerMissedYesterday;
 
   const fetchTodayPhotos = useCallback(async () => {
     if (!couple || !profile) return;
@@ -439,8 +444,8 @@ export default function Streak() {
   const handleUseRecovery = async () => {
     if (!couple || !profile || usingRecovery) return;
     
-    // If I missed yesterday's photo, require photo upload first
-    if (iMissedYesterday && recoveryStep === 'confirm') {
+    // If I missed yesterday's photo (and we know for sure it was me), require photo upload first
+    if (iMissedYesterday && !bothMissedOrUnknown && recoveryStep === 'confirm') {
       setRecoveryStep('photo');
       return;
     }
@@ -612,11 +617,11 @@ export default function Streak() {
               </span>
             </div>
             <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', textAlign: 'center', marginBottom: '12px' }}>
-              {!yesterdayPhotos.myPhoto && !yesterdayPhotos.partnerPhoto
-                ? 'Ninguno subió foto ayer.'
-                : yesterdayPhotos.myPhoto
-                  ? `Solo tú subiste foto ayer. ${partnerName} no subió la suya.`
-                  : `Solo ${partnerName} subió foto ayer. Te faltó la tuya.`
+              {bothMissedOrUnknown
+                ? 'Faltó completar la racha de ayer.'
+                : iMissedYesterday
+                  ? `Solo ${partnerName} subió foto ayer. Te faltó la tuya.`
+                  : `Solo tú subiste foto ayer. ${partnerName} no subió la suya.`
               }
             </p>
             {recoveriesRemaining > 0 && (
@@ -880,9 +885,11 @@ export default function Streak() {
                     <div style={{ fontSize: '32px', marginBottom: '8px' }}>🛡️</div>
                     <h3>Recuperar la racha</h3>
                     <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}>
-                      {iMissedYesterday
-                        ? 'Te faltó la foto de ayer. Súbela ahora para recuperar la racha.'
-                        : `${partnerName} no subió foto ayer. ¿Usar un comodín para mantener la racha?`
+                      {bothMissedOrUnknown
+                        ? 'Faltó completar la racha de ayer. ¿Usar un comodín para recuperarla?'
+                        : iMissedYesterday
+                          ? 'Te faltó la foto de ayer. Súbela ahora para recuperar la racha.'
+                          : `${partnerName} no subió foto ayer. ¿Usar un comodín para mantener la racha?`
                       }
                     </p>
                   </div>
@@ -897,7 +904,7 @@ export default function Streak() {
                     onClick={handleUseRecovery} 
                     disabled={usingRecovery}
                   >
-                    {iMissedYesterday ? 'Siguiente: Subir foto de ayer' : (usingRecovery ? 'Recuperando...' : 'Confirmar recuperación')}
+                    {iMissedYesterday && !bothMissedOrUnknown ? 'Siguiente: Subir foto de ayer' : (usingRecovery ? 'Recuperando...' : 'Confirmar recuperación')}
                   </button>
                   <button className="btn btn--ghost btn--full" onClick={handleCancelRecovery}>
                     Cancelar

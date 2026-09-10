@@ -268,14 +268,8 @@ export default function Calendar() {
     setNote('');
     setCategory('nos_vimos');
     setError('');
-    
-    const existingEvents = eventsMap.get(dateStr) || [];
-    setShowAddForm(existingEvents.length === 0);
+    setShowAddForm(false);
     setShowModal(true);
-
-    if (existingEvents.length === 0) {
-      setTimeout(() => noteInputRef.current?.focus(), 150);
-    }
   };
 
   const handleAddEvent = async (e: React.FormEvent) => {
@@ -568,230 +562,280 @@ export default function Calendar() {
       {/* Interactive Day Click Modal (Shows Day Photos + Notes) */}
       {showModal && selectedDate && (
         <div className="modal-backdrop" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxHeight: '88vh', overflowY: 'auto' }}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div className="modal__handle" />
-            <div className="stack stack--lg">
-              <div className="text-center">
-                <h3 style={{ textTransform: 'capitalize' }}>
-                  {formatDate(selectedDate, 'long')}
-                </h3>
-              </div>
 
-              {/* List of existing events/notes for this selected date */}
-              {selectedDateEvents.length > 0 && (
-                <div className="stack stack--sm">
-                  {selectedDateEvents.map((evt) => {
-                    const eventCatConf = CATEGORIES.find(c => c.id === evt.category);
-                    return (
-                      <div
-                        key={evt.id}
-                        className="glass-card"
-                        style={{
-                          padding: 'var(--space-md)',
-                          borderLeft: `4px solid ${eventCatConf?.color || '#e5c573'}`,
-                          background: 'var(--color-bg-secondary)',
-                        }}
-                      >
-                        <div className="row row--between">
-                          <div className="row row--gap-xs">
-                            <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: eventCatConf?.color }}>
-                              {evt.title || eventCatConf?.label}
-                            </span>
-                          </div>
-                          <button
-                            className="btn btn--ghost btn--sm"
-                            onClick={() => handleDeleteEvent(evt.id)}
-                            title="Eliminar evento"
-                            disabled={saving}
-                          >
-                            <IconTrash />
-                          </button>
-                        </div>
+            {/* Sticky header with close button */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0 0 var(--space-md) 0',
+              borderBottom: '1px solid var(--color-border)',
+              marginBottom: 'var(--space-md)',
+              flexShrink: 0,
+            }}>
+              <h3 style={{ textTransform: 'capitalize', margin: 0, fontSize: 'var(--font-size-base)' }}>
+                {formatDate(selectedDate, 'long')}
+              </h3>
+              <button
+                className="btn btn--ghost btn--sm"
+                onClick={() => setShowModal(false)}
+                style={{
+                  padding: '6px 10px',
+                  fontSize: 'var(--font-size-sm)',
+                  fontWeight: 700,
+                  color: 'var(--color-text-secondary)',
+                  borderRadius: 'var(--radius-full)',
+                  minWidth: '36px',
+                  minHeight: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                aria-label="Cerrar"
+              >
+                ✕
+              </button>
+            </div>
 
-                        {evt.note && (
-                          <div style={{
-                            margin: 'var(--space-sm) 0',
-                            padding: 'var(--space-sm) var(--space-md)',
-                            background: 'rgba(0,0,0,0.25)',
-                            borderRadius: 'var(--radius-md)',
-                            border: '1px solid var(--color-border)',
-                          }}>
-                            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontStyle: 'italic', lineHeight: 1.4 }}>
-                              "{evt.note}"
-                            </p>
-                          </div>
-                        )}
-
-                        <div className="row row--between text-secondary" style={{ fontSize: '11px', marginTop: 'var(--space-xs)', opacity: 0.8 }}>
-                          <span>Registrado por <strong>{getAuthorName(evt.created_by)}</strong></span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Photos of the Day Section (Placed below notes/events) */}
-              {selectedDayPhotos && (selectedDayPhotos.myPhotoUrl || selectedDayPhotos.partnerPhotoUrl) ? (
-                <div className="glass-card stack stack--sm" style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)' }}>
-                  <div className="row row--gap-xs" style={{ marginBottom: 'var(--space-xs)' }}>
-                    <span style={{ fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-accent-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Fotografías de Racha del Día
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
-                    <div>
-                      <div className="text-secondary text-center" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}>
-                        {myName}
-                      </div>
-                      {selectedDayPhotos.myPhotoUrl ? (
-                        <div className="stack stack--xs">
-                          <img 
-                            src={selectedDayPhotos.myPhotoUrl} 
-                            alt="Foto" 
-                            style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} 
-                            onClick={() => setLightboxUrl(selectedDayPhotos.myPhotoUrl || null)}
-                          />
-                          <a
-                            href={selectedDayPhotos.myPhotoUrl}
-                            download={`coliflor-${selectedDate}-${myName}.jpg`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="btn btn--secondary btn--sm btn--full"
-                            style={{ fontSize: '10px', padding: '4px' }}
-                          >
-                            Guardar foto
-                          </a>
-                        </div>
-                      ) : (
-                        <div className="photo-card__placeholder" style={{ aspectRatio: '3/4', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-md)', fontSize: '11px' }}>
-                          Sin foto
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <div className="text-secondary text-center" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}>
-                        {partnerName}
-                      </div>
-                      {selectedDayPhotos.partnerPhotoUrl ? (
-                        <div className="stack stack--xs">
-                          <img 
-                            src={selectedDayPhotos.partnerPhotoUrl} 
-                            alt="Foto" 
-                            style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} 
-                            onClick={() => setLightboxUrl(selectedDayPhotos.partnerPhotoUrl || null)}
-                          />
-                          <a
-                            href={selectedDayPhotos.partnerPhotoUrl}
-                            download={`coliflor-${selectedDate}-${partnerName}.jpg`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="btn btn--secondary btn--sm btn--full"
-                            style={{ fontSize: '10px', padding: '4px' }}
-                          >
-                            Guardar foto
-                          </a>
-                        </div>
-                      ) : (
-                        <div className="photo-card__placeholder" style={{ aspectRatio: '3/4', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-md)', fontSize: '11px' }}>
-                          Sin foto
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Add Note Button if events already exist */}
-              {selectedDateEvents.length > 0 && !showAddForm && (
-                <button
-                  className="btn btn--secondary btn--full"
-                  onClick={() => {
-                    setShowAddForm(true);
-                    setTimeout(() => noteInputRef.current?.focus(), 150);
-                  }}
-                >
-                  <IconPlus />
-                  <span>Añadir otra notita a este día</span>
-                </button>
-              )}
-
-              {/* Form to add a new event or note */}
-              {(selectedDateEvents.length === 0 || showAddForm) && (
-                <form onSubmit={handleAddEvent} className="stack stack--md" style={{
-                  borderTop: selectedDateEvents.length > 0 ? '1px solid var(--color-border)' : 'none',
-                  paddingTop: selectedDateEvents.length > 0 ? 'var(--space-md)' : 0,
-                }}>
-                  <div style={{ fontWeight: 600, fontSize: 'var(--font-size-xs)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Añadir recuerdo o notita
-                  </div>
-
-                  {/* Category selector pills */}
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    {CATEGORIES.map(cat => {
-                      const isFuture = selectedDate > today;
-                      let label = cat.label;
-                      if (cat.id === 'nos_vimos' && isFuture) {
-                        label = 'Nos veremos';
-                      }
-
+            {/* Scrollable content area */}
+            <div style={{ overflowY: 'auto', flex: 1, paddingBottom: 'var(--space-md)' }}>
+              <div className="stack stack--lg">
+                {/* List of existing events/notes for this selected date */}
+                {selectedDateEvents.length > 0 && (
+                  <div className="stack stack--sm">
+                    {selectedDateEvents.map((evt) => {
+                      const eventCatConf = CATEGORIES.find(c => c.id === evt.category);
                       return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          className="btn btn--sm"
-                          onClick={() => setCategory(cat.id)}
+                        <div
+                          key={evt.id}
+                          className="glass-card"
                           style={{
-                            background: category === cat.id ? `${cat.color}22` : 'var(--color-bg-secondary)',
-                            borderColor: category === cat.id ? cat.color : 'var(--color-border)',
-                            color: category === cat.id ? cat.color : 'var(--color-text-secondary)',
-                            fontSize: 'var(--font-size-xs)',
-                            fontWeight: category === cat.id ? 700 : 500,
+                            padding: 'var(--space-md)',
+                            borderLeft: `4px solid ${eventCatConf?.color || '#e5c573'}`,
+                            background: 'var(--color-bg-secondary)',
                           }}
                         >
-                          <span>{label}</span>
-                        </button>
+                          <div className="row row--between">
+                            <div className="row row--gap-xs">
+                              <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: eventCatConf?.color }}>
+                                {evt.title || eventCatConf?.label}
+                              </span>
+                            </div>
+                            <button
+                              className="btn btn--ghost btn--sm"
+                              onClick={() => handleDeleteEvent(evt.id)}
+                              title="Eliminar evento"
+                              disabled={saving}
+                            >
+                              <IconTrash />
+                            </button>
+                          </div>
+
+                          {evt.note && (
+                            <div style={{
+                              margin: 'var(--space-sm) 0',
+                              padding: 'var(--space-sm) var(--space-md)',
+                              background: 'rgba(0,0,0,0.25)',
+                              borderRadius: 'var(--radius-md)',
+                              border: '1px solid var(--color-border)',
+                            }}>
+                              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontStyle: 'italic', lineHeight: 1.4 }}>
+                                "{evt.note}"
+                              </p>
+                            </div>
+                          )}
+
+                          <div className="row row--between text-secondary" style={{ fontSize: '11px', marginTop: 'var(--space-xs)', opacity: 0.8 }}>
+                            <span>Registrado por <strong>{getAuthorName(evt.created_by)}</strong></span>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
+                )}
 
-                  {/* Note textarea with dynamic placeholder per category */}
-                  <div className="input-group">
-                    <label htmlFor="calendarNoteInput">Notita o detalle del día</label>
-                    <textarea
-                      id="calendarNoteInput"
-                      ref={noteInputRef}
-                      className="input"
-                      rows={3}
-                      placeholder={PLACEHOLDERS[category]}
-                      value={note}
-                      onChange={(e) => setNote(e.target.value)}
-                      style={{ resize: 'none' }}
-                    />
-                  </div>
-
-                  {error && (
-                    <div className="toast toast--error" style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}>
-                      {error}
+                {/* Photos of the Day Section */}
+                {selectedDayPhotos && (selectedDayPhotos.myPhotoUrl || selectedDayPhotos.partnerPhotoUrl) ? (
+                  <div className="glass-card stack stack--sm" style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)' }}>
+                    <div className="row row--gap-xs" style={{ marginBottom: 'var(--space-xs)' }}>
+                      <span style={{ fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-accent-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Fotografías de Racha del Día
+                      </span>
                     </div>
-                  )}
 
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
+                      <div>
+                        <div className="text-secondary text-center" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}>
+                          {myName}
+                        </div>
+                        {selectedDayPhotos.myPhotoUrl ? (
+                          <div className="stack stack--xs">
+                            <img 
+                              src={selectedDayPhotos.myPhotoUrl} 
+                              alt="Foto" 
+                              style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} 
+                              onClick={() => setLightboxUrl(selectedDayPhotos.myPhotoUrl || null)}
+                            />
+                            <a
+                              href={selectedDayPhotos.myPhotoUrl}
+                              download={`coliflor-${selectedDate}-${myName}.jpg`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="btn btn--secondary btn--sm btn--full"
+                              style={{ fontSize: '10px', padding: '4px' }}
+                            >
+                              Guardar foto
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="photo-card__placeholder" style={{ aspectRatio: '3/4', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-md)', fontSize: '11px' }}>
+                            Sin foto
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="text-secondary text-center" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}>
+                          {partnerName}
+                        </div>
+                        {selectedDayPhotos.partnerPhotoUrl ? (
+                          <div className="stack stack--xs">
+                            <img 
+                              src={selectedDayPhotos.partnerPhotoUrl} 
+                              alt="Foto" 
+                              style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} 
+                              onClick={() => setLightboxUrl(selectedDayPhotos.partnerPhotoUrl || null)}
+                            />
+                            <a
+                              href={selectedDayPhotos.partnerPhotoUrl}
+                              download={`coliflor-${selectedDate}-${partnerName}.jpg`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="btn btn--secondary btn--sm btn--full"
+                              style={{ fontSize: '10px', padding: '4px' }}
+                            >
+                              Guardar foto
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="photo-card__placeholder" style={{ aspectRatio: '3/4', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-md)', fontSize: '11px' }}>
+                            Sin foto
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Empty state when no events and no photos */}
+                {selectedDateEvents.length === 0 && !showAddForm && !(selectedDayPhotos && (selectedDayPhotos.myPhotoUrl || selectedDayPhotos.partnerPhotoUrl)) && (
+                  <div className="text-center text-secondary" style={{ padding: 'var(--space-lg) 0', fontSize: 'var(--font-size-sm)' }}>
+                    No hay recuerdos para este día aún.
+                  </div>
+                )}
+
+                {/* Add Note/Memory Button — always visible, user must explicitly tap */}
+                {!showAddForm && (
                   <button
-                    type="submit"
-                    className="btn btn--primary btn--full"
-                    disabled={saving}
+                    className="btn btn--secondary btn--full"
+                    onClick={() => {
+                      setShowAddForm(true);
+                      setTimeout(() => noteInputRef.current?.focus(), 150);
+                    }}
                   >
                     <IconPlus />
-                    <span>{saving ? 'Guardando...' : 'Guardar recuerdo para siempre'}</span>
+                    <span>{selectedDateEvents.length > 0 ? 'Añadir otra notita a este día' : 'Añadir recuerdo o notita'}</span>
                   </button>
-                </form>
-              )}
+                )}
 
-              <button className="btn btn--secondary btn--full" onClick={() => setShowModal(false)}>
-                Cerrar
-              </button>
+                {/* Form to add a new event or note — only visible after explicit tap */}
+                {showAddForm && (
+                  <form onSubmit={handleAddEvent} className="stack stack--md" style={{
+                    borderTop: '1px solid var(--color-border)',
+                    paddingTop: 'var(--space-md)',
+                  }}>
+                    <div style={{ fontWeight: 600, fontSize: 'var(--font-size-xs)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Añadir recuerdo o notita
+                    </div>
+
+                    {/* Category selector pills */}
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {CATEGORIES.map(cat => {
+                        const isFuture = selectedDate > today;
+                        let label = cat.label;
+                        if (cat.id === 'nos_vimos' && isFuture) {
+                          label = 'Nos veremos';
+                        }
+
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            className="btn btn--sm"
+                            onClick={() => setCategory(cat.id)}
+                            style={{
+                              background: category === cat.id ? `${cat.color}22` : 'var(--color-bg-secondary)',
+                              borderColor: category === cat.id ? cat.color : 'var(--color-border)',
+                              color: category === cat.id ? cat.color : 'var(--color-text-secondary)',
+                              fontSize: 'var(--font-size-xs)',
+                              fontWeight: category === cat.id ? 700 : 500,
+                            }}
+                          >
+                            <span>{label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Note textarea with dynamic placeholder per category */}
+                    <div className="input-group">
+                      <label htmlFor="calendarNoteInput">Notita o detalle del día</label>
+                      <textarea
+                        id="calendarNoteInput"
+                        ref={noteInputRef}
+                        className="input"
+                        rows={3}
+                        placeholder={PLACEHOLDERS[category]}
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        style={{ resize: 'none' }}
+                      />
+                    </div>
+
+                    {error && (
+                      <div className="toast toast--error" style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}>
+                        {error}
+                      </div>
+                    )}
+
+                    <div className="row row--gap-sm">
+                      <button
+                        type="submit"
+                        className="btn btn--primary btn--full"
+                        disabled={saving}
+                      >
+                        <IconPlus />
+                        <span>{saving ? 'Guardando...' : 'Guardar recuerdo'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--ghost"
+                        onClick={() => {
+                          setShowAddForm(false);
+                          setNote('');
+                          setTitle('');
+                          setError('');
+                        }}
+                        style={{ flexShrink: 0 }}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             </div>
           </div>
         </div>
