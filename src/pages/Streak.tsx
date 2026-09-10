@@ -154,6 +154,8 @@ export default function Streak() {
   const partnerMissedYesterday = yesterdayPhotos.partnerPhoto === null;
   // If both are null (cleanup ran), we can't tell who missed — both get the option
   const bothMissedOrUnknown = iMissedYesterday && partnerMissedYesterday;
+  // Yesterday is complete only if BOTH photos exist
+  const yesterdayComplete = yesterdayPhotos.myPhoto !== null && yesterdayPhotos.partnerPhoto !== null;
 
   const fetchTodayPhotos = useCallback(async () => {
     if (!couple || !profile) return;
@@ -819,7 +821,7 @@ export default function Streak() {
               </span>
             </div>
 
-            {recoveriesRemaining > 0 && !showRecovery && (
+            {recoveriesRemaining > 0 && !showRecovery && !yesterdayComplete && !yesterdayRecovered && (
               <button
                 className="btn btn--ghost btn--sm btn--full"
                 onClick={handleStartRecovery}
