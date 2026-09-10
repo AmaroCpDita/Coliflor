@@ -120,6 +120,7 @@ export default function Streak() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showRecovery, setShowRecovery] = useState(false);
   const [recoveryStep, setRecoveryStep] = useState<'confirm' | 'photo' | 'uploading'>('confirm');
   const [recoveryPreviewFile, setRecoveryPreviewFile] = useState<File | null>(null);
@@ -132,6 +133,7 @@ export default function Streak() {
   const [yesterdayRecovered, setYesterdayRecovered] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recoveryFileInputRef = useRef<HTMLInputElement>(null);
+  const lastUploadRef = useRef<{ file: File; flip: boolean } | null>(null);
 
   const today = getTodayInTimezone();
   const yesterday = (() => {
@@ -320,6 +322,17 @@ export default function Streak() {
     fetchHistory();
   }, [fetchTodayPhotos, fetchYesterdayPhotos, fetchHistory]);
 
+  // Prevent accidental close during upload
+  useEffect(() => {
+    if (!uploading) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = 'Tu foto se está subiendo. ¿Seguro que quieres salir?';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [uploading]);
+
   // Realtime
   useEffect(() => {
     if (!couple) return;
@@ -365,11 +378,14 @@ export default function Streak() {
 
     setUploading(true);
     setError('');
+    setSuccessMessage('');
+    lastUploadRef.current = { file: previewFile, flip: flipHorizontal };
 
     try {
       const compressed = await compressImage(previewFile, 1200, 0.7, flipHorizontal);
       const storagePath = `${couple.id}/${today}/${profile.id}.jpg`;
 
+      // Step 1: Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('photos')
         .upload(storagePath, compressed, {
@@ -379,14 +395,44 @@ export default function Streak() {
 
       if (uploadError) throw uploadError;
 
-      const { error: rpcError } = await supabase.rpc('register_streak_photo', {
-        p_couple_id: couple.id,
-        p_storage_path: storagePath,
-      });
+      // Step 2: Register in DB with retry (up to 3 attempts)
+      let rpcSuccess = false;
+      let lastRpcError: any = null;
+      for (let attempt = 0; attempt < 3 && !rpcSuccess; attempt++) {
+        if (attempt > 0) {
+          // Wait before retry (500ms, then 1500ms)
+          await new Promise(r => setTimeout(r, attempt * 1000 + 500));
+        }
+        const { error: rpcError } = await supabase.rpc('register_streak_photo', {
+          p_couple_id: couple.id,
+          p_storage_path: storagePath,
+        });
+        if (!rpcError) {
+          rpcSuccess = true;
+        } else if (rpcError.message?.includes('Already uploaded')) {
+          // Already registered — that's fine, count as success
+          rpcSuccess = true;
+        } else {
+          lastRpcError = rpcError;
+        }
+      }
 
-      if (rpcError) throw rpcError;
+      if (!rpcSuccess) throw lastRpcError;
 
-      // Send push notification
+      // Step 3: Verify the photo exists in DB
+      const { data: verifyData } = await supabase
+        .from('streak_photos')
+        .select('id')
+        .eq('couple_id', couple.id)
+        .eq('user_id', profile.id)
+        .eq('photo_date', today)
+        .single();
+
+      if (!verifyData) {
+        throw new Error('La foto se subió pero no se registró correctamente. Intenta de nuevo.');
+      }
+
+      // Step 4: Send push notification (non-critical)
       try {
         const myName = profile.display_name || 'Tú';
         const hasPartnerPhoto = Boolean(todayPhotos.partnerPhoto);
@@ -403,14 +449,20 @@ export default function Streak() {
         // Ignore notification fallback
       }
 
+      // Step 5: Success! Clean up preview
       setPreviewFile(null);
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(null);
+      lastUploadRef.current = null;
+
+      setSuccessMessage('✅ ¡Foto subida correctamente!');
+      setTimeout(() => setSuccessMessage(''), 4000);
 
       await fetchTodayPhotos();
       await refreshProfile();
     } catch (err: any) {
-      setError(err?.message || 'Error al subir fotografía');
+      setError(err?.message || 'Error al subir fotografía. Intenta de nuevo.');
+      // DON'T clear the preview — keep it so user can retry
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -868,9 +920,42 @@ export default function Streak() {
           </div>
         )}
 
+        {successMessage && (
+          <div className="toast toast--success animate-fade-in" style={{ 
+            position: 'relative', top: 0, left: 0, transform: 'none',
+            background: 'rgba(74, 222, 128, 0.15)',
+            border: '1px solid rgba(74, 222, 128, 0.4)',
+            color: '#4ade80',
+            fontWeight: 600,
+          }}>
+            {successMessage}
+          </div>
+        )}
+
         {error && (
-          <div className="toast toast--error" style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}>
-            {error}
+          <div className="glass-card animate-fade-in" style={{ 
+            padding: 'var(--space-md)',
+            background: 'rgba(248, 113, 113, 0.1)',
+            border: '1px solid rgba(248, 113, 113, 0.4)',
+          }}>
+            <div style={{ color: '#f87171', fontWeight: 600, fontSize: 'var(--font-size-sm)', marginBottom: 'var(--space-sm)' }}>
+              ⚠️ {error}
+            </div>
+            {lastUploadRef.current && (
+              <button 
+                className="btn btn--full btn--sm"
+                onClick={handleConfirmUpload}
+                disabled={uploading}
+                style={{ 
+                  background: 'rgba(248, 113, 113, 0.2)',
+                  border: '1px solid rgba(248, 113, 113, 0.5)',
+                  color: '#fca5a5',
+                  fontWeight: 700,
+                }}
+              >
+                {uploading ? 'Reintentando...' : '🔄 Reintentar subida'}
+              </button>
+            )}
           </div>
         )}
       </div>
