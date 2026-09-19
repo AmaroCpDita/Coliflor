@@ -12,7 +12,7 @@ export type CelebrationType =
   | 'aniversario'
   | 'fiestas_patrias'
   | 'navidad'
-  | 'navidad'
+  | 'ano_nuevo'
   | 'san_valentin'
   | 'halloween'
   | 'cumpleanos_mio'
