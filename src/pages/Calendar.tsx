@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { getCalendarDays, getMonthName, getTodayInTimezone, formatDate, getNowInTimezone, compressImage } from '../lib/utils';
 import type { CalendarEvent, EventCategory, StreakPhoto } from '../lib/types';
 import Lightbox from '../components/Lightbox';
+import { CHILEAN_HOLIDAYS } from '../lib/celebrations';
 
 interface CategoryConfig {
   id: EventCategory;
@@ -126,7 +127,7 @@ export default function Calendar() {
 
     try {
       const compressed = await compressImage(file, 1200, 0.7, false);
-      const storagePath = `${couple.id}/${selectedDate}/${partner ? partner.id : profile.id}.jpg`;
+      const storagePath = `${couple.id}/${selectedDate}/${profile.id}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from('photos')
@@ -138,7 +139,7 @@ export default function Calendar() {
       if (uploadError) throw uploadError;
 
       // Update the DB record to point to the real photo instead of recovery
-      const targetUserId = partner ? partner.id : profile.id;
+      const targetUserId = profile.id;
       await supabase.from('streak_photos')
         .update({ storage_path: storagePath })
         .eq('couple_id', couple.id)
@@ -493,6 +494,12 @@ export default function Calendar() {
               const primaryCategory = dayEvents[0]?.category;
               const catConf = primaryCategory ? CATEGORIES.find(c => c.id === primaryCategory) : null;
 
+              // Check if it's a general holiday
+              const [yStr, mStr, dStr] = dateStr.split('-');
+              const dayMonth = parseInt(mStr, 10);
+              const dayDay = parseInt(dStr, 10);
+              const holiday = CHILEAN_HOLIDAYS.find(h => h.month === dayMonth && h.day === dayDay);
+
               return (
                 <button
                   key={i}
@@ -511,6 +518,21 @@ export default function Calendar() {
                   <span style={{ fontWeight: catConf ? 700 : 500, color: catConf ? catConf.color : undefined }}>
                     {dayObj.day}
                   </span>
+
+                  {/* Holiday Emoji Indicator */}
+                  {holiday && (
+                    <span style={{
+                      position: 'absolute',
+                      top: '2px',
+                      right: '2px',
+                      fontSize: '14px',
+                      lineHeight: '1',
+                      opacity: 0.95,
+                      filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.4))'
+                    }}>
+                      {holiday.emoji}
+                    </span>
+                  )}
 
                   {/* Top indicator dots (Notes/Events) */}
                   {dayEvents.length > 0 && (

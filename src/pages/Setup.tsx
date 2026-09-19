@@ -13,6 +13,7 @@ export default function Setup() {
   const [inviteCode, setInviteCode] = useState('');
   const [inputCode, setInputCode] = useState('');
   const [relationshipDate, setRelationshipDate] = useState('');
+  const [birthday, setBirthday] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -34,6 +35,10 @@ export default function Setup() {
       const { error: rpcError } = await supabase.rpc('generate_my_invite_code', {
         p_code: code,
       });
+
+      if (birthday) {
+        await supabase.from('profiles').update({ birthday: birthday }).eq('id', user.id);
+      }
 
       if (rpcError) {
         // Fallback: direct upsert
@@ -73,6 +78,10 @@ export default function Setup() {
       });
 
       if (rpcError) throw rpcError;
+
+      if (birthday) {
+        await supabase.from('profiles').update({ birthday: birthday }).eq('id', user.id);
+      }
 
       await refreshProfile();
     } catch (err: unknown) {
@@ -175,6 +184,20 @@ export default function Setup() {
               </span>
             </div>
 
+            <div className="input-group">
+              <label htmlFor="bday1">Tu cumpleaños</label>
+              <input
+                id="bday1"
+                type="date"
+                className="input"
+                value={birthday}
+                onChange={(e) => setBirthday(e.target.value)}
+              />
+              <span className="text-secondary" style={{ fontSize: 'var(--font-size-xs)' }}>
+                Opcional — para celebrarlo juntos 🎉
+              </span>
+            </div>
+
             {error && (
               <div className="toast toast--error" style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}>
                 {error}
@@ -260,6 +283,20 @@ export default function Setup() {
               />
               <span className="text-secondary" style={{ fontSize: 'var(--font-size-xs)' }}>
                 Opcional
+              </span>
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="bday2">Tu cumpleaños</label>
+              <input
+                id="bday2"
+                type="date"
+                className="input"
+                value={birthday}
+                onChange={(e) => setBirthday(e.target.value)}
+              />
+              <span className="text-secondary" style={{ fontSize: 'var(--font-size-xs)' }}>
+                Opcional — para celebrarlo juntos 🎉
               </span>
             </div>
 

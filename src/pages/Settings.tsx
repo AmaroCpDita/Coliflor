@@ -48,6 +48,7 @@ export default function Settings() {
   const { theme, toggleTheme } = useTheme();
   
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
+  const [birthday, setBirthday] = useState(profile?.birthday || '');
   const [relationshipStart, setRelationshipStart] = useState(couple?.relationship_start || '');
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingCouple, setSavingCouple] = useState(false);
@@ -66,7 +67,10 @@ export default function Settings() {
     try {
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ display_name: displayName.trim() })
+        .update({ 
+          display_name: displayName.trim(),
+          birthday: birthday || null
+        })
         .eq('id', user.id);
 
       if (updateError) throw updateError;
@@ -181,20 +185,34 @@ export default function Settings() {
               <span>{user?.email || 'Sin correo'}</span>
             </div>
 
+            <div className="input-group">
+              <label htmlFor="bdayInput">Tu Cumpleaños</label>
+              <input
+                id="bdayInput"
+                type="date"
+                className="input"
+                value={birthday}
+                onChange={(e) => setBirthday(e.target.value)}
+              />
+              <span className="text-secondary" style={{ fontSize: 'var(--font-size-xs)' }}>
+                Para celebrarlo en la app 🎉
+              </span>
+            </div>
+
             <div className="row row--gap-sm">
               <button
                 type="submit"
                 className="btn btn--primary btn--full"
-                disabled={savingProfile || !displayName.trim() || displayName === profile.display_name}
+                disabled={savingProfile || !displayName.trim() || (displayName === profile.display_name && birthday === (profile.birthday || ''))}
               >
-                {savingProfile ? 'Guardando...' : 'Guardar nombre'}
+                {savingProfile ? 'Guardando...' : 'Guardar perfil'}
               </button>
             </div>
 
             {profileSuccess && (
               <div className="row row--center row--gap-xs" style={{ color: 'var(--color-success)', fontSize: 'var(--font-size-xs)' }}>
                 <IconCheck />
-                <span>Nombre actualizado con éxito</span>
+                <span>Perfil actualizado con éxito</span>
               </div>
             )}
           </form>

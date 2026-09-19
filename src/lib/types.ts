@@ -10,6 +10,7 @@ export interface Profile {
   couple_id: string | null;
   invite_code: string | null;
   avatar_emoji: string;
+  birthday?: string;
   created_at: string;
 }
 

@@ -9,9 +9,10 @@ import { useTheme } from '../contexts/ThemeContext';
 import { daysSince, generateInviteCode, formatDate } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { sendPushNotification } from '../lib/push';
-import { getCelebration } from '../lib/celebrations';
+import { getCelebration, Celebration, CelebrationType } from '../lib/celebrations';
 import Fireworks from '../components/Fireworks';
 import CelebrationBanner from '../components/CelebrationBanner';
+import CelebrationModal from '../components/CelebrationModal';
 
 function IconFlame() {
   return (
@@ -91,8 +92,8 @@ export default function Home() {
   // Celebration detection
   const celebration = useMemo(() => {
     if (!couple?.relationship_start) return null;
-    return getCelebration(couple.relationship_start);
-  }, [couple?.relationship_start]);
+    return getCelebration(couple.relationship_start, profile?.birthday, partner?.birthday);
+  }, [couple?.relationship_start, profile?.birthday, partner?.birthday]);
   const isCelebrating = celebration !== null;
   const showConfetti = celebration ? celebration.intensity !== 'low' : false;
   const myName = profile?.display_name || user?.user_metadata?.display_name || 'Tú';
@@ -265,8 +266,35 @@ export default function Home() {
   };
 
   return (
-    <div className="page" style={{ paddingBottom: '120px' }}>
-      <div className="stack stack--md stagger-children">
+    <div className="page" style={{ paddingBottom: '120px', position: 'relative' }}>
+      
+      {/* Spectacular Dynamic Backgrounds */}
+      {celebration?.type === 'aniversario' && (
+        <div 
+          className="heart-pulse" 
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: 'radial-gradient(circle at 50% 30%, rgba(255,215,0,0.15) 0%, rgba(255,107,107,0.05) 50%, transparent 100%)',
+            zIndex: -1,
+            pointerEvents: 'none',
+          }} 
+        />
+      )}
+      {celebration?.type === 'san_valentin' && (
+        <div 
+          className="heart-pulse" 
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: 'radial-gradient(circle at 50% 30%, rgba(255,105,180,0.15) 0%, rgba(255,20,147,0.05) 50%, transparent 100%)',
+            zIndex: -1,
+            pointerEvents: 'none',
+          }} 
+        />
+      )}
+
+      <div className="stack stack--md stagger-children" style={{ position: 'relative', zIndex: 1 }}>
         {/* Top Bar Header */}
         <div className="row row--between" style={{ padding: '0 4px', marginBottom: '8px' }}>
           <div>
@@ -329,18 +357,26 @@ export default function Home() {
           </div>
         )}
 
-        {/* Celebration Fireworks (canvas overlay) */}
-        {celebration && (
-          <Fireworks
-            intensity={celebration.intensity}
-            colors={celebration.colors}
+        {/* Celebration Effects Overlay */}
+        {isCelebrating && celebration && (
+          <Fireworks 
+            intensity={celebration.intensity} 
+            colors={celebration.colors} 
             confetti={showConfetti}
+            effect={celebration.effect}
+            particleShape={celebration.particleShape}
+            interactive={celebration.type === 'aniversario' || celebration.type === 'san_valentin'}
           />
         )}
 
         {/* Celebration Banner */}
         {celebration && (
           <CelebrationBanner celebration={celebration} />
+        )}
+
+        {/* Celebration Full Screen Modal */}
+        {celebration && (
+          <CelebrationModal celebration={celebration} partnerName={partnerName} />
         )}
 
         {/* Hero Card with Custom Background Image */}
@@ -351,8 +387,12 @@ export default function Home() {
             url('/hero-bg.jpg') center/cover no-repeat
           `,
           borderRadius: '32px',
-          boxShadow: isCelebrating ? undefined : '0 12px 40px rgba(0,0,0,0.3)',
-          border: isCelebrating ? undefined : 'none',
+          boxShadow: celebration?.type === 'aniversario' 
+            ? '0 0 40px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.1)' 
+            : (isCelebrating ? undefined : '0 12px 40px rgba(0,0,0,0.3)'),
+          border: celebration?.type === 'aniversario' 
+            ? '2px solid rgba(255, 215, 0, 0.4)' 
+            : (isCelebrating ? 'none' : 'none'),
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -593,6 +633,8 @@ export default function Home() {
             </div>
           </div>
         </div>
+      )}
+
       )}
     </div>
   );
