@@ -86,14 +86,113 @@ export default function Home() {
   const [showEditNoteForm, setShowEditNoteForm] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [joinCode, setJoinCode] = useState('');
+  const [debugCelebrationType, setDebugCelebrationType] = useState<CelebrationType | 'none' | null>(null);
 
   const daysCount = couple ? daysSince(couple.relationship_start) : 0;
 
   // Celebration detection
   const celebration = useMemo(() => {
+    if (debugCelebrationType === 'none') return null;
+    if (debugCelebrationType) {
+      const mock: Celebration = {
+        type: debugCelebrationType,
+        intensity: 'medium',
+        title: `Prueba: ${debugCelebrationType}`,
+        subtitle: 'Simulación local',
+        emoji: '🧪',
+        colors: ['#FFD700', '#FF6B6B', '#4ECDC4', '#FFFFFF', '#FF69B4'],
+        months: 1,
+        days: 30,
+        years: 1,
+      };
+
+      if (debugCelebrationType === 'cumplemes') {
+        mock.emoji = '💌';
+        mock.title = '¡Feliz cumplemes!';
+        mock.subtitle = '+ 1 mes de infinitos';
+        mock.intensity = 'medium';
+        mock.colors = ['#e5c573', '#edd693', '#f3e29f', '#FFD700', '#FFFFFF'];
+        mock.effect = 'snowfall';
+        mock.particleShape = 'emoji:💌,✨,💛';
+      } else if (debugCelebrationType === 'aniversario') {
+        mock.emoji = '🎊';
+        mock.title = '💛 ¡Feliz primer aniversario!';
+        mock.subtitle = '¡Un año increíble de amor!';
+        mock.intensity = 'high';
+        mock.colors = ['#FFD700', '#FF69B4', '#FF6B6B', '#FFFFFF', '#e5c573', '#f472b6', '#4ECDC4'];
+        mock.effect = 'fireworks';
+        mock.particleShape = 'heart';
+      } else if (debugCelebrationType === 'hito100') {
+        mock.emoji = '🎉';
+        mock.title = '🎉 ¡Otros 100 días juntos!';
+        mock.subtitle = '¡100 días de amor y complicidad!';
+        mock.intensity = 'medium';
+        mock.colors = ['#e5c573', '#FF69B4', '#4ECDC4', '#FFD700', '#FFFFFF', '#FF6B6B'];
+        mock.effect = 'fireworks';
+        mock.particleShape = 'star';
+      } else if (debugCelebrationType === 'fiestas_patrias') {
+        mock.emoji = '🇨🇱';
+        mock.title = '¡Felices Fiestas Patrias!';
+        mock.subtitle = '¡Viva Chile! 🇨🇱🎉';
+        mock.intensity = 'high';
+        mock.colors = ['#D52B1E', '#FFFFFF', '#0039A6', '#FFD700'];
+        mock.effect = 'fireworks';
+        mock.particleShape = 'circle';
+      } else if (debugCelebrationType === 'navidad') {
+        mock.emoji = '🎄';
+        mock.title = '¡Feliz Navidad!';
+        mock.subtitle = '¡Que tengas unas felices fiestas! 🎄';
+        mock.intensity = 'high';
+        mock.colors = ['#FF0000', '#00FF00', '#FFD700', '#FFFFFF', '#FF6B6B'];
+        mock.effect = 'snowfall';
+        mock.particleShape = 'emoji:🎄,❄️,⛄';
+      } else if (debugCelebrationType === 'ano_nuevo') {
+        mock.emoji = '🎆';
+        mock.title = '¡Feliz Año Nuevo!';
+        mock.subtitle = '¡Con todo este nuevo año! 🥂';
+        mock.intensity = 'high';
+        mock.colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#FFFFFF', '#FF69B4'];
+        mock.effect = 'fireworks';
+        mock.particleShape = 'star';
+      } else if (debugCelebrationType === 'san_valentin') {
+        mock.emoji = '💝';
+        mock.title = '¡Feliz Día del Amor!';
+        mock.subtitle = 'El día del amor y la amistad 💕';
+        mock.intensity = 'medium';
+        mock.colors = ['#FF69B4', '#FF1493', '#FF6B9D', '#FFB6C1', '#FFFFFF'];
+        mock.effect = 'snowfall';
+        mock.particleShape = 'emoji:❤️';
+      } else if (debugCelebrationType === 'halloween') {
+        mock.emoji = '🎃';
+        mock.title = '¡Feliz Halloween!';
+        mock.subtitle = 'Noche de brujas 🎃👻';
+        mock.intensity = 'low';
+        mock.colors = ['#FF6600', '#8B00FF', '#39FF14', '#FFD700'];
+        mock.effect = 'snowfall';
+        mock.particleShape = 'emoji:🎃,👻,🦇';
+      } else if (debugCelebrationType === 'cumpleanos_mio') {
+        mock.emoji = '🎂';
+        mock.title = '¡Feliz Cumpleaños a ti! 🎂';
+        mock.subtitle = 'Hoy celebramos tu vida 🥳';
+        mock.intensity = 'high';
+        mock.colors = ['#FF69B4', '#FFD700', '#4ECDC4', '#FFFFFF', '#FF6B6B'];
+        mock.effect = 'snowfall';
+        mock.particleShape = 'emoji:🎈,🎁,🎉';
+      } else if (debugCelebrationType === 'cumpleanos_pareja') {
+        mock.emoji = '🎂';
+        mock.title = '¡Feliz Cumpleaños mi amor! 🎂';
+        mock.subtitle = 'Hoy celebramos un año más de tu persona favorita 🥳';
+        mock.intensity = 'high';
+        mock.colors = ['#FF69B4', '#FFD700', '#4ECDC4', '#FFFFFF', '#FF6B6B'];
+        mock.effect = 'snowfall';
+        mock.particleShape = 'emoji:🎈,🎁,🎉';
+      }
+      return mock;
+    }
+    
     if (!couple?.relationship_start) return null;
     return getCelebration(couple.relationship_start, profile?.birthday, partner?.birthday);
-  }, [couple?.relationship_start, profile?.birthday, partner?.birthday]);
+  }, [couple?.relationship_start, debugCelebrationType, profile?.birthday, partner?.birthday]);
   const isCelebrating = celebration !== null;
   const showConfetti = celebration ? celebration.intensity !== 'low' : false;
   const myName = profile?.display_name || user?.user_metadata?.display_name || 'Tú';
@@ -632,6 +731,53 @@ export default function Home() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Dev Only: Debug Celebrations Panel */}
+      {import.meta.env.DEV && (
+        <div style={{
+          position: 'fixed',
+          bottom: '80px',
+          right: '20px',
+          background: 'rgba(0,0,0,0.8)',
+          padding: '12px',
+          borderRadius: '12px',
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          color: '#fff',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+          maxWidth: '200px'
+        }}>
+          <div style={{ fontSize: '12px', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '4px' }}>
+            🧪 Simular Celebración
+          </div>
+          <select 
+            value={debugCelebrationType || ''} 
+            onChange={(e) => setDebugCelebrationType(e.target.value ? (e.target.value as any) : null)}
+            style={{
+              background: '#333',
+              color: '#fff',
+              border: '1px solid #555',
+              borderRadius: '6px',
+              padding: '6px'
+            }}
+          >
+            <option value="">(Normal - Real)</option>
+            <option value="none">Sin celebración</option>
+            <option value="cumplemes">Cumplemes</option>
+            <option value="aniversario">Aniversario</option>
+            <option value="cumpleanos_mio">Tu Cumpleaños</option>
+            <option value="cumpleanos_pareja">Cumpleaños Pareja</option>
+            <option value="hito100">Hito 100 Días</option>
+            <option value="fiestas_patrias">Fiestas Patrias</option>
+            <option value="navidad">Navidad</option>
+            <option value="ano_nuevo">Año Nuevo</option>
+            <option value="san_valentin">San Valentín</option>
+            <option value="halloween">Halloween</option>
+          </select>
         </div>
       )}
     </div>
