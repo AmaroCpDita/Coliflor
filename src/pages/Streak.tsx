@@ -131,8 +131,14 @@ export default function Streak() {
   const [history, setHistory] = useState<HistoryDay[]>([]);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [yesterdayRecovered, setYesterdayRecovered] = useState(false);
+  const [pastDayUpload, setPastDayUpload] = useState<{ date: string } | null>(null);
+  const [pastDayPreviewFile, setPastDayPreviewFile] = useState<File | null>(null);
+  const [pastDayPreviewUrl, setPastDayPreviewUrl] = useState<string | null>(null);
+  const [pastDayFlip, setPastDayFlip] = useState(false);
+  const [pastDayUploading, setPastDayUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recoveryFileInputRef = useRef<HTMLInputElement>(null);
+  const pastDayFileInputRef = useRef<HTMLInputElement>(null);
   const lastUploadRef = useRef<{ file: File; flip: boolean } | null>(null);
 
   const today = getTodayInTimezone();
@@ -580,6 +586,76 @@ export default function Streak() {
     setError('');
   };
 
+  // --- Past Day Photo Upload (for recovered days missing photos) ---
+  const handleTimelineDayClick = (h: HistoryDay) => {
+    const status = getDayStatus(h);
+    if (status === 'recovered' && !h.myPhoto) {
+      setPastDayUpload({ date: h.date });
+      setPastDayPreviewFile(null);
+      setPastDayPreviewUrl(null);
+      setPastDayFlip(false);
+      setError('');
+    }
+  };
+
+  const handlePastDayFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPastDayPreviewFile(file);
+    setPastDayPreviewUrl(URL.createObjectURL(file));
+    setPastDayFlip(false);
+  };
+
+  const handlePastDayUpload = async () => {
+    if (!pastDayPreviewFile || !pastDayUpload || !couple || !profile) return;
+
+    setPastDayUploading(true);
+    setError('');
+
+    try {
+      const compressed = await compressImage(pastDayPreviewFile, 1200, 0.7, pastDayFlip);
+      const storagePath = `${couple.id}/${pastDayUpload.date}/${profile.id}.jpg`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('photos')
+        .upload(storagePath, compressed, { contentType: 'image/jpeg', upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { error: rpcError } = await supabase.rpc('register_recovery_photo', {
+        p_couple_id: couple.id,
+        p_storage_path: storagePath,
+        p_photo_date: pastDayUpload.date,
+      });
+
+      if (rpcError) throw rpcError;
+
+      // Clean up
+      if (pastDayPreviewUrl) URL.revokeObjectURL(pastDayPreviewUrl);
+      setPastDayUpload(null);
+      setPastDayPreviewFile(null);
+      setPastDayPreviewUrl(null);
+
+      setSuccessMessage(`✅ ¡Foto subida para el ${formatDate(pastDayUpload.date, 'medium')}!`);
+      setTimeout(() => setSuccessMessage(''), 4000);
+
+      await fetchHistory();
+    } catch (err: any) {
+      setError(err?.message || 'Error al subir la foto');
+    } finally {
+      setPastDayUploading(false);
+      if (pastDayFileInputRef.current) pastDayFileInputRef.current.value = '';
+    }
+  };
+
+  const handleCancelPastDay = () => {
+    if (pastDayPreviewUrl) URL.revokeObjectURL(pastDayPreviewUrl);
+    setPastDayUpload(null);
+    setPastDayPreviewFile(null);
+    setPastDayPreviewUrl(null);
+    setError('');
+  };
+
   if (!profile) return null;
 
   if (!couple) {
@@ -843,7 +919,6 @@ export default function Streak() {
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          capture="user"
           onChange={handleFileSelected}
           style={{ display: 'none' }}
         />
@@ -853,8 +928,16 @@ export default function Streak() {
           ref={recoveryFileInputRef}
           type="file"
           accept="image/*"
-          capture="user"
           onChange={handleRecoveryFileSelected}
+          style={{ display: 'none' }}
+        />
+
+        {/* Past day file input */}
+        <input
+          ref={pastDayFileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handlePastDayFileSelected}
           style={{ display: 'none' }}
         />
 
@@ -897,11 +980,15 @@ export default function Streak() {
                 const dayNum = new Date(h.date + 'T12:00:00').getDate();
                 const dayName = new Date(h.date + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'short' });
 
+                const canUpload = status === 'recovered' && !h.myPhoto;
+
                 return (
                   <div 
                     key={h.date} 
                     className={`streak-timeline__day streak-timeline__day--${status}`}
                     title={formatDate(h.date, 'long')}
+                    onClick={() => canUpload && handleTimelineDayClick(h)}
+                    style={{ cursor: canUpload ? 'pointer' : 'default' }}
                   >
                     <div className="streak-timeline__label">{dayName}</div>
                     <div className="streak-timeline__circle">
@@ -913,6 +1000,9 @@ export default function Streak() {
                       )}
                     </div>
                     <div className="streak-timeline__num">{dayNum}</div>
+                    {canUpload && (
+                      <div style={{ fontSize: '8px', color: 'var(--color-warning)', fontWeight: 700, marginTop: '2px' }}>📸</div>
+                    )}
                   </div>
                 );
               })}
@@ -1091,6 +1181,96 @@ export default function Streak() {
                   </p>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Past Day Photo Upload Modal */}
+      {pastDayUpload && (
+        <div className="modal-backdrop" onClick={handleCancelPastDay}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal__handle" />
+            <div className="stack stack--lg">
+              <div className="text-center">
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>📸</div>
+                <h3>Subir foto del {formatDate(pastDayUpload.date, 'medium')}</h3>
+                <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}>
+                  Sube una foto de ese día desde tu galería o toma una nueva.
+                </p>
+              </div>
+
+              {pastDayPreviewUrl ? (
+                <div style={{ position: 'relative' }}>
+                  <img
+                    src={pastDayPreviewUrl}
+                    alt="Preview"
+                    style={{
+                      width: '100%',
+                      aspectRatio: '3/4',
+                      objectFit: 'cover',
+                      borderRadius: 'var(--radius-md)',
+                      transform: pastDayFlip ? 'scaleX(-1)' : 'none',
+                      display: 'block',
+                    }}
+                  />
+                  <button
+                    className="btn btn--secondary"
+                    onClick={() => setPastDayFlip(!pastDayFlip)}
+                    style={{
+                      position: 'absolute',
+                      bottom: '12px',
+                      right: '12px',
+                      padding: '8px 12px',
+                      borderRadius: 'var(--radius-full)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                      fontSize: '11px',
+                      backgroundColor: 'rgba(255,255,255,0.15)',
+                      backdropFilter: 'blur(10px)',
+                      WebkitBackdropFilter: 'blur(10px)',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  >
+                    Voltear
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="btn btn--secondary btn--full btn--lg"
+                  onClick={() => pastDayFileInputRef.current?.click()}
+                  style={{ padding: '32px 16px' }}
+                >
+                  <IconCamera />
+                  <span>Tomar foto o elegir de galería</span>
+                </button>
+              )}
+
+              <button
+                className="btn btn--primary btn--full btn--lg"
+                onClick={handlePastDayUpload}
+                disabled={!pastDayPreviewFile || pastDayUploading}
+              >
+                {pastDayUploading ? 'Subiendo...' : 'Confirmar y subir foto'}
+              </button>
+
+              {pastDayPreviewUrl && (
+                <button
+                  className="btn btn--ghost btn--full"
+                  onClick={() => {
+                    URL.revokeObjectURL(pastDayPreviewUrl);
+                    setPastDayPreviewFile(null);
+                    setPastDayPreviewUrl(null);
+                    if (pastDayFileInputRef.current) pastDayFileInputRef.current.value = '';
+                  }}
+                >
+                  Elegir otra foto
+                </button>
+              )}
+
+              <button className="btn btn--ghost btn--full" onClick={handleCancelPastDay}>
+                Cancelar
+              </button>
             </div>
           </div>
         </div>
