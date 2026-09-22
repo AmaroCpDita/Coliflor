@@ -409,11 +409,11 @@ export default function Messages() {
         .from('messages')
         .select('*')
         .eq('couple_id', couple.id)
-        .order('created_at', { ascending: true })
+        .order('created_at', { ascending: false })
         .limit(100);
 
       if (data) {
-        setMessages(data as Message[]);
+        setMessages((data as Message[]).reverse());
         setTimeout(scrollToBottom, 100);
       }
     };
@@ -473,15 +473,16 @@ export default function Messages() {
         .from('messages')
         .select('*')
         .eq('couple_id', couple.id)
-        .order('created_at', { ascending: true })
+        .order('created_at', { ascending: false })
         .limit(100);
 
       if (data && data.length > 0) {
+        const sorted = (data as Message[]).reverse();
         setMessages(prev => {
-          const hasNew = data.some(d => !prev.some(p => p.id === d.id));
-          if (hasNew || data.length !== prev.length) {
+          const hasNew = sorted.some(d => !prev.some(p => p.id === d.id));
+          if (hasNew || sorted.length !== prev.length) {
             setTimeout(scrollToBottom, 100);
-            return data as Message[];
+            return sorted;
           }
           return prev;
         });
@@ -547,6 +548,7 @@ export default function Messages() {
       }
     } catch (err: any) {
       console.error('Error sending message:', err);
+      setInput(content); // Restore input so text is not lost
     } finally {
       setSending(false);
       setReplyingTo(null);
