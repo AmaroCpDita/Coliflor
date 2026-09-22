@@ -145,5 +145,5 @@ export interface PhotoDayStatus {
 
 // --- Constants ---
 
-export const MAX_RECOVERIES_PER_MONTH = 5;
+export const MAX_RECOVERIES_PER_MONTH = 10;
 export const TIMEZONE = 'America/Santiago';

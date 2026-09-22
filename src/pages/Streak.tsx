@@ -498,8 +498,8 @@ export default function Streak() {
   const handleUseRecovery = async () => {
     if (!couple || !profile || usingRecovery) return;
     
-    // If I missed yesterday's photo (and we know for sure it was me), require photo upload first
-    if (iMissedYesterday && !bothMissedOrUnknown && recoveryStep === 'confirm') {
+    // If I missed yesterday's photo, require photo upload first
+    if (iMissedYesterday && recoveryStep === 'confirm') {
       setRecoveryStep('photo');
       return;
     }
@@ -972,11 +972,11 @@ export default function Streak() {
                     <div style={{ fontSize: '32px', marginBottom: '8px' }}>🛡️</div>
                     <h3>Recuperar la racha</h3>
                     <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}>
-                      {bothMissedOrUnknown
-                        ? 'Faltó completar la racha de ayer. ¿Usar un comodín para recuperarla?'
-                        : iMissedYesterday
-                          ? 'Te faltó la foto de ayer. Súbela ahora para recuperar la racha.'
-                          : `${partnerName} no subió foto ayer. ¿Usar un comodín para mantener la racha?`
+                      {iMissedYesterday
+                        ? bothMissedOrUnknown
+                          ? 'Ambos faltaron ayer. Sube tu foto ahora para recuperar la racha.'
+                          : 'Te faltó la foto de ayer. Súbela ahora para recuperar la racha.'
+                        : `${partnerName} no subió foto ayer. ¿Usar un comodín para mantener la racha?`
                       }
                     </p>
                   </div>
@@ -991,7 +991,7 @@ export default function Streak() {
                     onClick={handleUseRecovery} 
                     disabled={usingRecovery}
                   >
-                    {iMissedYesterday && !bothMissedOrUnknown ? 'Siguiente: Subir foto de ayer' : (usingRecovery ? 'Recuperando...' : 'Confirmar recuperación')}
+                    {iMissedYesterday ? 'Siguiente: Subir foto de ayer' : (usingRecovery ? 'Recuperando...' : 'Confirmar recuperación')}
                   </button>
                   <button className="btn btn--ghost btn--full" onClick={handleCancelRecovery}>
                     Cancelar
