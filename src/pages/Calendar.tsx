@@ -784,8 +784,7 @@ export default function Calendar() {
                           ) : selectedDayPhotos.myPhotoUrl ? (
                             <>
                               <img src={selectedDayPhotos.myPhotoUrl} alt="Foto" className="photo-card__image" onClick={() => setLightboxUrl(selectedDayPhotos.myPhotoUrl || null)} style={{ cursor: 'pointer', borderRadius: '4px' }} />
-                              <div className="photo-card__label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 8px', bottom: '0', height: '24px', fontSize: '10px' }}>
-                                <span>{selectedDate.split('-')[2]}/{selectedDate.split('-')[1]}</span>
+                              <div className="photo-card__label" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', padding: '0 8px', bottom: '0', height: '24px' }}>
                                 <a href={selectedDayPhotos.myPhotoUrl} download={`coliflor-${selectedDate}-${myName}.jpg`} target="_blank" rel="noreferrer" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '50%', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                 </a>
@@ -822,8 +821,7 @@ export default function Calendar() {
                           ) : selectedDayPhotos.partnerPhotoUrl ? (
                             <>
                               <img src={selectedDayPhotos.partnerPhotoUrl} alt="Foto" className="photo-card__image" onClick={() => setLightboxUrl(selectedDayPhotos.partnerPhotoUrl || null)} style={{ cursor: 'pointer', borderRadius: '4px' }} />
-                              <div className="photo-card__label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 8px', bottom: '0', height: '24px', fontSize: '10px' }}>
-                                <span>{selectedDate.split('-')[2]}/{selectedDate.split('-')[1]}</span>
+                              <div className="photo-card__label" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', padding: '0 8px', bottom: '0', height: '24px' }}>
                                 <a href={selectedDayPhotos.partnerPhotoUrl} download={`coliflor-${selectedDate}-${partnerName}.jpg`} target="_blank" rel="noreferrer" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '50%', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                 </a>
