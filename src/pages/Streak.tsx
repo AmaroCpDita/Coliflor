@@ -884,7 +884,22 @@ export default function Streak() {
               <div className="text-secondary text-center" style={{ fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)', fontWeight: 600 }}>
                 {profile.display_name}
               </div>
-              <div className="photo-card">
+              <div className="photo-card" style={{ transform: 'rotate(-3deg)', overflow: 'visible' }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '-12px',
+                  left: '50%',
+                  transform: 'translateX(-50%) rotate(-4deg)',
+                  width: '60px',
+                  height: '24px',
+                  background: 'rgba(255, 255, 255, 0.4)',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                  borderRadius: '2px',
+                  backgroundImage: 'linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%)',
+                  backdropFilter: 'blur(2px)',
+                  zIndex: 10,
+                  pointerEvents: 'none'
+                }} />
                 {todayPhotos.myPhoto && myPhotoUrl ? (
                   <>
                     <img src={myPhotoUrl} alt="Mi foto" className="photo-card__image" onClick={() => setLightboxUrl(myPhotoUrl)} style={{ cursor: 'pointer' }} />
@@ -906,7 +921,22 @@ export default function Streak() {
               <div className="text-secondary text-center" style={{ fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)', fontWeight: 600 }}>
                 {partnerName}
               </div>
-              <div className="photo-card">
+              <div className="photo-card" style={{ transform: 'rotate(3deg)', overflow: 'visible' }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '-12px',
+                  left: '50%',
+                  transform: 'translateX(-50%) rotate(4deg)',
+                  width: '60px',
+                  height: '24px',
+                  background: 'rgba(255, 255, 255, 0.4)',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                  borderRadius: '2px',
+                  backgroundImage: 'linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%)',
+                  backdropFilter: 'blur(2px)',
+                  zIndex: 10,
+                  pointerEvents: 'none'
+                }} />
                 {todayPhotos.partnerPhoto ? (
                   todayPhotos.myPhoto && partnerPhotoUrl ? (
                     <>
