@@ -13,12 +13,32 @@ import type { StreakPhoto, StreakRecovery } from '../lib/types';
 import Lightbox from '../components/Lightbox';
 
 // --- SVG Icons ---
-function IconFlameLarge({ active = false, broken = false, size = 48 }: { active?: boolean; broken?: boolean; size?: number }) {
-  const fill = broken ? 'rgba(248, 113, 113, 0.15)' : active ? "var(--color-accent-glow)" : "transparent";
-  const stroke = broken ? '#f87171' : active ? "var(--color-accent)" : "var(--color-text-tertiary)";
-  const animation = broken ? 'streakCrack 0.6s ease-out' : active ? "heartPulse 2s infinite" : "none";
-  const scale = broken ? 0.95 : active ? 1.1 : 1;
+function IconFlameLarge({ active = false, broken = false, size = 48, streakCount = 0 }: { active?: boolean; broken?: boolean; size?: number; streakCount?: number }) {
+  let fill = broken ? 'rgba(248, 113, 113, 0.15)' : active ? "var(--color-accent-glow)" : "transparent";
+  let stroke = broken ? '#f87171' : active ? "var(--color-accent)" : "var(--color-text-tertiary)";
+  let animation = broken ? 'streakCrack 0.6s ease-out' : active ? "heartPulse 2s infinite" : "none";
+  let scale = broken ? 0.95 : active ? 1.1 : 1;
   const opacity = broken ? 0.6 : 1;
+  let filter = "none";
+
+  if (active && !broken) {
+    if (streakCount >= 30) {
+      // Legendary blue/purple fire
+      stroke = "#a855f7";
+      fill = "rgba(168, 85, 247, 0.25)";
+      animation = "heartPulse 1.2s infinite";
+      filter = "drop-shadow(0 0 16px rgba(168,85,247,0.8))";
+    } else if (streakCount >= 7) {
+      // Hot pink/red fire
+      stroke = "#f43f5e";
+      fill = "rgba(244, 63, 94, 0.25)";
+      animation = "heartPulse 1.5s infinite";
+      filter = "drop-shadow(0 0 12px rgba(244,63,94,0.6))";
+    } else {
+      // Normal golden fire
+      filter = "drop-shadow(0 0 8px rgba(229,197,115,0.4))";
+    }
+  }
 
   return (
     <svg 
@@ -27,7 +47,7 @@ function IconFlameLarge({ active = false, broken = false, size = 48 }: { active?
       stroke={stroke} 
       strokeWidth="1.75" 
       strokeLinecap="round" strokeLinejoin="round"
-      style={{ animation, transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)', transform: `scale(${scale})`, opacity }}
+      style={{ animation, transition: 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)', transform: `scale(${scale})`, opacity, filter }}
     >
       <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
     </svg>
@@ -710,7 +730,7 @@ export default function Streak() {
             marginBottom: 'var(--space-md)',
             transition: 'all 0.4s ease'
           }}>
-            <IconFlameLarge active={dayComplete} broken={streakBroken} />
+            <IconFlameLarge active={dayComplete} broken={streakBroken} streakCount={couple.current_streak} />
           </div>
           <div>
             <div 
