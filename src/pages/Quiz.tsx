@@ -299,28 +299,11 @@ export default function Quiz() {
     <div className="page" style={{ paddingBottom: '90px' }}>
       <div className="stack stack--lg">
         {/* Header */}
-        <div>
-          <div className="row row--between">
-            <div>
-              <h2>Cuestionario del Día</h2>
-              <p className="text-secondary" style={{ marginTop: '4px', fontSize: 'var(--font-size-xs)', textTransform: 'capitalize' }}>
-                {formatDate(today, 'long')}
-              </p>
-            </div>
-
-            <div className="row row--gap-xs" style={{
-              background: 'var(--color-accent-glow)',
-              border: '1px solid var(--color-border-accent)',
-              padding: '4px 10px',
-              borderRadius: 'var(--radius-full)',
-              color: 'var(--color-accent-light)',
-              fontSize: '11px',
-              fontWeight: 700,
-            }}>
-              <IconClock />
-              <span>{countdownStr}</span>
-            </div>
-          </div>
+        <div style={{ textAlign: 'center', marginBottom: 'var(--space-md)' }}>
+          <h2 style={{ fontSize: '2rem', letterSpacing: '-0.5px' }}>Cuestionario del Día</h2>
+          <p className="text-secondary" style={{ marginTop: '8px', fontSize: 'var(--font-size-sm)', textTransform: 'capitalize', fontWeight: 500 }}>
+            {formatDate(today, 'long')}
+          </p>
         </div>
 
         {/* STATE 1: User hasn't answered yet */}
@@ -328,31 +311,74 @@ export default function Quiz() {
           <>
             {/* Theme Welcome Intro Card */}
             {!quizStarted ? (
-              <div className="glass-card glass-card--accent text-center stack stack--md animate-fade-in" style={{ padding: 'var(--space-lg)' }}>
-                <div className="row row--center" style={{ marginBottom: '4px' }}>
-                  <IconGoldHeart size={32} />
+              <div 
+                className="glass-card text-center stack stack--md animate-fade-in" 
+                style={{ 
+                  padding: 'var(--space-2xl) var(--space-xl)',
+                  background: 'linear-gradient(180deg, rgba(229, 197, 115, 0.05) 0%, rgba(22, 23, 32, 0.6) 100%)',
+                  border: '1px solid rgba(229, 197, 115, 0.15)',
+                  boxShadow: '0 10px 30px -10px rgba(229, 197, 115, 0.1)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                {/* Glow behind heart */}
+                <div style={{
+                  position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)',
+                  width: '100px', height: '100px', background: 'rgba(229, 197, 115, 0.15)',
+                  filter: 'blur(30px)', borderRadius: '50%', pointerEvents: 'none'
+                }}></div>
+
+                <div className="row row--center" style={{ marginBottom: '12px', color: 'var(--color-accent)' }}>
+                  <IconGoldHeart size={42} />
                 </div>
 
-                <h3 style={{ fontSize: 'var(--font-size-lg)', color: 'var(--color-accent-light)' }}>
+                <h3 style={{ 
+                  fontSize: '1.75rem', 
+                  color: 'var(--color-accent-light)',
+                  lineHeight: 1.2,
+                  marginBottom: '8px'
+                }}>
                   {dailyQuiz.theme}
                 </h3>
                 
-                <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', lineHeight: 1.5 }}>
+                <p className="text-secondary" style={{ fontSize: '0.95rem', lineHeight: 1.6, padding: '0 10px' }}>
                   {dailyQuiz.subtitle}. Responde 5 preguntas breves para medir su sintonía de hoy con <strong>{partnerName}</strong>.
                 </p>
 
-                <div className="row row--center row--gap-xs" style={{ margin: 'var(--space-xs) 0', fontSize: '11px', color: 'var(--color-accent-light)', fontWeight: 600 }}>
+                <div className="row row--center row--gap-xs" style={{ 
+                  margin: '24px 0', 
+                  fontSize: '12px', 
+                  color: 'var(--color-text-tertiary)', 
+                  fontWeight: 600,
+                  background: 'rgba(0,0,0,0.2)',
+                  padding: '8px 16px',
+                  borderRadius: 'var(--radius-full)',
+                  display: 'inline-flex'
+                }}>
                   <IconClock />
                   <span>Expira a medianoche (en {countdownStr})</span>
                 </div>
 
                 <button
-                  className="btn btn--primary btn--full btn--lg row row--center row--gap-sm"
+                  className="btn row row--center row--gap-sm"
                   onClick={() => setQuizStarted(true)}
-                  style={{ marginTop: 'var(--space-xs)' }}
+                  style={{ 
+                    marginTop: '8px',
+                    width: '100%',
+                    padding: '16px',
+                    fontSize: '1.1rem',
+                    fontWeight: 700,
+                    background: 'var(--gradient-accent)',
+                    color: '#111',
+                    border: 'none',
+                    borderRadius: 'var(--radius-md)',
+                    boxShadow: '0 8px 20px rgba(229, 197, 115, 0.25)',
+                    transition: 'all 0.3s ease'
+                  }}
                 >
                   <IconPlay />
-                  <span>Iniciar Cuestionario</span>
+                  <span>Comenzar Quiz</span>
                 </button>
               </div>
             ) : (
