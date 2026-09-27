@@ -577,66 +577,55 @@ export default function Quiz() {
                 return (
                   <div
                     key={q.id}
-                    className="glass-card stack stack--xs"
+                    className="glass-card stack stack--sm"
                     style={{
                       padding: 'var(--space-md)',
-                      borderColor: isMatch ? 'rgba(229,197,115,0.3)' : 'rgba(255,255,255,0.06)',
-                      background: isMatch ? 'rgba(229,197,115,0.03)' : 'var(--color-bg-card)',
-                      boxShadow: isMatch ? '0 4px 20px rgba(229,197,115,0.05)' : 'none',
+                      borderColor: isMatch ? 'var(--color-border-accent)' : 'var(--color-border)',
+                      background: isMatch ? 'var(--gradient-accent-soft)' : 'var(--color-bg-card)',
+                      boxShadow: isMatch ? '0 4px 20px rgba(229,197,115,0.1)' : 'none',
                     }}
                   >
-                    <div className="row row--between row--center" style={{ marginBottom: '2px', flexWrap: 'wrap', gap: '8px' }}>
-                      <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--color-text-tertiary)', letterSpacing: '0.5px' }}>
-                        PREGUNTA {idx + 1}
+                    <div className="row row--between" style={{ marginBottom: '2px' }}>
+                      <span className="text-secondary" style={{ fontSize: '10px', fontWeight: 600 }}>
+                        Pregunta {idx + 1}
                       </span>
-                      {isMatch ? (
-                        <div style={{ background: 'rgba(46, 213, 115, 0.15)', color: '#2ed573', padding: '2px 8px', borderRadius: '12px', fontSize: '9px', fontWeight: 800, border: '1px solid rgba(46,213,115,0.3)' }}>
-                          ✓ COINCIDEN
-                        </div>
-                      ) : (
-                        <div style={{ background: 'rgba(255, 71, 87, 0.15)', color: '#ff4757', padding: '2px 8px', borderRadius: '12px', fontSize: '9px', fontWeight: 800, border: '1px solid rgba(255,71,87,0.3)' }}>
-                          ✕ DISTINTO
-                        </div>
+                      {isMatch && (
+                        <span className="row row--gap-xs" style={{ fontSize: '11px', color: 'var(--color-accent-light)', fontWeight: 700 }}>
+                          <IconCheck />
+                          <span>¡Coinciden!</span>
+                        </span>
                       )}
                     </div>
 
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem', lineHeight: 1.3, marginBottom: '8px' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.95rem', lineHeight: 1.3, marginBottom: '8px' }}>
                       {q.question}
                     </div>
 
                     {/* Answers side-by-side */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                      {/* My Answer */}
                       <div style={{
                         padding: '8px',
-                        background: isMatch ? 'rgba(46,213,115,0.05)' : 'rgba(255,255,255,0.03)',
+                        background: 'var(--color-bg-secondary)',
                         borderRadius: '6px',
-                        border: `1px solid ${isMatch ? 'rgba(46,213,115,0.2)' : 'rgba(255,255,255,0.05)'}`,
+                        border: '1px solid var(--color-border)',
                         display: 'flex',
                         flexDirection: 'column'
                       }}>
-                        <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--color-text-secondary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--color-text-secondary)' }} />
-                          {myName}
-                        </div>
+                        <div className="text-secondary" style={{ fontSize: '9px', fontWeight: 700, marginBottom: '2px' }}>{myName}</div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-primary)', fontWeight: 500, lineHeight: 1.25 }}>
                           {q.options[myAnsIdx]}
                         </div>
                       </div>
 
-                      {/* Partner Answer */}
                       <div style={{
                         padding: '8px',
-                        background: isMatch ? 'rgba(46,213,115,0.05)' : 'rgba(255,255,255,0.03)',
+                        background: 'var(--color-bg-secondary)',
                         borderRadius: '6px',
-                        border: `1px solid ${isMatch ? 'rgba(46,213,115,0.2)' : 'rgba(255,255,255,0.05)'}`,
+                        border: '1px solid var(--color-border)',
                         display: 'flex',
                         flexDirection: 'column'
                       }}>
-                        <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--color-accent)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--color-accent)' }} />
-                          {partnerName}
-                        </div>
+                        <div className="text-secondary" style={{ fontSize: '9px', fontWeight: 700, marginBottom: '2px' }}>{partnerName}</div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-primary)', fontWeight: 500, lineHeight: 1.25 }}>
                           {q.options[partnerAnsIdx]}
                         </div>
