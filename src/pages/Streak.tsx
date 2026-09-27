@@ -881,7 +881,7 @@ export default function Streak() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
             {/* My Photo */}
             <div>
-              <div className="text-secondary text-center" style={{ fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)', fontWeight: 600 }}>
+              <div className="text-secondary text-center" style={{ fontSize: 'var(--font-size-xs)', marginBottom: '16px', fontWeight: 600 }}>
                 {profile.display_name}
               </div>
               <div className="photo-card" style={{ transform: 'rotate(-3deg)', overflow: 'visible' }}>
@@ -918,7 +918,7 @@ export default function Streak() {
 
             {/* Partner Photo */}
             <div>
-              <div className="text-secondary text-center" style={{ fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)', fontWeight: 600 }}>
+              <div className="text-secondary text-center" style={{ fontSize: 'var(--font-size-xs)', marginBottom: '16px', fontWeight: 600 }}>
                 {partnerName}
               </div>
               <div className="photo-card" style={{ transform: 'rotate(3deg)', overflow: 'visible' }}>
