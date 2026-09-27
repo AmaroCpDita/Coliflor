@@ -517,28 +517,56 @@ export default function Quiz() {
 
         {/* STATE 3: BOTH answered -> Harmony Compatibility Match & Side-by-side Comparison */}
         {myResponse && partnerResponse && (
-          <div className="stack stack--lg animate-fade-in">
+          <div className="stack stack--lg animate-fade-in" style={{ paddingBottom: '32px' }}>
             {/* Harmony Percentage Hero Card */}
-            <div className="glass-card glass-card--accent text-center" style={{ padding: 'var(--space-xl) var(--space-lg)' }}>
-              <span className="text-secondary" style={{ fontSize: 'var(--font-size-xs)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+            <div className="glass-card text-center" style={{ 
+              padding: 'var(--space-2xl) var(--space-lg)',
+              position: 'relative',
+              overflow: 'hidden',
+              background: 'linear-gradient(180deg, rgba(22, 23, 32, 0.8) 0%, rgba(22, 23, 32, 0.4) 100%)',
+              border: '1px solid rgba(229,197,115,0.2)',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.5), inset 0 0 40px rgba(229,197,115,0.05)'
+            }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '250px', height: '250px', background: 'radial-gradient(circle, rgba(229,197,115,0.15) 0%, rgba(0,0,0,0) 70%)', pointerEvents: 'none' }} />
+              
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: 'rgba(229,197,115,0.1)', padding: '6px 16px', borderRadius: 'var(--radius-full)',
+                border: '1px solid rgba(229,197,115,0.2)', color: 'var(--color-accent)',
+                fontSize: '11px', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px'
+              }}>
+                <IconGoldHeart size={14} />
                 Sintonía del Día
-              </span>
+              </div>
+
               <div style={{ margin: 'var(--space-sm) 0' }}>
-                <span style={{ fontSize: '3.5rem', fontWeight: 800, color: 'var(--color-accent-light)', lineHeight: 1 }}>
+                <span style={{ 
+                  fontSize: '4.5rem', 
+                  fontWeight: 900, 
+                  background: 'var(--gradient-accent)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  lineHeight: 1,
+                  filter: 'drop-shadow(0 0 20px rgba(229,197,115,0.4))'
+                }}>
                   {harmonyScore}%
                 </span>
               </div>
-              <p className="text-secondary" style={{ fontSize: 'var(--font-size-xs)' }}>
-                {matchesCount === 5 && '¡100% de sintonía total! Piensan exactamente igual hoy.'}
-                {matchesCount >= 3 && matchesCount < 5 && `Coincidieron en ${matchesCount} de las 5 preguntas. ¡Excelente complicidad!`}
-                {matchesCount < 3 && `Coincidieron en ${matchesCount} preguntas. ¡Ideal para conversar y conocerse más!`}
+              <p style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--color-text-primary)', marginTop: '16px', padding: '0 10px', lineHeight: 1.5 }}>
+                {matchesCount === 5 && '¡100% de sintonía total! Piensan exactamente igual hoy. ✨'}
+                {matchesCount >= 3 && matchesCount < 5 && `Coincidieron en ${matchesCount} de las 5 preguntas. ¡Excelente complicidad! 💛`}
+                {matchesCount < 3 && `Coincidieron en ${matchesCount} preguntas. ¡Ideal para conversar y conocerse más! 🗣️`}
               </p>
             </div>
 
             {/* Side-by-Side Comparison Feed */}
             <div className="stack stack--md">
-              <div className="text-secondary" style={{ fontSize: 'var(--font-size-xs)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
-                Comparación Lado a Lado
+              <div className="row row--center" style={{ marginBottom: '8px' }}>
+                <div style={{ height: '1px', flex: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1))' }} />
+                <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 800, color: 'var(--color-text-secondary)', padding: '0 16px' }}>
+                  Comparación Lado a Lado
+                </span>
+                <div style={{ height: '1px', flex: 1, background: 'linear-gradient(270deg, transparent, rgba(255,255,255,0.1))' }} />
               </div>
 
               {dailyQuiz.questions.map((q, idx) => {
@@ -551,49 +579,63 @@ export default function Quiz() {
                     key={q.id}
                     className="glass-card stack stack--sm"
                     style={{
-                      padding: 'var(--space-md)',
-                      borderColor: isMatch ? 'var(--color-border-accent)' : 'var(--color-border)',
-                      background: isMatch ? 'var(--gradient-accent-soft)' : 'var(--color-bg-card)',
+                      padding: 'var(--space-lg)',
+                      borderColor: isMatch ? 'rgba(229,197,115,0.3)' : 'rgba(255,255,255,0.06)',
+                      background: isMatch ? 'rgba(229,197,115,0.03)' : 'var(--color-bg-card)',
+                      boxShadow: isMatch ? '0 8px 30px rgba(229,197,115,0.05)' : 'none',
                     }}
                   >
-                    <div className="row row--between">
-                      <span className="text-secondary" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
-                        Pregunta {idx + 1}
+                    <div className="row row--between row--center" style={{ marginBottom: '4px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--color-text-tertiary)', letterSpacing: '0.5px' }}>
+                        PREGUNTA {idx + 1}
                       </span>
-                      {isMatch && (
-                        <span className="row row--gap-xs" style={{ fontSize: '11px', color: 'var(--color-accent-light)', fontWeight: 700 }}>
-                          <IconCheck />
-                          <span>¡Coinciden!</span>
-                        </span>
+                      {isMatch ? (
+                        <div style={{ background: 'rgba(46, 213, 115, 0.15)', color: '#2ed573', padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 800, border: '1px solid rgba(46,213,115,0.3)' }}>
+                          ✓ COINCIDEN
+                        </div>
+                      ) : (
+                        <div style={{ background: 'rgba(255, 71, 87, 0.15)', color: '#ff4757', padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 800, border: '1px solid rgba(255,71,87,0.3)' }}>
+                          ✕ DISTINTO
+                        </div>
                       )}
                     </div>
 
-                    <div style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)', lineHeight: 1.3 }}>
+                    <div style={{ fontWeight: 700, fontSize: '1.05rem', lineHeight: 1.4, marginBottom: '12px' }}>
                       {q.question}
                     </div>
 
                     {/* Answers side-by-side */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-xs)', marginTop: 'var(--space-xs)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      {/* My Answer */}
                       <div style={{
-                        padding: 'var(--space-xs) var(--space-sm)',
-                        background: 'var(--color-bg-secondary)',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--color-border)',
+                        padding: '12px',
+                        background: isMatch ? 'rgba(46,213,115,0.05)' : 'rgba(255,255,255,0.03)',
+                        borderRadius: 'var(--radius-lg)',
+                        border: `1px solid ${isMatch ? 'rgba(46,213,115,0.2)' : 'rgba(255,255,255,0.05)'}`,
+                        position: 'relative'
                       }}>
-                        <div className="text-secondary" style={{ fontSize: '10px', fontWeight: 700 }}>{myName}</div>
-                        <div style={{ fontSize: 'var(--font-size-xs)', marginTop: '2px', color: 'var(--color-text-primary)' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--color-text-secondary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-text-secondary)' }} />
+                          {myName}
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)', fontWeight: 500, lineHeight: 1.3 }}>
                           {q.options[myAnsIdx]}
                         </div>
                       </div>
 
+                      {/* Partner Answer */}
                       <div style={{
-                        padding: 'var(--space-xs) var(--space-sm)',
-                        background: 'var(--color-bg-secondary)',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--color-border)',
+                        padding: '12px',
+                        background: isMatch ? 'rgba(46,213,115,0.05)' : 'rgba(255,255,255,0.03)',
+                        borderRadius: 'var(--radius-lg)',
+                        border: `1px solid ${isMatch ? 'rgba(46,213,115,0.2)' : 'rgba(255,255,255,0.05)'}`,
+                        position: 'relative'
                       }}>
-                        <div className="text-secondary" style={{ fontSize: '10px', fontWeight: 700 }}>{partnerName}</div>
-                        <div style={{ fontSize: 'var(--font-size-xs)', marginTop: '2px', color: 'var(--color-text-primary)' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--color-accent)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-accent)' }} />
+                          {partnerName}
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)', fontWeight: 500, lineHeight: 1.3 }}>
                           {q.options[partnerAnsIdx]}
                         </div>
                       </div>
