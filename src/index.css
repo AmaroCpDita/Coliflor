@@ -1094,3 +1094,19 @@ body:has(textarea:focus) .chat-input-bar {
   background-clip: text;
   animation: daysCounterShimmer 3s linear infinite;
 }
+
+/* Slide Animations for Calendar Modal */
+@keyframes slideInNext {
+  from { transform: translateX(40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideInPrev {
+  from { transform: translateX(-40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.animate-slide-next {
+  animation: slideInNext 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+.animate-slide-prev {
+  animation: slideInPrev 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}

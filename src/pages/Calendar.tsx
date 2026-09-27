@@ -97,6 +97,7 @@ export default function Calendar() {
   const [showModal, setShowModal] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [swipeDir, setSwipeDir] = useState<'next' | 'prev' | null>(null);
   
   // Form state inside modal
   const [category, setCategory] = useState<EventCategory>('nos_vimos');
@@ -459,9 +460,11 @@ export default function Calendar() {
     const touchEndX = e.changedTouches[0].clientX;
     const deltaX = touchEndX - touchStartX;
     if (Math.abs(deltaX) > 50) {
+      const isPrev = deltaX > 0;
+      setSwipeDir(isPrev ? 'prev' : 'next');
       const [y, m, d] = selectedDate.split('-').map(Number);
       const curr = new Date(y, m - 1, d);
-      curr.setDate(curr.getDate() + (deltaX > 0 ? -1 : 1));
+      curr.setDate(curr.getDate() + (isPrev ? -1 : 1));
       const nextDateStr = `${curr.getFullYear()}-${String(curr.getMonth() + 1).padStart(2, '0')}-${String(curr.getDate()).padStart(2, '0')}`;
       handleDayClick(nextDateStr);
     }
@@ -655,7 +658,7 @@ export default function Calendar() {
 
       {/* Interactive Day Click Modal (Shows Day Photos + Notes) */}
       {showModal && selectedDate && (
-        <div className="modal-backdrop" onClick={() => setShowModal(false)}>
+        <div className="modal-backdrop" onClick={() => { setShowModal(false); setSwipeDir(null); }}>
           <div className="modal" onClick={e => e.stopPropagation()} onTouchStart={handleModalTouchStart} onTouchEnd={handleModalTouchEnd} style={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div className="modal__handle" />
 
@@ -697,7 +700,7 @@ export default function Calendar() {
             </div>
 
             {/* Scrollable content area */}
-            <div style={{ overflowY: 'auto', flex: 1, paddingBottom: 'var(--space-md)' }}>
+            <div key={selectedDate} className={swipeDir ? `animate-slide-${swipeDir}` : 'animate-fade-in'} style={{ overflowY: 'auto', flex: 1, paddingBottom: 'var(--space-md)', overflowX: 'hidden' }}>
               <div className="stack stack--lg">
                 {/* List of existing events/notes for this selected date */}
                 {selectedDateEvents.length > 0 && (
@@ -762,12 +765,12 @@ export default function Calendar() {
                       </span>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2xl)', padding: '0 var(--space-md)' }}>
-                      <div style={{ position: 'relative' }}>
+                    <div style={{ display: 'flex', gap: 'var(--space-md)', overflowX: 'auto', paddingBottom: 'var(--space-sm)', scrollSnapType: 'x mandatory' }}>
+                      <div style={{ flex: '0 0 85%', scrollSnapAlign: 'center', position: 'relative' }}>
                         <div className="text-secondary text-center" style={{ fontSize: '12px', marginBottom: '8px', fontWeight: 700 }}>
                           {myName}
                         </div>
-                        <div className="photo-card" style={{ transform: 'rotate(-2deg)' }}>
+                        <div className="photo-card" style={{ transform: 'rotate(-1deg)' }}>
                           {selectedDayPhotos.myPhotoUrl === 'recovery' ? (
                             <div className="photo-card__placeholder" style={{ background: 'rgba(59, 130, 246, 0.1)', color: 'var(--color-info)', zIndex: 2 }}>
                               <span style={{ fontSize: '32px' }}>🛡️</span>
@@ -801,11 +804,11 @@ export default function Calendar() {
                         </div>
                       </div>
 
-                      <div style={{ position: 'relative' }}>
+                      <div style={{ flex: '0 0 85%', scrollSnapAlign: 'center', position: 'relative' }}>
                         <div className="text-secondary text-center" style={{ fontSize: '12px', marginBottom: '8px', fontWeight: 700 }}>
                           {partnerName}
                         </div>
-                        <div className="photo-card" style={{ transform: 'rotate(2deg)' }}>
+                        <div className="photo-card" style={{ transform: 'rotate(1deg)' }}>
                           {selectedDayPhotos.partnerPhotoUrl === 'recovery' ? (
                             <div className="photo-card__placeholder" style={{ background: 'rgba(59, 130, 246, 0.1)', color: 'var(--color-info)', zIndex: 2 }}>
                               <span style={{ fontSize: '32px' }}>🛡️</span>
