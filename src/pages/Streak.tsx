@@ -137,6 +137,7 @@ export default function Streak() {
   const [pastDayFlip, setPastDayFlip] = useState(false);
   const [pastDayUploading, setPastDayUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
   const recoveryFileInputRef = useRef<HTMLInputElement>(null);
   const pastDayFileInputRef = useRef<HTMLInputElement>(null);
   const lastUploadRef = useRef<{ file: File; flip: boolean } | null>(null);
@@ -371,6 +372,10 @@ export default function Streak() {
     fileInputRef.current?.click();
   };
 
+  const handleOpenUpload = () => {
+    uploadInputRef.current?.click();
+  };
+
   const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -472,6 +477,7 @@ export default function Streak() {
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+      if (uploadInputRef.current) uploadInputRef.current.value = '';
     }
   };
 
@@ -480,6 +486,7 @@ export default function Streak() {
     setPreviewFile(null);
     setPreviewUrl(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
+    if (uploadInputRef.current) uploadInputRef.current.value = '';
   };
 
   // --- Recovery Flow ---
@@ -909,14 +916,33 @@ export default function Streak() {
 
         {/* Camera Trigger */}
         {!todayPhotos.myPhoto && !previewUrl && (
-          <button className="btn btn--primary btn--full btn--lg" onClick={handleOpenCamera}>
-            <IconCamera />
-            <span>Tomar foto de hoy</span>
-          </button>
+          <div className="row row--gap-sm">
+            <button className="btn btn--primary btn--lg" onClick={handleOpenCamera} style={{ flex: 1, padding: '0 12px' }}>
+              <IconCamera />
+              <span>Cámara</span>
+            </button>
+            <button className="btn btn--secondary btn--lg" onClick={handleOpenUpload} style={{ flex: 1, padding: '0 12px' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span>Subir</span>
+            </button>
+          </div>
         )}
 
         <input
           ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFileSelected}
+          style={{ display: 'none' }}
+        />
+
+        <input
+          ref={uploadInputRef}
           type="file"
           accept="image/*"
           onChange={handleFileSelected}
