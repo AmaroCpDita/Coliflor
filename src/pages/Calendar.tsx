@@ -96,6 +96,7 @@ export default function Calendar() {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
   
   // Form state inside modal
   const [category, setCategory] = useState<EventCategory>('nos_vimos');
@@ -452,6 +453,21 @@ export default function Calendar() {
     return partner?.display_name || 'Tu pareja';
   };
 
+  const handleModalTouchStart = (e: React.TouchEvent) => setTouchStartX(e.touches[0].clientX);
+  const handleModalTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null || !selectedDate) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const deltaX = touchEndX - touchStartX;
+    if (Math.abs(deltaX) > 50) {
+      const [y, m, d] = selectedDate.split('-').map(Number);
+      const curr = new Date(y, m - 1, d);
+      curr.setDate(curr.getDate() + (deltaX > 0 ? -1 : 1));
+      const nextDateStr = `${curr.getFullYear()}-${String(curr.getMonth() + 1).padStart(2, '0')}-${String(curr.getDate()).padStart(2, '0')}`;
+      handleDayClick(nextDateStr);
+    }
+    setTouchStartX(null);
+  };
+
   const selectedDateEvents = selectedDate ? eventsMap.get(selectedDate) || [] : [];
 
   return (
@@ -640,7 +656,7 @@ export default function Calendar() {
       {/* Interactive Day Click Modal (Shows Day Photos + Notes) */}
       {showModal && selectedDate && (
         <div className="modal-backdrop" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div className="modal" onClick={e => e.stopPropagation()} onTouchStart={handleModalTouchStart} onTouchEnd={handleModalTouchEnd} style={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div className="modal__handle" />
 
             {/* Sticky header with close button */}
@@ -746,71 +762,81 @@ export default function Calendar() {
                       </span>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
-                      <div>
-                        <div className="text-secondary text-center" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2xl)', padding: '0 var(--space-md)' }}>
+                      <div style={{ position: 'relative' }}>
+                        <div className="text-secondary text-center" style={{ fontSize: '12px', marginBottom: '8px', fontWeight: 700 }}>
                           {myName}
                         </div>
-                        {selectedDayPhotos.myPhotoUrl === 'recovery' ? (
-                          <div style={{ aspectRatio: '3/4', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 'var(--radius-md)', color: 'var(--color-info)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '24px' }}>🛡️</span>
-                            <span style={{ fontWeight: 600, padding: '0 12px', textAlign: 'center', fontSize: '11px' }}>Racha recuperada</span>
-                            {selectedDate === '2026-09-07' && (
-                              <button className="btn btn--primary btn--sm" style={{ marginTop: '8px' }} onClick={() => tempFileInputRef.current?.click()} disabled={uploadingPast}>
-                                {uploadingPast ? 'Subiendo...' : 'Subir foto'}
-                              </button>
-                            )}
-                          </div>
-                        ) : selectedDayPhotos.myPhotoUrl ? (
-                          <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <img src={selectedDayPhotos.myPhotoUrl} alt="Foto" style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }} onClick={() => setLightboxUrl(selectedDayPhotos.myPhotoUrl || null)} />
-                            <a href={selectedDayPhotos.myPhotoUrl} download={`coliflor-${selectedDate}-${myName}.jpg`} target="_blank" rel="noreferrer" style={{ position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', borderRadius: '50%', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                            </a>
-                          </div>
-                        ) : (
-                          <div style={{ aspectRatio: '3/4', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                            <span style={{ opacity: 0.5, fontSize: '11px' }}>Sin foto</span>
-                            {selectedDate === '2026-09-07' && (
-                              <button className="btn btn--primary btn--sm" style={{ marginTop: '8px' }} onClick={() => tempFileInputRef.current?.click()} disabled={uploadingPast}>
-                                {uploadingPast ? 'Subiendo...' : 'Subir foto'}
-                              </button>
-                            )}
-                          </div>
-                        )}
+                        <div className="photo-card" style={{ transform: 'rotate(-2deg)' }}>
+                          {selectedDayPhotos.myPhotoUrl === 'recovery' ? (
+                            <div className="photo-card__placeholder" style={{ background: 'rgba(59, 130, 246, 0.1)', color: 'var(--color-info)', zIndex: 2 }}>
+                              <span style={{ fontSize: '32px' }}>🛡️</span>
+                              <span style={{ fontWeight: 700, padding: '0 12px', textAlign: 'center', fontSize: '14px', marginTop: '8px' }}>Racha recuperada</span>
+                              {selectedDate === '2026-09-07' && (
+                                <button className="btn btn--primary btn--sm" style={{ marginTop: '16px' }} onClick={() => tempFileInputRef.current?.click()} disabled={uploadingPast}>
+                                  {uploadingPast ? 'Subiendo...' : 'Subir foto'}
+                                </button>
+                              )}
+                            </div>
+                          ) : selectedDayPhotos.myPhotoUrl ? (
+                            <>
+                              <img src={selectedDayPhotos.myPhotoUrl} alt="Foto" className="photo-card__image" onClick={() => setLightboxUrl(selectedDayPhotos.myPhotoUrl || null)} style={{ cursor: 'pointer' }} />
+                              <div className="photo-card__label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 16px' }}>
+                                <span>{selectedDate.split('-')[2]}/{selectedDate.split('-')[1]}</span>
+                                <a href={selectedDayPhotos.myPhotoUrl} download={`coliflor-${selectedDate}-${myName}.jpg`} target="_blank" rel="noreferrer" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '50%', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'translateY(-2px)' }}>
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                </a>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="photo-card__placeholder" style={{ zIndex: 2 }}>
+                              <span style={{ opacity: 0.5, fontSize: '14px' }}>Sin foto</span>
+                              {selectedDate === '2026-09-07' && (
+                                <button className="btn btn--primary btn--sm" style={{ marginTop: '16px' }} onClick={() => tempFileInputRef.current?.click()} disabled={uploadingPast}>
+                                  {uploadingPast ? 'Subiendo...' : 'Subir foto'}
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      <div>
-                        <div className="text-secondary text-center" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}>
+                      <div style={{ position: 'relative' }}>
+                        <div className="text-secondary text-center" style={{ fontSize: '12px', marginBottom: '8px', fontWeight: 700 }}>
                           {partnerName}
                         </div>
-                        {selectedDayPhotos.partnerPhotoUrl === 'recovery' ? (
-                          <div style={{ aspectRatio: '3/4', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 'var(--radius-md)', color: 'var(--color-info)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '24px' }}>🛡️</span>
-                            <span style={{ fontWeight: 600, padding: '0 12px', textAlign: 'center', fontSize: '11px' }}>Racha recuperada</span>
-                            {selectedDate === '2026-09-07' && (
-                              <button className="btn btn--primary btn--sm" style={{ marginTop: '8px' }} onClick={() => tempFileInputRef.current?.click()} disabled={uploadingPast}>
-                                {uploadingPast ? 'Subiendo...' : 'Subir foto'}
-                              </button>
-                            )}
-                          </div>
-                        ) : selectedDayPhotos.partnerPhotoUrl ? (
-                          <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <img src={selectedDayPhotos.partnerPhotoUrl} alt="Foto" style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }} onClick={() => setLightboxUrl(selectedDayPhotos.partnerPhotoUrl || null)} />
-                            <a href={selectedDayPhotos.partnerPhotoUrl} download={`coliflor-${selectedDate}-${partnerName}.jpg`} target="_blank" rel="noreferrer" style={{ position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', borderRadius: '50%', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                            </a>
-                          </div>
-                        ) : (
-                          <div style={{ aspectRatio: '3/4', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                            <span style={{ opacity: 0.5, fontSize: '11px' }}>Sin foto</span>
-                            {selectedDate === '2026-09-07' && (
-                              <button className="btn btn--primary btn--sm" style={{ marginTop: '8px' }} onClick={() => tempFileInputRef.current?.click()} disabled={uploadingPast}>
-                                {uploadingPast ? 'Subiendo...' : 'Subir foto'}
-                              </button>
-                            )}
-                          </div>
-                        )}
+                        <div className="photo-card" style={{ transform: 'rotate(2deg)' }}>
+                          {selectedDayPhotos.partnerPhotoUrl === 'recovery' ? (
+                            <div className="photo-card__placeholder" style={{ background: 'rgba(59, 130, 246, 0.1)', color: 'var(--color-info)', zIndex: 2 }}>
+                              <span style={{ fontSize: '32px' }}>🛡️</span>
+                              <span style={{ fontWeight: 700, padding: '0 12px', textAlign: 'center', fontSize: '14px', marginTop: '8px' }}>Racha recuperada</span>
+                              {selectedDate === '2026-09-07' && (
+                                <button className="btn btn--primary btn--sm" style={{ marginTop: '16px' }} onClick={() => tempFileInputRef.current?.click()} disabled={uploadingPast}>
+                                  {uploadingPast ? 'Subiendo...' : 'Subir foto'}
+                                </button>
+                              )}
+                            </div>
+                          ) : selectedDayPhotos.partnerPhotoUrl ? (
+                            <>
+                              <img src={selectedDayPhotos.partnerPhotoUrl} alt="Foto" className="photo-card__image" onClick={() => setLightboxUrl(selectedDayPhotos.partnerPhotoUrl || null)} style={{ cursor: 'pointer' }} />
+                              <div className="photo-card__label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 16px' }}>
+                                <span>{selectedDate.split('-')[2]}/{selectedDate.split('-')[1]}</span>
+                                <a href={selectedDayPhotos.partnerPhotoUrl} download={`coliflor-${selectedDate}-${partnerName}.jpg`} target="_blank" rel="noreferrer" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '50%', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'translateY(-2px)' }}>
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                </a>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="photo-card__placeholder" style={{ zIndex: 2 }}>
+                              <span style={{ opacity: 0.5, fontSize: '14px' }}>Sin foto</span>
+                              {selectedDate === '2026-09-07' && (
+                                <button className="btn btn--primary btn--sm" style={{ marginTop: '16px' }} onClick={() => tempFileInputRef.current?.click()} disabled={uploadingPast}>
+                                  {uploadingPast ? 'Subiendo...' : 'Subir foto'}
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
                         <input type="file" accept="image/*" ref={tempFileInputRef} style={{ display: 'none' }} onChange={handleTempUpload} />
                       </div>
                     </div>
