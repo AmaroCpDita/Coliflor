@@ -383,104 +383,110 @@ export default function Quiz() {
               </div>
             ) : (
               /* Step 1B: Interactive Step-by-Step Questions */
-              <div className="stack stack--md animate-fade-in">
-                {/* Progress bar */}
-                <div className="glass-card" style={{ padding: 'var(--space-md)' }}>
-                  <div className="row row--between" style={{ marginBottom: '8px' }}>
-                    <span className="text-secondary" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
-                      Pregunta {currentStep + 1} de 5
-                    </span>
-                    <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-accent-light)' }}>
+              <div key={currentStep} className="animate-slide-next">
+                <div className="glass-card stack stack--lg" style={{ 
+                  padding: 'var(--space-xl) var(--space-lg)',
+                  position: 'relative',
+                  background: 'linear-gradient(180deg, rgba(22, 23, 32, 0.85) 0%, rgba(22, 23, 32, 0.4) 100%)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                  overflow: 'hidden'
+                }}>
+                  {/* Glowing orb background effect */}
+                  <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'rgba(229,197,115,0.1)', filter: 'blur(50px)', borderRadius: '50%', pointerEvents: 'none' }} />
+
+                  {/* Progress Header */}
+                  <div className="row row--between row--center">
+                    <div className="row row--gap-sm row--center">
+                      {currentStep > 0 && (
+                        <button onClick={handlePrevStep} style={{ background: 'none', border: 'none', color: 'var(--color-text-secondary)', padding: '4px', cursor: 'pointer', zIndex: 2 }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </button>
+                      )}
+                      <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-accent-light)' }}>
+                        PREGUNTA {currentStep + 1}/5
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 800, color: 'var(--color-text-tertiary)' }}>
                       {Math.round(((currentStep + 1) / 5) * 100)}%
                     </span>
                   </div>
-                  <div style={{ height: '6px', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
-                    <div
-                      style={{
-                        height: '100%',
-                        width: `${((currentStep + 1) / 5) * 100}%`,
-                        background: 'var(--gradient-accent)',
-                        transition: 'width var(--transition-base)',
-                      }}
-                    />
-                  </div>
-                </div>
 
-                {/* Question Card */}
-                <div className="glass-card stack stack--md" style={{ padding: 'var(--space-lg)' }}>
-                  <h3 style={{ fontSize: 'var(--font-size-md)', lineHeight: 1.4 }}>
+                  {/* Progress bar line */}
+                  <div style={{ height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', marginTop: '-12px' }}>
+                    <div style={{ height: '100%', width: `${((currentStep + 1) / 5) * 100}%`, background: 'var(--gradient-accent)', borderRadius: '2px', transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }} />
+                  </div>
+
+                  {/* Question Text */}
+                  <h3 style={{ fontSize: '1.25rem', lineHeight: 1.4, margin: '8px 0', fontWeight: 700, zIndex: 2, position: 'relative' }}>
                     {currentQ.question}
                   </h3>
 
-                  {/* 4 Options */}
-                  <div className="stack stack--sm">
+                  {/* Options Grid */}
+                  <div className="stack stack--md" style={{ zIndex: 2, position: 'relative' }}>
                     {currentQ.options.map((optText, optIdx) => {
                       const isSelected = selectedAnswers[currentStep] === optIdx;
                       return (
                         <button
                           key={optIdx}
-                          className="btn"
-                          onClick={() => handleSelectOption(optIdx)}
+                          onClick={() => {
+                            handleSelectOption(optIdx);
+                            // Auto advance after short delay
+                            if (currentStep < 4) {
+                              setTimeout(() => handleNextStep(), 400);
+                            }
+                          }}
                           style={{
-                            justifyContent: 'flex-start',
+                            position: 'relative',
                             textAlign: 'left',
-                            padding: 'var(--space-sm) var(--space-md)',
-                            background: isSelected ? 'var(--gradient-accent-soft)' : 'var(--color-bg-secondary)',
-                            borderColor: isSelected ? 'var(--color-accent)' : 'var(--color-border)',
+                            padding: '16px 20px',
+                            background: isSelected ? 'var(--gradient-accent-soft)' : 'rgba(255,255,255,0.03)',
+                            border: `1px solid ${isSelected ? 'var(--color-accent)' : 'rgba(255,255,255,0.08)'}`,
+                            borderRadius: 'var(--radius-lg)',
                             color: isSelected ? 'var(--color-accent-light)' : 'var(--color-text-primary)',
                             fontWeight: isSelected ? 700 : 500,
-                            transition: 'all var(--transition-fast)',
-                          }}
-                        >
-                          <span style={{
-                            width: '22px',
-                            height: '22px',
-                            borderRadius: '50%',
-                            background: isSelected ? 'var(--gradient-accent)' : 'rgba(255,255,255,0.06)',
-                            color: isSelected ? '#0d0e12' : 'var(--color-text-tertiary)',
+                            fontSize: '0.95rem',
+                            lineHeight: 1.4,
+                            transition: 'all 0.2s ease',
+                            boxShadow: isSelected ? '0 0 20px rgba(229,197,115,0.15)' : 'none',
+                            transform: isSelected ? 'scale(1.02)' : 'none',
+                            cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            flexShrink: 0,
+                            gap: '16px',
+                            overflow: 'hidden',
+                            outline: 'none'
+                          }}
+                        >
+                          {isSelected && (
+                            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px', background: 'var(--gradient-accent)' }} />
+                          )}
+                          <div style={{
+                            width: '28px', height: '28px', borderRadius: '50%',
+                            background: isSelected ? 'var(--gradient-accent)' : 'rgba(255,255,255,0.05)',
+                            color: isSelected ? '#111' : 'var(--color-text-secondary)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '12px', fontWeight: 800, flexShrink: 0
                           }}>
                             {String.fromCharCode(65 + optIdx)}
-                          </span>
-                          <span style={{ flex: 1, fontSize: 'var(--font-size-xs)', lineHeight: 1.3 }}>
-                            {optText}
-                          </span>
+                          </div>
+                          <span style={{ flex: 1 }}>{optText}</span>
                         </button>
                       );
                     })}
                   </div>
 
-                  {/* Navigation controls */}
-                  <div className="row row--between" style={{ marginTop: 'var(--space-md)' }}>
-                    {currentStep > 0 ? (
-                      <button className="btn btn--secondary btn--sm" onClick={handlePrevStep}>
-                        Anterior
-                      </button>
-                    ) : <div />}
-
-                    {currentStep < 4 ? (
-                      <button
-                        className="btn btn--primary btn--sm"
-                        onClick={handleNextStep}
-                        disabled={!isOptionSelected}
-                      >
-                        Siguiente
-                      </button>
-                    ) : (
-                      <button
-                        className="btn btn--primary btn--sm"
-                        onClick={handleSubmitQuiz}
-                        disabled={!isOptionSelected || submitting}
-                      >
-                        {submitting ? 'Guardando...' : 'Completar Cuestionario'}
-                      </button>
-                    )}
-                  </div>
+                  {/* Submit Button (Only on last step) */}
+                  {currentStep === 4 && (
+                    <button
+                      className="btn btn--primary btn--lg"
+                      onClick={handleSubmitQuiz}
+                      disabled={!isOptionSelected || submitting}
+                      style={{ marginTop: '16px', width: '100%', boxShadow: '0 8px 25px rgba(229,197,115,0.25)', zIndex: 2, position: 'relative' }}
+                    >
+                      {submitting ? 'Guardando...' : '¡Terminar y Enviar!'}
+                    </button>
+                  )}
                 </div>
               </div>
             )}
