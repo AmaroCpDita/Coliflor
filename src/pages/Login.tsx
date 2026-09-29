@@ -56,9 +56,6 @@ export default function Login() {
           <h1 style={{ fontSize: 'var(--font-size-3xl)', letterSpacing: '-0.02em' }}>
             <span className="text-gradient">Coliflor</span>
           </h1>
-          <p className="text-secondary" style={{ marginTop: 'var(--space-xs)', fontSize: 'var(--font-size-sm)' }}>
-            Tu espacio privado de pareja
-          </p>
         </div>
 
         {/* Form Card */}

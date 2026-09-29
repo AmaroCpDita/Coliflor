@@ -13,7 +13,7 @@ import LoadingScreen from '../components/LoadingScreen';
 
 function IconCheck() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e5c573" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12" />
     </svg>
   );
@@ -312,12 +312,9 @@ export default function Quiz() {
             {/* Theme Welcome Intro Card */}
             {!quizStarted ? (
               <div 
-                className="glass-card text-center stack stack--md animate-fade-in" 
+                className="glass-card glass-card--accent text-center stack stack--md animate-fade-in" 
                 style={{ 
                   padding: 'var(--space-2xl) var(--space-xl)',
-                  background: 'linear-gradient(180deg, rgba(229, 197, 115, 0.05) 0%, rgba(22, 23, 32, 0.6) 100%)',
-                  border: '1px solid rgba(229, 197, 115, 0.15)',
-                  boxShadow: '0 10px 30px -10px rgba(229, 197, 115, 0.1)',
                   position: 'relative',
                   overflow: 'hidden'
                 }}
@@ -325,7 +322,7 @@ export default function Quiz() {
                 {/* Glow behind heart */}
                 <div style={{
                   position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)',
-                  width: '100px', height: '100px', background: 'rgba(229, 197, 115, 0.15)',
+                  width: '100px', height: '100px', background: 'var(--color-accent-glow)',
                   filter: 'blur(30px)', borderRadius: '50%', pointerEvents: 'none'
                 }}></div>
 
@@ -351,7 +348,8 @@ export default function Quiz() {
                   fontSize: '12px', 
                   color: 'var(--color-text-tertiary)', 
                   fontWeight: 600,
-                  background: 'rgba(0,0,0,0.2)',
+                  background: 'var(--color-bg-secondary)',
+                  border: '1px solid var(--color-border)',
                   padding: '8px 16px',
                   borderRadius: 'var(--radius-full)',
                   display: 'inline-flex'
@@ -361,20 +359,10 @@ export default function Quiz() {
                 </div>
 
                 <button
-                  className="btn row row--center row--gap-sm"
+                  className="btn btn--primary btn--lg btn--full row row--center row--gap-sm"
                   onClick={() => setQuizStarted(true)}
                   style={{ 
                     marginTop: '8px',
-                    width: '100%',
-                    padding: '16px',
-                    fontSize: '1.1rem',
-                    fontWeight: 700,
-                    background: 'var(--gradient-accent)',
-                    color: '#111',
-                    border: 'none',
-                    borderRadius: 'var(--radius-md)',
-                    boxShadow: '0 8px 20px rgba(229, 197, 115, 0.25)',
-                    transition: 'all 0.3s ease'
                   }}
                 >
                   <IconPlay />
@@ -384,36 +372,43 @@ export default function Quiz() {
             ) : (
               /* Step 1B: Interactive Step-by-Step Questions */
               <div key={currentStep} className="animate-slide-next">
-                <div className="glass-card stack stack--lg" style={{ 
+                  <div className="glass-card stack stack--lg" style={{ 
                   padding: 'var(--space-xl) var(--space-lg)',
                   position: 'relative',
-                  background: 'linear-gradient(180deg, rgba(22, 23, 32, 0.85) 0%, rgba(22, 23, 32, 0.4) 100%)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
                   overflow: 'hidden'
                 }}>
                   {/* Glowing orb background effect */}
-                  <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'rgba(229,197,115,0.1)', filter: 'blur(50px)', borderRadius: '50%', pointerEvents: 'none' }} />
+                  <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'var(--color-accent-glow)', filter: 'blur(50px)', borderRadius: '50%', pointerEvents: 'none' }} />
 
                   {/* Progress Header */}
-                  <div className="row row--between row--center">
+                  <div className="row row--between">
                     <div className="row row--gap-sm row--center">
                       {currentStep > 0 && (
-                        <button onClick={handlePrevStep} style={{ background: 'none', border: 'none', color: 'var(--color-text-secondary)', padding: '4px', cursor: 'pointer', zIndex: 2 }}>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        <button onClick={handlePrevStep} style={{ 
+                          background: 'var(--color-bg-secondary)', 
+                          border: '1px solid var(--color-border)',
+                          color: 'var(--color-text-primary)', 
+                          width: '32px', height: '32px',
+                          borderRadius: '50%',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          cursor: 'pointer', zIndex: 2, 
+                          marginLeft: '-8px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        }}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '-2px' }}><polyline points="15 18 9 12 15 6"></polyline></svg>
                         </button>
                       )}
                       <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-accent-light)' }}>
                         PREGUNTA {currentStep + 1}/5
                       </span>
                     </div>
-                    <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 800, color: 'var(--color-text-tertiary)' }}>
+                    <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 800, color: 'var(--color-text-tertiary)', marginRight: '-8px' }}>
                       {Math.round(((currentStep + 1) / 5) * 100)}%
                     </span>
                   </div>
 
                   {/* Progress bar line */}
-                  <div style={{ height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', marginTop: '-12px' }}>
+                  <div style={{ height: '4px', background: 'var(--color-border)', borderRadius: '2px', marginTop: '-12px' }}>
                     <div style={{ height: '100%', width: `${((currentStep + 1) / 5) * 100}%`, background: 'var(--gradient-accent)', borderRadius: '2px', transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }} />
                   </div>
 
@@ -440,15 +435,15 @@ export default function Quiz() {
                             position: 'relative',
                             textAlign: 'left',
                             padding: '16px 20px',
-                            background: isSelected ? 'var(--gradient-accent-soft)' : 'rgba(255,255,255,0.03)',
-                            border: `1px solid ${isSelected ? 'var(--color-accent)' : 'rgba(255,255,255,0.08)'}`,
+                            background: isSelected ? 'var(--gradient-accent-soft)' : 'var(--color-bg-secondary)',
+                            border: `1px solid ${isSelected ? 'var(--color-accent)' : 'var(--color-border)'}`,
                             borderRadius: 'var(--radius-lg)',
                             color: isSelected ? 'var(--color-accent-light)' : 'var(--color-text-primary)',
                             fontWeight: isSelected ? 700 : 500,
                             fontSize: '0.95rem',
                             lineHeight: 1.4,
                             transition: 'all 0.2s ease',
-                            boxShadow: isSelected ? '0 0 20px rgba(229,197,115,0.15)' : 'none',
+                            boxShadow: isSelected ? '0 0 20px var(--color-accent-glow)' : 'none',
                             transform: isSelected ? 'scale(1.02)' : 'none',
                             cursor: 'pointer',
                             display: 'flex',
@@ -463,8 +458,8 @@ export default function Quiz() {
                           )}
                           <div style={{
                             width: '28px', height: '28px', borderRadius: '50%',
-                            background: isSelected ? 'var(--gradient-accent)' : 'rgba(255,255,255,0.05)',
-                            color: isSelected ? '#111' : 'var(--color-text-secondary)',
+                            background: isSelected ? 'var(--gradient-accent)' : 'var(--color-border)',
+                            color: isSelected ? '#0d0e12' : 'var(--color-text-secondary)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontSize: '12px', fontWeight: 800, flexShrink: 0
                           }}>
@@ -482,7 +477,7 @@ export default function Quiz() {
                       className="btn btn--primary btn--lg"
                       onClick={handleSubmitQuiz}
                       disabled={!isOptionSelected || submitting}
-                      style={{ marginTop: '16px', width: '100%', boxShadow: '0 8px 25px rgba(229,197,115,0.25)', zIndex: 2, position: 'relative' }}
+                      style={{ marginTop: '16px', width: '100%', zIndex: 2, position: 'relative' }}
                     >
                       {submitting ? 'Guardando...' : '¡Terminar y Enviar!'}
                     </button>
@@ -519,20 +514,17 @@ export default function Quiz() {
         {myResponse && partnerResponse && (
           <div className="stack stack--lg animate-fade-in" style={{ paddingBottom: '32px' }}>
             {/* Harmony Percentage Hero Card */}
-            <div className="glass-card text-center" style={{ 
+            <div className="glass-card glass-card--accent text-center" style={{ 
               padding: 'var(--space-xl) var(--space-md)',
               position: 'relative',
-              overflow: 'hidden',
-              background: 'linear-gradient(180deg, rgba(22, 23, 32, 0.8) 0%, rgba(22, 23, 32, 0.4) 100%)',
-              border: '1px solid rgba(229,197,115,0.2)',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(229,197,115,0.05)'
+              overflow: 'hidden'
             }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(229,197,115,0.15) 0%, rgba(0,0,0,0) 70%)', pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '200px', height: '200px', background: 'radial-gradient(circle, var(--color-accent-glow) 0%, transparent 70%)', pointerEvents: 'none' }} />
               
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
-                background: 'rgba(229,197,115,0.1)', padding: '4px 12px', borderRadius: 'var(--radius-full)',
-                border: '1px solid rgba(229,197,115,0.2)', color: 'var(--color-accent)',
+                background: 'var(--color-accent-glow)', padding: '4px 12px', borderRadius: 'var(--radius-full)',
+                border: '1px solid var(--color-border-accent)', color: 'var(--color-accent)',
                 fontSize: '10px', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px'
               }}>
                 <IconGoldHeart size={12} />
@@ -547,7 +539,7 @@ export default function Quiz() {
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   lineHeight: 1,
-                  filter: 'drop-shadow(0 0 15px rgba(229,197,115,0.3))'
+                  filter: 'drop-shadow(0 0 15px var(--color-accent-glow))'
                 }}>
                   {harmonyScore}%
                 </span>
@@ -562,11 +554,11 @@ export default function Quiz() {
             {/* Side-by-Side Comparison Feed */}
             <div className="stack stack--md">
               <div className="row row--center" style={{ marginBottom: '4px' }}>
-                <div style={{ height: '1px', flex: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1))' }} />
+                <div style={{ height: '1px', flex: 1, background: 'linear-gradient(90deg, transparent, var(--color-border))' }} />
                 <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 800, color: 'var(--color-text-secondary)', padding: '0 12px' }}>
                   Comparación Lado a Lado
                 </span>
-                <div style={{ height: '1px', flex: 1, background: 'linear-gradient(270deg, transparent, rgba(255,255,255,0.1))' }} />
+                <div style={{ height: '1px', flex: 1, background: 'linear-gradient(270deg, transparent, var(--color-border))' }} />
               </div>
 
               {dailyQuiz.questions.map((q, idx) => {
@@ -582,7 +574,7 @@ export default function Quiz() {
                       padding: 'var(--space-md)',
                       borderColor: isMatch ? 'var(--color-border-accent)' : 'var(--color-border)',
                       background: isMatch ? 'var(--gradient-accent-soft)' : 'var(--color-bg-card)',
-                      boxShadow: isMatch ? '0 4px 20px rgba(229,197,115,0.1)' : 'none',
+                      boxShadow: isMatch ? '0 4px 20px var(--color-accent-glow)' : 'none',
                     }}
                   >
                     <div className="row row--between" style={{ marginBottom: '2px' }}>

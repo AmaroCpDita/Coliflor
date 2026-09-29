@@ -36,6 +36,7 @@
 
   /* Typography */
   --font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+  --font-family-heading: 'Playfair Display', serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -85,14 +86,14 @@
 
   --color-border: rgba(0, 0, 0, 0.06);
   --color-border-hover: rgba(0, 0, 0, 0.12);
-  --color-border-accent: rgba(217, 111, 111, 0.3);
+  --color-border-accent: rgba(240, 168, 168, 0.4);
 
-  --color-accent: #d96f6f;
-  --color-accent-hover: #c45b5b;
-  --color-accent-light: #c04555; /* Oscurecido para contraste en modo claro */
-  --color-accent-glow: rgba(217, 111, 111, 0.12);
-  --gradient-accent: linear-gradient(135deg, #e88484 0%, #c45b5b 100%);
-  --gradient-accent-soft: linear-gradient(135deg, rgba(217, 111, 111, 0.15) 0%, rgba(196, 91, 91, 0.08) 100%);
+  --color-accent: #f0a8a8;
+  --color-accent-hover: #e69595;
+  --color-accent-light: #d98080;
+  --color-accent-glow: rgba(240, 168, 168, 0.2);
+  --gradient-accent: linear-gradient(135deg, #f7cece 0%, #efa1a1 100%);
+  --gradient-accent-soft: linear-gradient(135deg, rgba(240, 168, 168, 0.25) 0%, rgba(240, 168, 168, 0.1) 100%);
   --gradient-card: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 100%);
 
   --color-text-primary: #2d2a26;
@@ -127,6 +128,11 @@ html {
 a, a:visited, a:hover, a:active {
   color: inherit;
   text-decoration: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-heading);
+  font-weight: 700;
 }
 
 button {

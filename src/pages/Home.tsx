@@ -397,11 +397,11 @@ export default function Home() {
         {/* Top Bar Header */}
         <div className="row row--between" style={{ padding: '0 4px', marginBottom: '8px' }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '18px', color: 'var(--color-text-primary)' }}>
+            <div style={{ fontWeight: 700, fontSize: '24px', fontFamily: 'var(--font-family-heading)', color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>
               Coliflor
             </div>
             <div className="text-secondary" style={{ fontSize: '12px' }}>
-              Tu espacio de pareja
+
             </div>
           </div>
           <div className="row row--gap-md" style={{ color: 'var(--color-text-primary)' }}>
