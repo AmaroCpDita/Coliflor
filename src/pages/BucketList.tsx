@@ -63,6 +63,14 @@ export default function BucketList() {
   const [newItemCategory, setNewItemCategory] = useState<BucketListCategory>('Aventuras');
   const [saving, setSaving] = useState(false);
 
+  // Handle hiding fireworks automatically
+  useEffect(() => {
+    if (showFireworks) {
+      const timer = setTimeout(() => setShowFireworks(false), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [showFireworks]);
+
   useEffect(() => {
     fetchItems();
   }, [couple?.id]);
@@ -261,7 +269,7 @@ export default function BucketList() {
       )}
 
       <div className="container" style={{ paddingBottom: '100px' }}>
-        {showFireworks && <Fireworks onComplete={() => setShowFireworks(false)} />}
+        {showFireworks && <Fireworks intensity="high" colors={['#FF3B30', '#34C759', '#007AFF', '#FFCC00']} confetti={true} />}
         
         {/* Header Section */}
         <div style={{ marginBottom: 'var(--space-lg)' }}>
