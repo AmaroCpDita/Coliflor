@@ -43,6 +43,7 @@ export interface CalendarDay {
 }
 
 export type EventCategory = 'nos_vimos' | 'cita' | 'aniversario' | 'viaje' | 'nota';
+export type BucketListCategory = 'Lugares' | 'Restaurantes' | 'Películas' | 'Aventuras' | 'Metas';
 
 export interface CalendarEvent {
   id: string;
@@ -109,6 +110,34 @@ export interface PushSubscription {
   user_id: string;
   subscription: object;
   platform: 'web' | 'android';
+  created_at: string;
+}
+
+// --- Bucket List Types ---
+
+export interface BucketListItem {
+  id: string;
+  couple_id: string;
+  title: string;
+  category: BucketListCategory;
+  is_completed: boolean;
+  completed_at?: string;
+  created_by: string;
+  created_at: string;
+}
+
+// --- Map Types ---
+
+export interface MapPin {
+  id: string;
+  couple_id: string;
+  lat: number;
+  lng: number;
+  title: string;
+  description?: string;
+  icon_emoji: string;
+  visited_date?: string;
+  created_by: string;
   created_at: string;
 }
 

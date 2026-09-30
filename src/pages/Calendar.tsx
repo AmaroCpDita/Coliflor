@@ -23,11 +23,11 @@ interface DayPhotos {
 }
 
 const CATEGORIES: CategoryConfig[] = [
-  { id: 'nos_vimos', label: 'Nos vimos', color: '#e5c573' },
-  { id: 'cita', label: 'Cita / Salida', color: '#e07a7a' },
-  { id: 'aniversario', label: 'Día especial', color: '#f472b6' },
-  { id: 'viaje', label: 'Viaje / Escapada', color: '#38bdf8' },
-  { id: 'nota', label: 'Nota / Recuerdo', color: '#34d399' },
+  { id: 'nos_vimos', label: 'Nos vimos', color: '#c9956c' },
+  { id: 'cita', label: 'Cita / Salida', color: '#c47a7a' },
+  { id: 'aniversario', label: 'Día especial', color: '#b87da8' },
+  { id: 'viaje', label: 'Viaje / Escapada', color: '#7ba5b8' },
+  { id: 'nota', label: 'Nota / Recuerdo', color: '#7dab8e' },
 ];
 
 const PLACEHOLDERS: Record<EventCategory, string> = {
@@ -56,9 +56,18 @@ function IconTrash() {
   );
 }
 
+function IconEdit() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+}
+
 function IconCamera() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e5c573" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
       <circle cx="12" cy="13" r="4" />
     </svg>
@@ -93,7 +102,7 @@ export default function Calendar() {
   // Selected date modal state
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedDayPhotos, setSelectedDayPhotos] = useState<DayPhotos | null>(null);
-  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [lightboxData, setLightboxData] = useState<{ url: string, name: string } | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -107,6 +116,12 @@ export default function Calendar() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [tableMissing, setTableMissing] = useState(false);
+
+  // Edit state
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editNote, setEditNote] = useState('');
+  const [editCategory, setEditCategory] = useState<EventCategory>('nos_vimos');
 
   const noteInputRef = useRef<HTMLTextAreaElement>(null);
   const today = getTodayInTimezone();
@@ -454,6 +469,64 @@ export default function Calendar() {
     return partner?.display_name || 'Tu pareja';
   };
 
+  const startEditEvent = (evt: CalendarEvent) => {
+    setEditingEventId(evt.id);
+    setEditTitle(evt.title || '');
+    setEditNote(evt.note || '');
+    setEditCategory(evt.category);
+  };
+
+  const cancelEdit = () => {
+    setEditingEventId(null);
+    setEditTitle('');
+    setEditNote('');
+  };
+
+  const handleUpdateEvent = async (eventId: string) => {
+    if (!couple || saving) return;
+    setSaving(true);
+    setError('');
+
+    const catConfig = CATEGORIES.find(c => c.id === editCategory);
+    const updatedTitle = editTitle.trim() || catConfig?.label || '';
+    const updatedNote = editNote.trim() || null;
+
+    if (isMockMode || tableMissing) {
+      setEventsMap(prev => {
+        const map = new Map(prev);
+        if (selectedDate) {
+          const list = (map.get(selectedDate) || []).map(e =>
+            e.id === eventId ? { ...e, title: updatedTitle, note: updatedNote || undefined, category: editCategory } : e
+          );
+          map.set(selectedDate, list);
+        }
+        return map;
+      });
+      cancelEdit();
+      setSaving(false);
+      return;
+    }
+
+    try {
+      const { error: updErr } = await supabase
+        .from('calendar_events')
+        .update({
+          title: updatedTitle,
+          note: updatedNote,
+          category: editCategory,
+        })
+        .eq('id', eventId);
+
+      if (updErr) throw updErr;
+      cancelEdit();
+      await fetchEventsAndPhotos();
+    } catch (err: any) {
+      setError(err?.message || 'Error al actualizar evento');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleModalTouchStart = (e: React.TouchEvent) => setTouchStartX(e.touches[0].clientX);
   const handleModalTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX === null || !selectedDate) return;
@@ -573,7 +646,7 @@ export default function Calendar() {
                               width: '4px',
                               height: '4px',
                               borderRadius: '50%',
-                              backgroundColor: eventCatConf?.color || '#e5c573',
+                              backgroundColor: eventCatConf?.color || '#c9956c',
                             }}
                           />
                         );
@@ -581,27 +654,18 @@ export default function Calendar() {
                     </div>
                   )}
 
-                  {/* Bottom indicator (Streak photo) */}
+                  {/* Bottom-right corner indicator (Streak photo) */}
                   {hasPhotos && (
                     <div style={{
                       position: 'absolute',
-                      bottom: '3px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '100%',
-                    }}>
-                      <span
-                        title="Racha"
-                        style={{
-                          width: '12px',
-                          height: '2px',
-                          borderRadius: '1px',
-                          backgroundColor: 'var(--color-accent-light)',
-                          boxShadow: '0 0 4px var(--color-accent-light)',
-                        }}
-                      />
-                    </div>
+                      bottom: 0,
+                      right: 0,
+                      width: 0,
+                      height: 0,
+                      borderBottom: '8px solid var(--color-accent-light)',
+                      borderLeft: '8px solid transparent',
+                      opacity: 0.5,
+                    }} />
                   )}
                 </button>
               );
@@ -642,11 +706,11 @@ export default function Calendar() {
             ))}
             <div className="row row--gap-xs" style={{ padding: '4px 0' }}>
               <span style={{
-                width: '12px',
-                height: '2px',
-                borderRadius: '1px',
-                backgroundColor: 'var(--color-accent-light)',
-                boxShadow: '0 0 4px var(--color-accent-light)',
+                width: 0,
+                height: 0,
+                borderBottom: '6px solid var(--color-accent-light)',
+                borderLeft: '6px solid transparent',
+                opacity: 0.5,
               }} />
               <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
                 Racha
@@ -707,13 +771,92 @@ export default function Calendar() {
                   <div className="stack stack--sm">
                     {selectedDateEvents.map((evt) => {
                       const eventCatConf = CATEGORIES.find(c => c.id === evt.category);
+                      const isEditing = editingEventId === evt.id;
+
+                      if (isEditing) {
+                        // Inline edit form
+                        const editCatConf = CATEGORIES.find(c => c.id === editCategory);
+                        return (
+                          <div
+                            key={evt.id}
+                            className="glass-card"
+                            style={{
+                              padding: 'var(--space-md)',
+                              borderLeft: `4px solid ${editCatConf?.color || '#c9956c'}`,
+                              background: 'var(--color-bg-secondary)',
+                            }}
+                          >
+                            <div style={{ fontWeight: 600, fontSize: 'var(--font-size-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-sm)' }}>
+                              Editar recuerdo
+                            </div>
+
+                            {/* Category pills */}
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: 'var(--space-sm)' }}>
+                              {CATEGORIES.map(cat => (
+                                <button
+                                  key={cat.id}
+                                  type="button"
+                                  className="btn btn--sm"
+                                  onClick={() => setEditCategory(cat.id)}
+                                  style={{
+                                    background: editCategory === cat.id ? `${cat.color}22` : 'var(--color-bg-secondary)',
+                                    borderColor: editCategory === cat.id ? cat.color : 'var(--color-border)',
+                                    color: editCategory === cat.id ? cat.color : 'var(--color-text-secondary)',
+                                    fontSize: 'var(--font-size-xs)',
+                                    fontWeight: editCategory === cat.id ? 700 : 500,
+                                  }}
+                                >
+                                  {cat.label}
+                                </button>
+                              ))}
+                            </div>
+
+
+                            {/* Note textarea */}
+                            <div className="input-group" style={{ marginBottom: 'var(--space-sm)' }}>
+                              <label htmlFor={`editNote-${evt.id}`} style={{ fontSize: 'var(--font-size-xs)' }}>Notita</label>
+                              <textarea
+                                id={`editNote-${evt.id}`}
+                                className="input"
+                                rows={2}
+                                value={editNote}
+                                onChange={(e) => setEditNote(e.target.value)}
+                                placeholder={PLACEHOLDERS[editCategory]}
+                                style={{ resize: 'none' }}
+                              />
+                            </div>
+
+                            <div className="row row--gap-sm">
+                              <button
+                                type="button"
+                                className="btn btn--primary btn--sm"
+                                onClick={() => handleUpdateEvent(evt.id)}
+                                disabled={saving}
+                                style={{ flex: 1 }}
+                              >
+                                {saving ? 'Guardando...' : 'Guardar'}
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn--ghost btn--sm"
+                                onClick={cancelEdit}
+                                style={{ flexShrink: 0 }}
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      // Normal display
                       return (
                         <div
                           key={evt.id}
                           className="glass-card"
                           style={{
                             padding: 'var(--space-md)',
-                            borderLeft: `4px solid ${eventCatConf?.color || '#e5c573'}`,
+                            borderLeft: `4px solid ${eventCatConf?.color || '#c9956c'}`,
                             background: 'var(--color-bg-secondary)',
                           }}
                         >
@@ -723,14 +866,25 @@ export default function Calendar() {
                                 {evt.title || eventCatConf?.label}
                               </span>
                             </div>
-                            <button
-                              className="btn btn--ghost btn--sm"
-                              onClick={() => handleDeleteEvent(evt.id)}
-                              title="Eliminar evento"
-                              disabled={saving}
-                            >
-                              <IconTrash />
-                            </button>
+                            <div className="row row--gap-xs">
+                              <button
+                                className="btn btn--ghost btn--sm"
+                                onClick={() => startEditEvent(evt)}
+                                title="Editar evento"
+                                disabled={saving}
+                                style={{ color: 'var(--color-text-secondary)' }}
+                              >
+                                <IconEdit />
+                              </button>
+                              <button
+                                className="btn btn--ghost btn--sm"
+                                onClick={() => handleDeleteEvent(evt.id)}
+                                title="Eliminar evento"
+                                disabled={saving}
+                              >
+                                <IconTrash />
+                              </button>
+                            </div>
                           </div>
 
                           {evt.note && (
@@ -783,12 +937,7 @@ export default function Calendar() {
                             </div>
                           ) : selectedDayPhotos.myPhotoUrl ? (
                             <>
-                              <img src={selectedDayPhotos.myPhotoUrl} alt="Foto" className="photo-card__image" onClick={() => setLightboxUrl(selectedDayPhotos.myPhotoUrl || null)} style={{ cursor: 'pointer', borderRadius: '4px' }} />
-                              <div className="photo-card__label" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', padding: '0 8px', bottom: '0', height: '24px' }}>
-                                <a href={selectedDayPhotos.myPhotoUrl} download={`coliflor-${selectedDate}-${myName}.jpg`} target="_blank" rel="noreferrer" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '50%', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                </a>
-                              </div>
+                              <img src={selectedDayPhotos.myPhotoUrl} alt="Foto" className="photo-card__image" onClick={() => setLightboxData({ url: selectedDayPhotos.myPhotoUrl!, name: `coliflor-${selectedDate}-${myName}.jpg` })} style={{ cursor: 'pointer', borderRadius: '4px' }} />
                             </>
                           ) : (
                             <div className="photo-card__placeholder" style={{ zIndex: 2 }}>
@@ -820,12 +969,7 @@ export default function Calendar() {
                             </div>
                           ) : selectedDayPhotos.partnerPhotoUrl ? (
                             <>
-                              <img src={selectedDayPhotos.partnerPhotoUrl} alt="Foto" className="photo-card__image" onClick={() => setLightboxUrl(selectedDayPhotos.partnerPhotoUrl || null)} style={{ cursor: 'pointer', borderRadius: '4px' }} />
-                              <div className="photo-card__label" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', padding: '0 8px', bottom: '0', height: '24px' }}>
-                                <a href={selectedDayPhotos.partnerPhotoUrl} download={`coliflor-${selectedDate}-${partnerName}.jpg`} target="_blank" rel="noreferrer" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '50%', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                </a>
-                              </div>
+                              <img src={selectedDayPhotos.partnerPhotoUrl} alt="Foto" className="photo-card__image" onClick={() => setLightboxData({ url: selectedDayPhotos.partnerPhotoUrl!, name: `coliflor-${selectedDate}-${partnerName}.jpg` })} style={{ cursor: 'pointer', borderRadius: '4px' }} />
                             </>
                           ) : (
                             <div className="photo-card__placeholder" style={{ zIndex: 2 }}>
@@ -956,7 +1100,7 @@ export default function Calendar() {
         </div>
       )}
 
-      <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
+      <Lightbox url={lightboxData?.url || null} downloadName={lightboxData?.name} onClose={() => setLightboxData(null)} />
     </div>
   );
 }

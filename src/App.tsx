@@ -18,6 +18,8 @@ const Streak = lazy(() => import('./pages/Streak'));
 const Quiz = lazy(() => import('./pages/Quiz'));
 const Messages = lazy(() => import('./pages/Messages'));
 const Settings = lazy(() => import('./pages/Settings'));
+const BucketList = lazy(() => import('./pages/BucketList'));
+const MapPage = lazy(() => import('./pages/Map'));
 
 function AppRoutes() {
   const { status } = useAuth();
@@ -45,6 +47,8 @@ function AppRoutes() {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/bucket-list" element={<BucketList />} />
+          <Route path="/map" element={<MapPage />} />
           <Route path="/setup" element={<Setup />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

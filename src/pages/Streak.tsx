@@ -36,7 +36,7 @@ function IconFlameLarge({ active = false, broken = false, size = 48, streakCount
       filter = "drop-shadow(0 0 12px rgba(244,63,94,0.6))";
     } else {
       // Normal golden fire
-      filter = "drop-shadow(0 0 8px rgba(229,197,115,0.4))";
+      filter = "drop-shadow(0 0 8px rgba(212,135,143,0.4))";
     }
   }
 
