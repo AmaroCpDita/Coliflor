@@ -1181,9 +1181,4 @@ body:has(textarea:focus) .chat-input-bar {
   background: var(--color-bg-primary);
 }
 
-/* Hide leaflet attribution watermark */
-.leaflet-control-attribution {
-  display: none !important;
-}
-. m a p b o x g l - c t r l - b o t t o m - l e f t ,   . m a p b o x g l - c t r l - b o t t o m - r i g h t   {   d i s p l a y :   n o n e   ! i m p o r t a n t ;   }  
- 
+.mapboxgl-ctrl-bottom-left, .mapboxgl-ctrl-bottom-right { display: none !important; }
