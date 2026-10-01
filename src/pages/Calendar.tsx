@@ -23,11 +23,11 @@ interface DayPhotos {
 }
 
 const CATEGORIES: CategoryConfig[] = [
-  { id: 'nos_vimos', label: 'Nos vimos', color: '#e5c573' },
-  { id: 'cita', label: 'Cita / Salida', color: '#e8a5ab' },
-  { id: 'aniversario', label: 'Día especial', color: '#d4878f' },
-  { id: 'viaje', label: 'Viaje / Escapada', color: '#b4a08c' },
-  { id: 'nota', label: 'Nota / Recuerdo', color: '#cba54b' },
+  { id: 'nos_vimos', label: 'Nos vimos', color: '#F59E0B' }, // Vibrant Amber
+  { id: 'cita', label: 'Cita / Salida', color: '#EF4444' }, // Vibrant Red
+  { id: 'aniversario', label: 'Día especial', color: '#8B5CF6' }, // Vibrant Purple
+  { id: 'viaje', label: 'Viaje / Escapada', color: '#3B82F6' }, // Vibrant Blue
+  { id: 'nota', label: 'Nota / Recuerdo', color: '#10B981' }, // Vibrant Green
 ];
 
 const PLACEHOLDERS: Record<EventCategory, string> = {
