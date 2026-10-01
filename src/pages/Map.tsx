@@ -65,6 +65,7 @@ export default function CoupleMap() {
   const [newTitle, setNewTitle] = useState('');
   const [newEmoji, setNewEmoji] = useState('📍');
   const [saving, setSaving] = useState(false);
+  const [editPinId, setEditPinId] = useState<string | null>(null);
   const [clickedLocation, setClickedLocation] = useState<{lat: number, lng: number, name?: string, address: string, loading: boolean} | null>(null);
   const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
   
@@ -172,6 +173,18 @@ export default function CoupleMap() {
     setClickedLocation(null);
     setSelectedCoords({ lat, lng });
     setNewTitle(prefillTitle);
+    setNewEmoji('📍');
+    setEditPinId(null);
+    setShowAddForm(true);
+  };
+
+  const openEditForm = (pin: any) => {
+    setSelectedPinId(null);
+    setClickedLocation(null);
+    setSelectedCoords({ lat: pin.lat, lng: pin.lng });
+    setNewTitle(pin.title);
+    setNewEmoji(pin.icon_emoji);
+    setEditPinId(pin.id);
     setShowAddForm(true);
   };
 
@@ -182,14 +195,21 @@ export default function CoupleMap() {
     setSaving(true);
     try {
       if (!isMockMode) {
-        await supabase.from('map_pins').insert({
-          couple_id: couple.id,
-          lat: selectedCoords.lat,
-          lng: selectedCoords.lng,
-          title: newTitle.trim(),
-          icon_emoji: newEmoji,
-          created_by: profile.id
-        });
+        if (editPinId) {
+          await supabase.from('map_pins').update({
+            title: newTitle.trim(),
+            icon_emoji: newEmoji,
+          }).eq('id', editPinId);
+        } else {
+          await supabase.from('map_pins').insert({
+            couple_id: couple.id,
+            lat: selectedCoords.lat,
+            lng: selectedCoords.lng,
+            title: newTitle.trim(),
+            icon_emoji: newEmoji,
+            created_by: profile.id
+          });
+        }
       }
       await fetchPins();
       closeForm();
@@ -213,6 +233,7 @@ export default function CoupleMap() {
     setSelectedCoords(null);
     setNewTitle('');
     setNewEmoji('📍');
+    setEditPinId(null);
   };
 
   useEffect(() => {
@@ -350,6 +371,32 @@ export default function CoupleMap() {
         {`
           .mapboxgl-control-container {
             display: none !important;
+          }
+          .mapboxgl-popup-content {
+            background: var(--color-bg-primary) !important;
+            border-radius: 20px !important;
+            padding: 16px !important;
+            box-shadow: 0 10px 30px rgba(229, 197, 115, 0.15) !important;
+            border: 2px solid var(--color-accent) !important;
+            font-family: inherit !important;
+          }
+          .mapboxgl-popup-tip {
+            border-top-color: var(--color-accent) !important;
+            border-bottom-color: var(--color-accent) !important;
+            display: block !important;
+          }
+          .mapboxgl-popup-close-button {
+            color: var(--color-text-secondary) !important;
+            font-size: 16px !important;
+            padding: 4px 8px !important;
+            border-radius: 50% !important;
+            top: 6px !important;
+            right: 6px !important;
+            outline: none !important;
+          }
+          .mapboxgl-popup-close-button:hover {
+            background: var(--color-bg-secondary) !important;
+            color: var(--color-text-primary) !important;
           }
         `}
       </style>
@@ -490,14 +537,47 @@ export default function CoupleMap() {
                 anchor="bottom"
                 offset={20}
               >
-                <div style={{ padding: '4px', textAlign: 'center', minWidth: '100px' }}>
-                  <strong style={{ display: 'block', marginBottom: '8px', color: '#333' }}>{pin.title}</strong>
-                  <button 
-                    onClick={() => handleDelete(pin.id)}
-                    style={{ background: '#ff4d4f', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
-                  >
-                    Eliminar
-                  </button>
+                <div style={{ padding: '0px', textAlign: 'center', minWidth: '150px', marginTop: '6px' }}>
+                  <div style={{ fontSize: '18px', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 600, color: 'var(--color-accent)', marginBottom: '4px', lineHeight: 1.2, padding: '0 8px' }}>
+                    {pin.title}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '16px' }}>
+                    {pin.icon_emoji} Nuestro recuerdo
+                  </div>
+                  <div className="row row--gap-xs" style={{ justifyContent: 'center' }}>
+                    <button 
+                      onClick={() => openEditForm(pin)}
+                      style={{ 
+                        background: 'rgba(229, 197, 115, 0.15)', 
+                        color: 'var(--color-accent)', 
+                        border: 'none', 
+                        padding: '8px 12px', 
+                        borderRadius: '12px', 
+                        cursor: 'pointer', 
+                        fontSize: '12px', 
+                        fontWeight: 600,
+                        flex: 1
+                      }}
+                    >
+                      ✏️ Editar
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(pin.id)}
+                      style={{ 
+                        background: 'rgba(239, 68, 68, 0.1)', 
+                        color: '#ef4444', 
+                        border: 'none', 
+                        padding: '8px 12px', 
+                        borderRadius: '12px', 
+                        cursor: 'pointer', 
+                        fontSize: '12px', 
+                        fontWeight: 600,
+                      }}
+                      title="Eliminar"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
               </MapboxPopup>
             )

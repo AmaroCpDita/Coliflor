@@ -3,7 +3,7 @@
 // ============================================================
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatTime } from '../lib/utils';
@@ -120,6 +120,9 @@ export default function Layout() {
   const [activityLogs, setActivityLogs] = useState<Message[]>([]);
   const [hasUnread, setHasUnread] = useState(false);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  const location = useLocation();
+  const isMapPage = location.pathname === '/map';
 
   const profileIdRef = useRef(profile?.id);
   const coupleRef = useRef(couple);
@@ -465,50 +468,11 @@ export default function Layout() {
       {isSidebarOpen && (
         <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)}>
           <div className="sidebar-drawer" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '20px' }}>🌼</span>
-                <h2 className="top-header__title" style={{ fontSize: '18px' }}>Coliflor</h2>
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-xl)' }}>
+              <h2 className="top-header__title" style={{ fontSize: '20px' }}>Coliflor</h2>
               <button className="hamburger-btn" onClick={() => setIsSidebarOpen(false)}>
                 <IconClose />
               </button>
-            </div>
-
-            {/* Couple Profile Pill */}
-            <div style={{
-              background: 'var(--gradient-card)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '10px 12px',
-              marginBottom: 'var(--space-md)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              <div style={{
-                width: '34px',
-                height: '34px',
-                borderRadius: '50%',
-                background: 'var(--gradient-accent-soft)',
-                border: '1px solid var(--color-border-accent)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--color-accent)',
-                fontWeight: 700,
-                fontSize: '14px'
-              }}>
-                {profile?.display_name ? profile.display_name.charAt(0).toUpperCase() : '💛'}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {profile?.display_name || 'Tú'} & {partnerName}
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>
-                  Espacio compartido
-                </div>
-              </div>
             </div>
             
             <nav style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '2px', overflowY: 'auto' }}>
@@ -555,49 +519,50 @@ export default function Layout() {
       <Outlet context={{ openNotifCenter, hasUnread }} />
 
       {/* 5-Tab Floating Dock Nav */}
-      <nav className="floating-dock">
-        <NavLink to="/" end className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-          {({ isActive }) => (
-            <>
-              <div className="dock-item__icon"><IconHome active={isActive} /></div>
-              <span>Inicio</span>
-            </>
-          )}
-        </NavLink>
-        <NavLink to="/calendar" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-          {({ isActive }) => (
-            <>
-              <div className="dock-item__icon"><IconCalendar active={isActive} /></div>
-              <span>Agenda</span>
-            </>
-          )}
-        </NavLink>
-        <NavLink to="/bucket-list" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-          {({ isActive }) => (
-            <>
-              <div className="dock-item__icon"><IconBucketList active={isActive} /></div>
-              <span>Metas</span>
-            </>
-          )}
-        </NavLink>
-        <NavLink to="/map" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-          {({ isActive }) => (
-            <>
-              <div className="dock-item__icon"><IconMapNav active={isActive} /></div>
-              <span>Mapa</span>
-            </>
-          )}
-        </NavLink>
-        <NavLink to="/messages" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-          {({ isActive }) => (
-            <>
-              <div className="dock-item__icon"><IconMessages active={isActive} /></div>
-              <span>Chat</span>
-            </>
-          )}
-        </NavLink>
-      </nav>
-
+      {(!isKeyboardOpen && !isMapPage) && (
+        <nav className="floating-dock">
+          <NavLink to="/" end className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
+            {({ isActive }) => (
+              <>
+                <div className="dock-item__icon"><IconHome active={isActive} /></div>
+                <span>Inicio</span>
+              </>
+            )}
+          </NavLink>
+          <NavLink to="/calendar" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
+            {({ isActive }) => (
+              <>
+                <div className="dock-item__icon"><IconCalendar active={isActive} /></div>
+                <span>Agenda</span>
+              </>
+            )}
+          </NavLink>
+          <NavLink to="/bucket-list" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
+            {({ isActive }) => (
+              <>
+                <div className="dock-item__icon"><IconBucketList active={isActive} /></div>
+                <span>Metas</span>
+              </>
+            )}
+          </NavLink>
+          <NavLink to="/map" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
+            {({ isActive }) => (
+              <>
+                <div className="dock-item__icon"><IconMapNav active={isActive} /></div>
+                <span>Mapa</span>
+              </>
+            )}
+          </NavLink>
+          <NavLink to="/messages" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
+            {({ isActive }) => (
+              <>
+                <div className="dock-item__icon"><IconMessages active={isActive} /></div>
+                <span>Chat</span>
+              </>
+            )}
+          </NavLink>
+        </nav>
+      )}
       {/* Bell Notification Center Drawer (Sliding from Right Edge) */}
       {showNotifCenter && (
         <div
