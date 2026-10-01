@@ -409,11 +409,11 @@ export default function Layout() {
       supabase.removeChannel(calChannel);
       supabase.removeChannel(noteChannel);
     };
-  }, [couple?.id, isMockMode, getPartnerNickname, processIncomingMessage, triggerGlobalNotification]);
+  }, [couple?.id, getPartnerNickname, processIncomingMessage, triggerGlobalNotification]);
 
   // Polling ONLY updates activity logs state (No Push Notifications to prevent loops)
   useEffect(() => {
-    if (!couple?.id || isMockMode) return;
+    if (!couple?.id) return;
 
     const interval = setInterval(async () => {
       try {
@@ -441,7 +441,7 @@ export default function Layout() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [couple?.id, isMockMode]);
+  }, [couple?.id]);
 
   const openNotifCenter = useCallback(() => {
     setShowNotifCenter(true);

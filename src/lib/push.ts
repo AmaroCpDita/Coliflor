@@ -1,46 +1,30 @@
-const ONESIGNAL_APP_ID = 'c8182906-bc83-480e-8a97-c60611034162';
-
-const REST_API_KEY = import.meta.env.VITE_ONESIGNAL_REST_API_KEY;
+import { supabase } from './supabase';
 
 /**
- * Send a push notification directly via OneSignal REST API.
- * This bypasses the Supabase Edge Function for maximum reliability.
+ * Send a push notification securely via Supabase Edge Function.
+ * This prevents exposing the OneSignal REST API Key in the frontend bundle.
  */
 export async function sendPushNotification(
   partnerId: string,
   title: string,
   text: string
 ): Promise<boolean> {
-  if (!partnerId || !REST_API_KEY) {
-    console.warn('Push: Missing partnerId or REST API key');
+  if (!partnerId) {
+    console.warn('Push: Missing partnerId');
     return false;
   }
 
   try {
-    const response = await fetch('https://api.onesignal.com/notifications', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Key ${REST_API_KEY}`,
-      },
-      body: JSON.stringify({
-        app_id: ONESIGNAL_APP_ID,
-        include_aliases: { external_id: [partnerId] },
-        target_channel: 'push',
-        headings: { es: `🌷 ${title}`, en: `🌷 ${title}` },
-        contents: { es: text, en: text },
-        url: 'https://coliflor.vercel.app/messages',
-      }),
+    const { data, error } = await supabase.functions.invoke('send-push', {
+      body: { partnerId, title, text }
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.warn('Push API error:', data);
+    if (error) {
+      console.warn('Edge Function Push Error:', error);
       return false;
     }
 
-    console.log('Push sent successfully:', data);
+    console.log('Push sent via Edge Function:', data);
     return true;
   } catch (e) {
     console.warn('Push send failed:', e);

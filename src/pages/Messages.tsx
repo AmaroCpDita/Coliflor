@@ -464,33 +464,6 @@ export default function Messages() {
     };
   }, [couple?.id, scrollToBottom, isMockMode]);
 
-  // Smart Polling Backup (Every 3 seconds) for 100% constant UI sync
-  useEffect(() => {
-    if (!couple || isMockMode) return;
-
-    const interval = setInterval(async () => {
-      const { data } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('couple_id', couple.id)
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (data && data.length > 0) {
-        const sorted = (data as Message[]).reverse();
-        setMessages(prev => {
-          const hasNew = sorted.some(d => !prev.some(p => p.id === d.id));
-          if (hasNew || sorted.length !== prev.length) {
-            setTimeout(scrollToBottom, 100);
-            return sorted;
-          }
-          return prev;
-        });
-      }
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [couple?.id, isMockMode, scrollToBottom]);
 
   const handleSend = async () => {
     if (!input.trim() || !couple || !profile || sending) return;

@@ -14,44 +14,13 @@ export interface AuthContextType {
   partner: Profile | null;
   status: AppStatus;
   isMockMode: boolean;
-  enableMockMode: () => void;
   signUp: (email: string, password: string, displayName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
-export const MOCK_PROFILE_1: Profile = {
-  id: 'mock-user-1',
-  display_name: 'Usuario 1',
-  couple_id: 'mock-couple-id',
-  invite_code: null,
-  avatar_emoji: '😊',
-  created_at: '2026-05-20T00:00:00Z',
-};
 
-export const MOCK_PROFILE_2: Profile = {
-  id: 'mock-user-2',
-  display_name: 'Usuario 2',
-  couple_id: 'mock-couple-id',
-  invite_code: null,
-  avatar_emoji: '💛',
-  created_at: '2026-05-20T00:00:00Z',
-};
-
-export const MOCK_COUPLE: Couple = {
-  id: 'mock-couple-id',
-  user1_id: 'mock-user-1',
-  user2_id: 'mock-user-2',
-  relationship_start: '2026-05-20',
-  current_streak: 17,
-  max_streak: 24,
-  recoveries_used: 1,
-  recoveries_reset_month: '2026-08-01',
-  user1_note: 'Toda la vida agradeceré el momento en que llegaste a mi vida y cambiaste todo. Te amo con todo mi ser.',
-  user2_note: 'Eres lo mejor que me ha pasado en la vida mi amor, te amo con todo mi corazón.',
-  created_at: '2026-05-20T00:00:00Z',
-};
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -67,16 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [couple, setCouple] = useState<Couple | null>(null);
   const [partner, setPartner] = useState<Profile | null>(null);
   const [status, setStatus] = useState<AppStatus>('loading');
-  const [isMockMode, setIsMockMode] = useState(false);
-
-  const enableMockMode = useCallback(() => {
-    setIsMockMode(true);
-    setUser({ id: 'mock-user-1', email: 'usuario1@coliflor.app' } as User);
-    setProfile(MOCK_PROFILE_1);
-    setPartner(MOCK_PROFILE_2);
-    setCouple(MOCK_COUPLE);
-    setStatus('ready');
-  }, []);
+  const isMockMode = false;
 
   const fetchProfile = useCallback(async (u: User): Promise<Profile> => {
     const displayName = u.user_metadata?.display_name || u.email?.split('@')[0] || 'Usuario';
@@ -216,12 +176,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    setIsMockMode(false);
     await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, couple, partner, status, isMockMode, enableMockMode, signUp, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, couple, partner, status, isMockMode, signUp, signIn, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
