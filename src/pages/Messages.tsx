@@ -393,11 +393,11 @@ export default function Messages() {
 
     if (isMockMode) {
       const mockMsgs: Message[] = [
-        { id: 'm1', couple_id: 'mock', sender_id: 'mock-user-javiera', content: 'Hola amor! ❤️ No olvides tomar la foto de hoy para no perder la racha', created_at: new Date(Date.now() - 3600000 * 3).toISOString() },
-        { id: 'm2', couple_id: 'mock', sender_id: 'mock-user-amaro', content: 'Siii ya la tomé! Te ves hermosa en la tuya 💖', created_at: new Date(Date.now() - 3600000 * 2.5).toISOString() },
-        { id: 'm3', couple_id: 'mock', sender_id: 'mock-user-javiera', content: 'Gracias mi vida 🥰 ¿Nos vemos hoy en la noche?', created_at: new Date(Date.now() - 3600000 * 2).toISOString() },
-        { id: 'm4', couple_id: 'mock', sender_id: 'mock-user-amaro', content: 'Paso por ti a las 8pm y cenamos juntos!', created_at: new Date(Date.now() - 3600000 * 1.5).toISOString() },
-        { id: 'm5', couple_id: 'mock', sender_id: 'mock-user-javiera', content: 'Súper! Te espero impaciente 💛', created_at: new Date(Date.now() - 3600000 * 1).toISOString() },
+        { id: 'm1', couple_id: 'mock', sender_id: 'mock-user-2', content: 'Hola amor! ❤️ No olvides tomar la foto de hoy para no perder la racha', created_at: new Date(Date.now() - 3600000 * 3).toISOString() },
+        { id: 'm2', couple_id: 'mock', sender_id: 'mock-user-1', content: 'Siii ya la tomé! Te ves hermosa en la tuya 💖', created_at: new Date(Date.now() - 3600000 * 2.5).toISOString() },
+        { id: 'm3', couple_id: 'mock', sender_id: 'mock-user-2', content: 'Gracias mi vida 🥰 ¿Nos vemos hoy en la noche?', created_at: new Date(Date.now() - 3600000 * 2).toISOString() },
+        { id: 'm4', couple_id: 'mock', sender_id: 'mock-user-1', content: 'Paso por ti a las 8pm y cenamos juntos!', created_at: new Date(Date.now() - 3600000 * 1.5).toISOString() },
+        { id: 'm5', couple_id: 'mock', sender_id: 'mock-user-2', content: 'Súper! Te espero impaciente 💛', created_at: new Date(Date.now() - 3600000 * 1).toISOString() },
       ];
       setMessages(mockMsgs);
       setTimeout(scrollToBottom, 100);

@@ -193,17 +193,17 @@ export default function Streak() {
       const mockMyPhoto: StreakPhoto = {
         id: 'mock-photo-1',
         couple_id: 'mock-couple-id',
-        user_id: 'mock-user-amaro',
+        user_id: 'mock-user-1',
         photo_date: today,
-        storage_path: 'mock/amaro.jpg',
+        storage_path: 'mock/user1.jpg',
         uploaded_at: new Date().toISOString(),
       };
       const mockPartnerPhoto: StreakPhoto = {
         id: 'mock-photo-2',
         couple_id: 'mock-couple-id',
-        user_id: 'mock-user-javiera',
+        user_id: 'mock-user-2',
         photo_date: today,
-        storage_path: 'mock/javiera.jpg',
+        storage_path: 'mock/user2.jpg',
         uploaded_at: new Date().toISOString(),
       };
 
@@ -273,8 +273,8 @@ export default function Streak() {
       const mockHist: HistoryDay[] = [
         {
           date: '2026-08-25',
-          myPhoto: { id: 'h1', couple_id: 'mock', user_id: 'amaro', photo_date: '2026-08-25', storage_path: '', uploaded_at: '2026-08-25T19:00:00Z' },
-          partnerPhoto: { id: 'h2', couple_id: 'mock', user_id: 'javiera', photo_date: '2026-08-25', storage_path: '', uploaded_at: '2026-08-25T19:05:00Z' },
+          myPhoto: { id: 'h1', couple_id: 'mock', user_id: 'user1', photo_date: '2026-08-25', storage_path: '', uploaded_at: '2026-08-25T19:00:00Z' },
+          partnerPhoto: { id: 'h2', couple_id: 'mock', user_id: 'user2', photo_date: '2026-08-25', storage_path: '', uploaded_at: '2026-08-25T19:05:00Z' },
           isRecovered: false,
         },
         {
@@ -285,8 +285,8 @@ export default function Streak() {
         },
         {
           date: '2026-08-23',
-          myPhoto: { id: 'h3', couple_id: 'mock', user_id: 'amaro', photo_date: '2026-08-23', storage_path: '', uploaded_at: '2026-08-23T20:00:00Z' },
-          partnerPhoto: { id: 'h4', couple_id: 'mock', user_id: 'javiera', photo_date: '2026-08-23', storage_path: '', uploaded_at: '2026-08-23T20:15:00Z' },
+          myPhoto: { id: 'h3', couple_id: 'mock', user_id: 'user1', photo_date: '2026-08-23', storage_path: '', uploaded_at: '2026-08-23T20:00:00Z' },
+          partnerPhoto: { id: 'h4', couple_id: 'mock', user_id: 'user2', photo_date: '2026-08-23', storage_path: '', uploaded_at: '2026-08-23T20:15:00Z' },
           isRecovered: false,
         },
       ];

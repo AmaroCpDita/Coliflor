@@ -592,6 +592,22 @@ export default function Calendar() {
               const dayDay = parseInt(dStr, 10);
               const holiday = CHILEAN_HOLIDAYS.find(h => h.month === dayMonth && h.day === dayDay);
 
+              const isAnniversaryMonth = couple?.relationship_start && parseInt(couple.relationship_start.split('-')[1], 10) === dayMonth;
+              const isAnniversaryDay = couple?.relationship_start && parseInt(couple.relationship_start.split('-')[2], 10) === dayDay;
+              const isAnniversary = isAnniversaryMonth && isAnniversaryDay;
+
+              const isMyBirthdayMonth = profile?.birthday && parseInt(profile.birthday.split('-')[1], 10) === dayMonth;
+              const isMyBirthdayDay = profile?.birthday && parseInt(profile.birthday.split('-')[2], 10) === dayDay;
+              const isMyBirthday = isMyBirthdayMonth && isMyBirthdayDay;
+
+              const isPartnerBirthdayMonth = partner?.birthday && parseInt(partner.birthday.split('-')[1], 10) === dayMonth;
+              const isPartnerBirthdayDay = partner?.birthday && parseInt(partner.birthday.split('-')[2], 10) === dayDay;
+              const isPartnerBirthday = isPartnerBirthdayMonth && isPartnerBirthdayDay;
+
+              let specialEmoji = holiday?.emoji;
+              if (isAnniversary) specialEmoji = '💍';
+              else if (isMyBirthday || isPartnerBirthday) specialEmoji = '🎂';
+
               return (
                 <button
                   key={i}
@@ -612,7 +628,7 @@ export default function Calendar() {
                   </span>
 
                   {/* Holiday Emoji Indicator */}
-                  {holiday && (
+                  {specialEmoji && (
                     <span style={{
                       position: 'absolute',
                       top: '2px',
@@ -622,7 +638,7 @@ export default function Calendar() {
                       opacity: 0.95,
                       filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.4))'
                     }}>
-                      {holiday.emoji}
+                      {specialEmoji}
                     </span>
                   )}
 
@@ -736,9 +752,26 @@ export default function Calendar() {
               marginBottom: 'var(--space-md)',
               flexShrink: 0,
             }}>
-              <h3 style={{ textTransform: 'capitalize', margin: 0, fontSize: 'var(--font-size-base)' }}>
-                {formatDate(selectedDate, 'long')}
-              </h3>
+              <div>
+                <h3 style={{ textTransform: 'capitalize', margin: 0, fontSize: 'var(--font-size-base)' }}>
+                  {formatDate(selectedDate, 'long')}
+                </h3>
+                {(() => {
+                  const [yStr, mStr, dStr] = selectedDate.split('-');
+                  const sm = parseInt(mStr, 10);
+                  const sd = parseInt(dStr, 10);
+                  const isAnn = couple?.relationship_start && parseInt(couple.relationship_start.split('-')[1], 10) === sm && parseInt(couple.relationship_start.split('-')[2], 10) === sd;
+                  const isMyB = profile?.birthday && parseInt(profile.birthday.split('-')[1], 10) === sm && parseInt(profile.birthday.split('-')[2], 10) === sd;
+                  const isPB = partner?.birthday && parseInt(partner.birthday.split('-')[1], 10) === sm && parseInt(partner.birthday.split('-')[2], 10) === sd;
+                  const h = CHILEAN_HOLIDAYS.find(h => h.month === sm && h.day === sd);
+                  
+                  if (isAnn) return <div style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 700, marginTop: '2px' }}>💍 Nuestro Aniversario</div>;
+                  if (isMyB) return <div style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 700, marginTop: '2px' }}>🎂 Tu Cumpleaños</div>;
+                  if (isPB) return <div style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 700, marginTop: '2px' }}>🎂 Cumpleaños de {partnerName}</div>;
+                  if (h) return <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: 600, marginTop: '2px' }}>{h.emoji} {h.title}</div>;
+                  return null;
+                })()}
+              </div>
               <button
                 className="btn btn--ghost btn--sm"
                 onClick={() => setShowModal(false)}

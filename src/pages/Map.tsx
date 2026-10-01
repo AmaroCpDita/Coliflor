@@ -72,6 +72,7 @@ export default function CoupleMap() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [zoom, setZoom] = useState(11);
   
   // Geolocation
   const [isLocating, setIsLocating] = useState(false);
@@ -432,6 +433,7 @@ export default function CoupleMap() {
           mapStyle={MAP_STYLES[mapStyleIndex].url}
           interactiveLayerIds={['poi-label']}
           onClick={handleMapClick}
+          onZoom={(e) => setZoom(e.viewState.zoom)}
         >
           {/* User Location */}
           {myLocation && (
@@ -441,22 +443,39 @@ export default function CoupleMap() {
           )}
 
           {/* Custom Pins */}
-          {pins.map(pin => (
-            <Marker 
-              key={pin.id} 
-              longitude={pin.lng} 
-              latitude={pin.lat}
-              anchor="center"
-              onClick={e => {
-                e.originalEvent.stopPropagation();
-                setSelectedPinId(pin.id === selectedPinId ? null : pin.id);
-              }}
-            >
-              <div style={{ fontSize: '28px', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))', cursor: 'pointer' }}>
-                {pin.icon_emoji}
-              </div>
-            </Marker>
-          ))}
+          {pins.map(pin => {
+            let emojiSize = '20px'; // Mas pequeño de cerca
+            let dotSize = 0;
+            if (zoom < 7) {
+              emojiSize = '0px';
+              dotSize = 5;
+            } else if (zoom < 9) {
+              emojiSize = '12px';
+            } else if (zoom < 11) {
+              emojiSize = '16px';
+            }
+
+            return (
+              <Marker 
+                key={pin.id} 
+                longitude={pin.lng} 
+                latitude={pin.lat}
+                anchor="center"
+                onClick={e => {
+                  e.originalEvent.stopPropagation();
+                  setSelectedPinId(pin.id === selectedPinId ? null : pin.id);
+                }}
+              >
+                {dotSize > 0 ? (
+                  <div style={{ width: `${dotSize}px`, height: `${dotSize}px`, background: 'var(--color-accent)', borderRadius: '50%', boxShadow: '0 0 4px rgba(0,0,0,0.5)', cursor: 'pointer' }} />
+                ) : (
+                  <div style={{ fontSize: emojiSize, filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))', cursor: 'pointer', transition: 'font-size 0.2s ease-out' }}>
+                    {pin.icon_emoji}
+                  </div>
+                )}
+              </Marker>
+            );
+          })}
           
           {/* Popups for Custom Pins */}
           {pins.map(pin => (

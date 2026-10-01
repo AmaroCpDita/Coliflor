@@ -240,6 +240,19 @@ export default function Home() {
   // Realtime updates state for quick actions
   const [quizStatus, setQuizStatus] = useState('Nuevo');
 
+  // Dynamic Hero Image
+  const [heroImageUrl, setHeroImageUrl] = useState<string>('/hero-bg.jpg');
+
+  useEffect(() => {
+    if (couple?.hero_image_path && !isMockMode) {
+      supabase.storage.from('photos').createSignedUrl(couple.hero_image_path, 3600).then(({ data }) => {
+        if (data?.signedUrl) setHeroImageUrl(data.signedUrl);
+      });
+    } else {
+      setHeroImageUrl('/hero-bg.jpg');
+    }
+  }, [couple?.hero_image_path, isMockMode]);
+
   // Sync mySentNote when couple changes
   useEffect(() => {
     if (rawMySentNote && rawMySentNote.trim()) {
@@ -365,7 +378,7 @@ export default function Home() {
   };
 
   return (
-    <div className="page" style={{ paddingBottom: '120px', position: 'relative' }}>
+    <div className="page" style={{ paddingBottom: '150px', position: 'relative' }}>
       
       {/* Spectacular Dynamic Backgrounds */}
       {celebration?.type === 'aniversario' && (
@@ -451,7 +464,7 @@ export default function Home() {
           padding: 'var(--space-2xl) var(--space-md)',
           background: `
             linear-gradient(to bottom, rgba(13, 14, 18, 0.2) 0%, rgba(13, 14, 18, 0.9) 100%),
-            url('/hero-bg.jpg') center/cover no-repeat
+            url('${heroImageUrl}') center/cover no-repeat
           `,
           borderRadius: '32px',
           boxShadow: celebration?.type === 'aniversario' 
@@ -573,47 +586,61 @@ export default function Home() {
             PARA USTEDES
           </h4>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             
-            {/* Quick Card 1: Racha */}
-            <Link to="/streak" style={{ textDecoration: 'none' }}>
-              <div className="glass-card text-center" style={{ padding: '20px 8px', borderRadius: '24px', background: 'var(--color-bg-secondary)', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ color: 'var(--color-text-primary)', marginBottom: '16px' }}>
-                  <IconCamera />
+            {/* Action Card 1: Racha */}
+            <Link to="/streak" className="activity-action-card">
+              <div>
+                <div className="row row--between" style={{ alignItems: 'flex-start' }}>
+                  <span className="activity-action-card__badge" style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' }}>
+                    🔥 Racha
+                  </span>
+                  <div className="activity-action-card__icon-box" style={{ background: 'rgba(229, 197, 115, 0.15)', color: 'var(--color-accent)' }}>
+                    <IconCamera />
+                  </div>
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '8px', lineHeight: 1.2 }}>
-                  Racha de fotos
+
+                <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '12px', lineHeight: 1.25 }}>
+                  Racha de Fotos
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                  {couple?.current_streak || 0} día
+                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                  {couple?.current_streak ? `${couple.current_streak} ${couple.current_streak === 1 ? 'día' : 'días'} juntos` : '¡Sube tu foto de hoy!'}
                 </div>
+              </div>
+
+              <div className="activity-action-card__btn">
+                <span>Ir a la Racha</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
               </div>
             </Link>
 
-            {/* Quick Card 2: Sintonía */}
-            <Link to="/quiz" style={{ textDecoration: 'none' }}>
-              <div className="glass-card text-center" style={{ padding: '20px 8px', borderRadius: '24px', background: 'var(--color-bg-secondary)', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ color: 'var(--color-accent)', marginBottom: '16px' }}>
-                  <IconHeartCard />
+            {/* Action Card 2: Quiz de Sintonía */}
+            <Link to="/quiz" className="activity-action-card">
+              <div>
+                <div className="row row--between" style={{ alignItems: 'flex-start' }}>
+                  <span className="activity-action-card__badge" style={{ background: 'rgba(236, 72, 153, 0.12)', color: '#ec4899' }}>
+                    💖 Quiz
+                  </span>
+                  <div className="activity-action-card__icon-box" style={{ background: 'rgba(212, 135, 143, 0.15)', color: 'var(--color-accent)' }}>
+                    <IconHeartCard />
+                  </div>
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '8px', lineHeight: 1.2 }}>
-                  Sintonía
+
+                <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '12px', lineHeight: 1.25 }}>
+                  Quiz Sintonía
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                  {quizStatus}
+                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                  {quizStatus === 'Pendiente' ? 'Pregunta de hoy lista' : '¿Qué tanto coinciden?'}
                 </div>
               </div>
-            </Link>
 
-            {/* Quick Card 3: Calendario */}
-            <Link to="/calendar" style={{ textDecoration: 'none' }}>
-              <div className="glass-card text-center" style={{ padding: '20px 8px', borderRadius: '24px', background: 'var(--color-bg-secondary)', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ color: 'var(--color-text-primary)', marginBottom: '16px' }}>
-                  <IconCalendar />
-                </div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)', lineHeight: 1.2 }}>
-                  Calendario
-                </div>
+              <div className="activity-action-card__btn">
+                <span>Jugar Quiz</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
               </div>
             </Link>
 

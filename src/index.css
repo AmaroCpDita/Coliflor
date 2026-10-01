@@ -320,7 +320,9 @@ body {
   left: 0;
   width: 280px;
   height: 100vh;
-  background: var(--color-bg-primary);
+  background: var(--color-bg-card);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   z-index: var(--z-modal);
   display: flex;
   flex-direction: column;
@@ -372,6 +374,78 @@ body {
   align-items: center;
   justify-content: center;
   width: 24px;
+}
+
+/* --- Home Activity Action Cards (Racha & Quiz) --- */
+.activity-action-card {
+  position: relative;
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  padding: 16px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  text-decoration: none !important;
+  color: inherit !important;
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.activity-action-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-border-accent);
+  box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.12);
+}
+
+.activity-action-card:active {
+  transform: scale(0.97);
+}
+
+.activity-action-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.activity-action-card__icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-spring);
+}
+
+.activity-action-card:hover .activity-action-card__icon-box {
+  transform: scale(1.1);
+}
+
+.activity-action-card__btn {
+  background: var(--gradient-accent);
+  color: #fff !important;
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  box-shadow: 0 4px 12px var(--color-accent-glow);
+  transition: opacity var(--transition-fast);
+}
+
+.activity-action-card:hover .activity-action-card__btn {
+  opacity: 0.95;
 }
 
 /* --- Photo Card Component (Streak Page) --- */

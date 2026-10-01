@@ -21,18 +21,18 @@ export interface AuthContextType {
   refreshProfile: () => Promise<void>;
 }
 
-export const MOCK_PROFILE_AMARO: Profile = {
-  id: 'mock-user-amaro',
-  display_name: 'Amaro',
+export const MOCK_PROFILE_1: Profile = {
+  id: 'mock-user-1',
+  display_name: 'Usuario 1',
   couple_id: 'mock-couple-id',
   invite_code: null,
   avatar_emoji: '😊',
   created_at: '2026-05-20T00:00:00Z',
 };
 
-export const MOCK_PROFILE_JAVIERA: Profile = {
-  id: 'mock-user-javiera',
-  display_name: 'Javiera',
+export const MOCK_PROFILE_2: Profile = {
+  id: 'mock-user-2',
+  display_name: 'Usuario 2',
   couple_id: 'mock-couple-id',
   invite_code: null,
   avatar_emoji: '💛',
@@ -41,8 +41,8 @@ export const MOCK_PROFILE_JAVIERA: Profile = {
 
 export const MOCK_COUPLE: Couple = {
   id: 'mock-couple-id',
-  user1_id: 'mock-user-amaro',
-  user2_id: 'mock-user-javiera',
+  user1_id: 'mock-user-1',
+  user2_id: 'mock-user-2',
   relationship_start: '2026-05-20',
   current_streak: 17,
   max_streak: 24,
@@ -71,9 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const enableMockMode = useCallback(() => {
     setIsMockMode(true);
-    setUser({ id: 'mock-user-amaro', email: 'amaro@coliflor.app' } as User);
-    setProfile(MOCK_PROFILE_AMARO);
-    setPartner(MOCK_PROFILE_JAVIERA);
+    setUser({ id: 'mock-user-1', email: 'usuario1@coliflor.app' } as User);
+    setProfile(MOCK_PROFILE_1);
+    setPartner(MOCK_PROFILE_2);
     setCouple(MOCK_COUPLE);
     setStatus('ready');
   }, []);

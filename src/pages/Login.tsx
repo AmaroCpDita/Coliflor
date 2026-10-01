@@ -67,7 +67,7 @@ export default function Login() {
                 id="displayName"
                 type="text"
                 className="input"
-                placeholder="Ej: Amaro / Javiera"
+                placeholder="Ej: Usuario 1 / Usuario 2"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required

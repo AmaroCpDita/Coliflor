@@ -449,9 +449,9 @@ export default function Layout() {
     <>
       {/* Top Header */}
       <header className="top-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <NavLink to="/settings" className="hamburger-btn" style={{ textDecoration: 'none' }}>
-          <IconSettings />
-        </NavLink>
+        <button className="hamburger-btn" onClick={() => setIsSidebarOpen(true)} title="Menú lateral">
+          <IconMenu />
+        </button>
         <h1 className="top-header__title">Coliflor</h1>
         <button className="hamburger-btn" onClick={openNotifCenter} style={{ position: 'relative' }}>
           <IconBellHeader />
@@ -460,6 +460,97 @@ export default function Layout() {
           )}
         </button>
       </header>
+
+      {/* Sidebar Drawer */}
+      {isSidebarOpen && (
+        <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)}>
+          <div className="sidebar-drawer" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>🌼</span>
+                <h2 className="top-header__title" style={{ fontSize: '18px' }}>Coliflor</h2>
+              </div>
+              <button className="hamburger-btn" onClick={() => setIsSidebarOpen(false)}>
+                <IconClose />
+              </button>
+            </div>
+
+            {/* Couple Profile Pill */}
+            <div style={{
+              background: 'var(--gradient-card)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '10px 12px',
+              marginBottom: 'var(--space-md)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              <div style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                background: 'var(--gradient-accent-soft)',
+                border: '1px solid var(--color-border-accent)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--color-accent)',
+                fontWeight: 700,
+                fontSize: '14px'
+              }}>
+                {profile?.display_name ? profile.display_name.charAt(0).toUpperCase() : '💛'}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {profile?.display_name || 'Tú'} & {partnerName}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>
+                  Espacio compartido
+                </div>
+              </div>
+            </div>
+            
+            <nav style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '2px', overflowY: 'auto' }}>
+              <NavLink to="/" end className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
+                <div className="sidebar-item__icon"><IconHome active={false} /></div>
+                <span>Inicio</span>
+              </NavLink>
+              <NavLink to="/streak" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
+                <div className="sidebar-item__icon"><IconStreak active={false} /></div>
+                <span>Racha de Fotos</span>
+              </NavLink>
+              <NavLink to="/quiz" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
+                <div className="sidebar-item__icon"><IconQuiz active={false} /></div>
+                <span>Quiz de Sintonía</span>
+              </NavLink>
+              <NavLink to="/calendar" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
+                <div className="sidebar-item__icon"><IconCalendar active={false} /></div>
+                <span>Agenda & Recuerdos</span>
+              </NavLink>
+              <NavLink to="/bucket-list" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
+                <div className="sidebar-item__icon"><IconBucketList /></div>
+                <span>Metas / Bucket List</span>
+              </NavLink>
+              <NavLink to="/map" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
+                <div className="sidebar-item__icon"><IconMapNav /></div>
+                <span>Nuestro Mapa</span>
+              </NavLink>
+              <NavLink to="/messages" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
+                <div className="sidebar-item__icon"><IconMessages active={false} /></div>
+                <span>Chat Secreto</span>
+              </NavLink>
+              
+              <div style={{ marginTop: 'auto', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--color-border)' }}>
+                <NavLink to="/settings" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
+                  <div className="sidebar-item__icon"><IconSettings /></div>
+                  <span>Ajustes</span>
+                </NavLink>
+              </div>
+            </nav>
+          </div>
+        </div>
+      )}
 
       <Outlet context={{ openNotifCenter, hasUnread }} />
 
@@ -547,12 +638,12 @@ export default function Layout() {
                     className="glass-card"
                     style={{
                       padding: 'var(--space-sm) var(--space-md)',
-                      background: 'rgba(28, 30, 42, 0.6)',
+                      background: 'var(--color-bg-card)',
                       border: '1px solid var(--color-border)',
                       borderRadius: 'var(--radius-lg)',
                     }}
                   >
-                    <div style={{ fontSize: 'var(--font-size-sm)', color: '#f2f2f7', lineHeight: 1.4 }}>
+                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', lineHeight: 1.4 }}>
                       {log.content}
                     </div>
                     <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginTop: '4px', textAlign: 'right' }}>

@@ -31,6 +31,7 @@ export interface Couple {
   user2_partner_nickname?: string;
   daily_note?: string;
   daily_note_updated_by?: string;
+  hero_image_path?: string;
   created_at: string;
 }
 
