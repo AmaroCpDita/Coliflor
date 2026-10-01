@@ -75,6 +75,16 @@
   --z-modal-backdrop: 200;
   --z-modal: 201;
   --z-toast: 300;
+
+  /* Floating Dock System */
+  --dock-bg: rgba(22, 23, 32, 0.85);
+  --dock-border: rgba(255, 255, 255, 0.1);
+  --dock-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 2px 10px rgba(0, 0, 0, 0.3);
+  --dock-item-color: #8e90a0;
+  --dock-item-hover: #ffffff;
+  --dock-item-active-color: #e5c573;
+  --dock-item-active-bg: linear-gradient(135deg, rgba(229, 197, 115, 0.2) 0%, rgba(203, 165, 75, 0.08) 100%);
+  --dock-item-active-shadow: 0 2px 10px rgba(229, 197, 115, 0.15);
 }
 
 :root[data-theme='light'] {
@@ -108,6 +118,16 @@
   --color-success: #6bb888;
   --color-warning: #d4a56a;
   --color-error: #d66b6b;
+
+  /* Floating Dock System (Light Frosted Milk Glass) */
+  --dock-bg: rgba(255, 255, 255, 0.88);
+  --dock-border: rgba(215, 195, 185, 0.55);
+  --dock-shadow: 0 16px 36px -6px rgba(150, 100, 90, 0.2), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --dock-item-color: #8c766e;
+  --dock-item-hover: #3d2f2a;
+  --dock-item-active-color: #b85964;
+  --dock-item-active-bg: linear-gradient(135deg, rgba(212, 135, 143, 0.22) 0%, rgba(212, 135, 143, 0.08) 100%);
+  --dock-item-active-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.8), 0 2px 8px rgba(212, 135, 143, 0.2);
 }
 
 /* Reset & Base */
@@ -360,7 +380,7 @@ body {
   width: 100%;
   height: auto;
   border-radius: 4px;
-  overflow: hidden;
+  overflow: visible;
   background: #fdfbf7;
   border: 1px solid rgba(0,0,0,0.1);
   display: flex;
@@ -382,7 +402,8 @@ body {
 
 .photo-card__image {
   width: 100%;
-  height: 100%;
+  aspect-ratio: 4 / 5;
+  box-sizing: border-box;
   object-fit: cover;
   display: block;
   border-radius: 2px;
@@ -402,13 +423,19 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   width: 100%;
-  height: 100%;
+  aspect-ratio: 4 / 5;
+  box-sizing: border-box;
   border-radius: 2px;
-  position: absolute;
-  top: 8px; left: 8px; right: 8px; bottom: 36px;
-  width: auto; height: auto;
+  position: relative;
+
+
   box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
   overflow: hidden;
+}
+
+.photo-card__locked > * {
+  position: relative;
+  z-index: 1;
 }
 
 .photo-card__locked::before {
@@ -430,14 +457,15 @@ body {
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
-  color: rgba(0,0,0,0.4);
+  color: rgba(60, 50, 40, 0.55);
   width: 100%;
-  height: 100%;
+  aspect-ratio: 4 / 5;
+  box-sizing: border-box;
   background: #eae8e3;
   border-radius: 2px;
-  position: absolute;
-  top: 8px; left: 8px; right: 8px; bottom: 36px;
-  width: auto; height: auto;
+  position: relative;
+
+
 }
 
 .photo-card__label {
@@ -1190,12 +1218,12 @@ body:has(textarea:focus) .chat-input-bar {
   left: 50%;
   transform: translateX(-50%);
   z-index: var(--z-dock);
-  background: rgba(28, 30, 42, 0.75);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--color-border);
+  background: var(--dock-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--dock-border);
   border-radius: var(--radius-full);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: var(--dock-shadow);
   display: flex;
   gap: 4px;
   padding: 6px;
@@ -1208,7 +1236,7 @@ body:has(textarea:focus) .chat-input-bar {
   width: 56px;
   height: 52px;
   border-radius: var(--radius-full);
-  color: var(--color-text-tertiary);
+  color: var(--dock-item-color);
   text-decoration: none;
   font-size: 10px;
   font-weight: 600;
@@ -1216,14 +1244,16 @@ body:has(textarea:focus) .chat-input-bar {
   transition: all var(--transition-base);
 }
 .dock-item:hover {
-  color: var(--color-text-secondary);
+  color: var(--dock-item-hover);
 }
 .dock-item:active {
   transform: scale(0.9);
 }
 .dock-item--active {
-  color: var(--color-accent-light);
-  background: var(--gradient-accent-soft);
+  color: var(--dock-item-active-color);
+  background: var(--dock-item-active-bg);
+  box-shadow: var(--dock-item-active-shadow);
+  font-weight: 700;
 }
 .dock-item__icon {
   display: flex;

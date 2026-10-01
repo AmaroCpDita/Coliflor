@@ -82,9 +82,9 @@ function IconClose() {
   );
 }
 
-function IconMapNav() {
+function IconMapNav({ active }: { active?: boolean }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
       <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
       <line x1="8" y1="2" x2="8" y2="18" />
       <line x1="16" y1="6" x2="16" y2="22" />
@@ -92,9 +92,9 @@ function IconMapNav() {
   );
 }
 
-function IconBucketList() {
+function IconBucketList({ active }: { active?: boolean }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
       <circle cx="12" cy="12" r="6" />
       <circle cx="12" cy="12" r="2" />
@@ -466,24 +466,44 @@ export default function Layout() {
       {/* 5-Tab Floating Dock Nav */}
       <nav className="floating-dock">
         <NavLink to="/" end className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-          <div className="dock-item__icon"><IconHome active={false} /></div>
-          <span>Inicio</span>
+          {({ isActive }) => (
+            <>
+              <div className="dock-item__icon"><IconHome active={isActive} /></div>
+              <span>Inicio</span>
+            </>
+          )}
         </NavLink>
         <NavLink to="/calendar" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-          <div className="dock-item__icon"><IconCalendar active={false} /></div>
-          <span>Agenda</span>
+          {({ isActive }) => (
+            <>
+              <div className="dock-item__icon"><IconCalendar active={isActive} /></div>
+              <span>Agenda</span>
+            </>
+          )}
         </NavLink>
         <NavLink to="/bucket-list" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-          <div className="dock-item__icon"><IconBucketList /></div>
-          <span>Metas</span>
+          {({ isActive }) => (
+            <>
+              <div className="dock-item__icon"><IconBucketList active={isActive} /></div>
+              <span>Metas</span>
+            </>
+          )}
         </NavLink>
         <NavLink to="/map" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-          <div className="dock-item__icon"><IconMapNav /></div>
-          <span>Mapa</span>
+          {({ isActive }) => (
+            <>
+              <div className="dock-item__icon"><IconMapNav active={isActive} /></div>
+              <span>Mapa</span>
+            </>
+          )}
         </NavLink>
         <NavLink to="/messages" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-          <div className="dock-item__icon"><IconMessages active={false} /></div>
-          <span>Chat</span>
+          {({ isActive }) => (
+            <>
+              <div className="dock-item__icon"><IconMessages active={isActive} /></div>
+              <span>Chat</span>
+            </>
+          )}
         </NavLink>
       </nav>
 
