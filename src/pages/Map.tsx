@@ -554,16 +554,12 @@ export default function CoupleMap() {
                 
                 <button 
                   onClick={() => openAddForm(clickedLocation.lat, clickedLocation.lng, clickedLocation.name || clickedLocation.address.split(',')[0])}
+                  className="btn btn--primary"
                   style={{ 
                     width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', 
                     fontSize: '16px', fontWeight: '700', letterSpacing: '0.3px',
-                    backgroundColor: 'var(--color-primary)', 
-                    color: '#ffffff', border: 'none', borderRadius: '16px',
-                    boxShadow: '0 4px 15px rgba(230, 81, 125, 0.4)',
-                    cursor: 'pointer', transition: 'all 0.2s ease-in-out'
+                    borderRadius: '16px'
                   }}
-                  onMouseOver={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
-                  onMouseOut={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
                 >
                   <IconLocation /> 
                   <span>Guardar como Recuerdo</span>
@@ -661,21 +657,41 @@ export default function CoupleMap() {
               </div>
               <div>
                 <label className="label">Elige un Emoji</label>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '8px', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '8px', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', alignItems: 'center' }}>
                   {['📍', '☕', '🍷', '🍽️', '🌲', '🏖️', '⛰️', '🍿', '🍦', '❤️', '🏡'].map(emoji => (
                     <button 
                       key={emoji}
                       type="button"
                       onClick={() => setNewEmoji(emoji)}
                       style={{ 
-                        fontSize: '24px', background: newEmoji === emoji ? 'var(--color-primary-light)' : 'transparent',
-                        border: 'none', borderRadius: '8px', padding: '8px', cursor: 'pointer',
+                        fontSize: '24px', background: newEmoji === emoji ? 'var(--color-border-hover)' : 'transparent',
+                        border: newEmoji === emoji ? '1px solid var(--color-accent)' : '1px solid transparent', 
+                        borderRadius: '8px', padding: '8px', cursor: 'pointer',
                         transition: 'var(--transition-fast)'
                       }}
                     >
                       {emoji}
                     </button>
                   ))}
+                  <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', borderLeft: '1px solid var(--color-border)', paddingLeft: '8px' }}>
+                    <input
+                      type="text"
+                      maxLength={2}
+                      value={!['📍', '☕', '🍷', '🍽️', '🌲', '🏖️', '⛰️', '🍿', '🍦', '❤️', '🏡'].includes(newEmoji) ? newEmoji : ''}
+                      onChange={(e) => {
+                        const val = e.target.value.trim();
+                        if (val) setNewEmoji(val);
+                      }}
+                      placeholder="+"
+                      style={{
+                        width: '44px', height: '44px', fontSize: '20px', textAlign: 'center',
+                        background: !['📍', '☕', '🍷', '🍽️', '🌲', '🏖️', '⛰️', '🍿', '🍦', '❤️', '🏡'].includes(newEmoji) && newEmoji ? 'var(--color-border-hover)' : 'transparent',
+                        border: !['📍', '☕', '🍷', '🍽️', '🌲', '🏖️', '⛰️', '🍿', '🍦', '❤️', '🏡'].includes(newEmoji) && newEmoji ? '1px solid var(--color-accent)' : '1px dashed var(--color-border)',
+                        borderRadius: '8px', color: 'var(--color-text-primary)'
+                      }}
+                      title="Escribe tu propio emoji"
+                    />
+                  </div>
                 </div>
               </div>
               <div className="row row--gap-sm" style={{ marginTop: 'var(--space-sm)' }}>
