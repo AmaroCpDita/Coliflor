@@ -448,10 +448,10 @@ export default function Layout() {
   return (
     <>
       {/* Top Header */}
-      <header className="top-header" style={{ display: 'flex' }}>
-        <button className="hamburger-btn" onClick={() => setIsSidebarOpen(true)}>
-          <IconMenu />
-        </button>
+      <header className="top-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <NavLink to="/settings" className="hamburger-btn" style={{ textDecoration: 'none' }}>
+          <IconSettings />
+        </NavLink>
         <h1 className="top-header__title">Coliflor</h1>
         <button className="hamburger-btn" onClick={openNotifCenter} style={{ position: 'relative' }}>
           <IconBellHeader />
@@ -461,59 +461,31 @@ export default function Layout() {
         </button>
       </header>
 
-      {/* Sidebar Drawer */}
-      {isSidebarOpen && (
-        <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)}>
-          <div className="sidebar-drawer" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-xl)' }}>
-              <h2 className="top-header__title">Menú</h2>
-              <button className="hamburger-btn" onClick={() => setIsSidebarOpen(false)}>
-                <IconClose />
-              </button>
-            </div>
-            
-            <nav style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-              <NavLink to="/" end className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconHome active={false} /></div>
-                Inicio
-              </NavLink>
-              <NavLink to="/streak" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconStreak active={false} /></div>
-                Racha
-              </NavLink>
-              <NavLink to="/quiz" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconQuiz active={false} /></div>
-                Quiz
-              </NavLink>
-              <NavLink to="/calendar" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconCalendar active={false} /></div>
-                Calendario
-              </NavLink>
-              <NavLink to="/messages" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconMessages active={false} /></div>
-                Mensajes
-              </NavLink>
-              
-              <NavLink to="/bucket-list" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconBucketList /></div>
-                Metas / Bucket List
-              </NavLink>
-              
-              <NavLink to="/map" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconMapNav /></div>
-                Nuestro Mapa
-              </NavLink>
-              
-              <NavLink to="/settings" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)} style={{ marginTop: 'auto' }}>
-                <div className="sidebar-item__icon"><IconSettings /></div>
-                Ajustes
-              </NavLink>
-            </nav>
-          </div>
-        </div>
-      )}
-
       <Outlet context={{ openNotifCenter, hasUnread }} />
+
+      {/* 5-Tab Floating Dock Nav */}
+      <nav className="floating-dock">
+        <NavLink to="/" end className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
+          <div className="dock-item__icon"><IconHome active={false} /></div>
+          <span>Inicio</span>
+        </NavLink>
+        <NavLink to="/calendar" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
+          <div className="dock-item__icon"><IconCalendar active={false} /></div>
+          <span>Agenda</span>
+        </NavLink>
+        <NavLink to="/bucket-list" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
+          <div className="dock-item__icon"><IconBucketList /></div>
+          <span>Metas</span>
+        </NavLink>
+        <NavLink to="/map" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
+          <div className="dock-item__icon"><IconMapNav /></div>
+          <span>Mapa</span>
+        </NavLink>
+        <NavLink to="/messages" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
+          <div className="dock-item__icon"><IconMessages active={false} /></div>
+          <span>Chat</span>
+        </NavLink>
+      </nav>
 
       {/* Bell Notification Center Drawer (Sliding from Right Edge) */}
       {showNotifCenter && (
