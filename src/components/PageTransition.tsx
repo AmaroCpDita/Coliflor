@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { ReactNode } from 'react';
+import { motion, Transition } from 'framer-motion';
+import { ReactNode, CSSProperties } from 'react';
 
 const pageVariants = {
   initial: {
@@ -15,13 +15,13 @@ const pageVariants = {
   },
 };
 
-const pageTransition = {
+const pageTransition: Transition = {
   type: 'tween',
   ease: 'easeOut',
   duration: 0.25
 };
 
-export default function PageTransition({ children, className = '' }: { children: ReactNode, className?: string }) {
+export default function PageTransition({ children, className = '', style }: { children: ReactNode, className?: string, style?: CSSProperties }) {
   // Use prefers-reduced-motion to disable transforms if requested
   const isReducedMotion = typeof window !== 'undefined' 
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -39,7 +39,7 @@ export default function PageTransition({ children, className = '' }: { children:
       }
       transition={pageTransition}
       className={className}
-      style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%' }}
+      style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', ...style }}
     >
       {children}
     </motion.div>
