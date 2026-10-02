@@ -115,12 +115,12 @@ function IconSettings() {
 
 const NAV_ITEMS = [
   { path: '/', label: 'Inicio', icon: IconHome },
+  { path: '/streak', label: 'Racha', icon: IconStreak },
+  { path: '/quiz', label: 'Quiz', icon: IconQuiz },
   { path: '/calendar', label: 'Agenda', icon: IconCalendar },
   { path: '/bucket-list', label: 'Metas', icon: IconBucketList },
   { path: '/map', label: 'Mapa', icon: IconMapNav },
   { path: '/messages', label: 'Chat', icon: IconMessages },
-  { path: '/streak', label: 'Racha', icon: IconStreak },
-  { path: '/quiz', label: 'Quiz', icon: IconQuiz },
 ];
 
 export default function Layout() {
