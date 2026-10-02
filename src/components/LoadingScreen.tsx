@@ -13,17 +13,16 @@ function IconGoldHeart({ size = 32 }: { size?: number }) {
 }
 
 const LOADING_PHRASES = [
-  'Preparando nuestro rinconcito de amor...',
-  'Buscando la sintonía perfecta...',
-  'Recordando la primera vez que nos vimos...',
-  'Pensando en nuestro futuro juntos...',
-  'Desempolvando nuestros mejores recuerdos...',
-  'Afinando los latidos de este espacio...',
-  'Buscando esa foto donde sales hermoso...',
-  'Conectando nuestros corazones a la red...',
-  'Preparando el terreno para amarnos más...',
-  'Extrañándote mientras carga la página...',
-  'Diseñando un espacio solo para nosotros...'
+  'Paciencia, ya casi...',
+  'Prendiendo las luces...',
+  'Buscando las llaves...',
+  'Despertando al servidor...',
+  'Acomodando los muebles...',
+  'Escondiendo el desorden...',
+  'Esperando a que el internet colabore...',
+  'Sirviendo el café...',
+  'Ya vamos, ya vamos...',
+  'Cargando (o intentándolo)...'
 ];
 
 export default function LoadingScreen({ message }: { message?: string }) {

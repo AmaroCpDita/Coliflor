@@ -1,3 +1,4 @@
+import PageTransition from '../components/PageTransition';
 // ============================================================
 // Coliflor — Clean Golden Relationship Calendar with Photos & Notes
 // ============================================================
@@ -547,7 +548,7 @@ export default function Calendar() {
   const selectedDateEvents = selectedDate ? eventsMap.get(selectedDate) || [] : [];
 
   return (
-    <div className="page">
+    <PageTransition className="page">
       <div className="stack stack--lg">
         {/* Header */}
         <div>
@@ -619,6 +620,9 @@ export default function Calendar() {
                   style={{
                     backgroundColor: catConf ? `${catConf.color}22` : undefined,
                     borderColor: isToday ? 'var(--color-accent)' : catConf ? `${catConf.color}66` : undefined,
+                    animation: `fadeIn 0.4s ease-out forwards`,
+                    animationDelay: `${i * 0.015}s`,
+                    opacity: 0
                   }}
                   onClick={() => handleDayClick(dateStr)}
                   disabled={loading}
@@ -739,7 +743,7 @@ export default function Calendar() {
       {/* Interactive Day Click Modal (Shows Day Photos + Notes) */}
       {showModal && selectedDate && (
         <div className="modal-backdrop" onClick={() => { setShowModal(false); setSwipeDir(null); }}>
-          <div className="modal" onClick={e => e.stopPropagation()} onTouchStart={handleModalTouchStart} onTouchEnd={handleModalTouchEnd} style={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div className="modal animate-scale-in" onClick={e => e.stopPropagation()} onTouchStart={handleModalTouchStart} onTouchEnd={handleModalTouchEnd} style={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div className="modal__handle" />
 
             {/* Sticky header with close button */}
@@ -1134,6 +1138,6 @@ export default function Calendar() {
       )}
 
       <Lightbox url={lightboxData?.url || null} downloadName={lightboxData?.name} onClose={() => setLightboxData(null)} />
-    </div>
+    </PageTransition>
   );
 }

@@ -1,3 +1,4 @@
+import PageTransition from '../components/PageTransition';
 // ============================================================
 // Coliflor — Daily Couple Quiz & Harmony Match (/quiz)
 // Clean, spacious vector design with Theme Welcome Intro Card
@@ -296,7 +297,7 @@ export default function Quiz() {
   const isOptionSelected = selectedAnswers[currentStep] !== undefined;
 
   return (
-    <div className="page" style={{ paddingBottom: '90px' }}>
+    <PageTransition className="page" style={{ paddingBottom: '90px' }}>
       <div className="stack stack--lg">
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-md)' }}>
@@ -630,6 +631,6 @@ export default function Quiz() {
           </div>
         )}
       </div>
-    </div>
+    </PageTransition>
   );
 }

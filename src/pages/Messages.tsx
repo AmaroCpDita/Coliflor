@@ -4,6 +4,8 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import PageTransition from '../components/PageTransition';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatTime } from '../lib/utils';
@@ -195,7 +197,12 @@ const MessageRow = ({
   };
 
   return (
-    <div 
+    <motion.div 
+      layout="position"
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
       ref={rowRef}
       className={`message-row ${isMe ? 'message-row--me' : 'message-row--partner'}`} 
       style={{ 
@@ -291,7 +298,7 @@ const MessageRow = ({
           {formatTime(msg.created_at)}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -665,7 +672,7 @@ export default function Messages() {
   });
 
   return (
-    <div style={{
+    <PageTransition style={{
       display: 'flex',
       flexDirection: 'column',
       height: '100dvh',
@@ -759,7 +766,8 @@ export default function Messages() {
               </span>
             </div>
 
-            {group.messages.map((msg) => {
+            <AnimatePresence initial={false}>
+              {group.messages.map((msg) => {
               const isMe = Boolean(
                 (profile?.id && msg.sender_id === profile.id) ||
                 (user?.id && msg.sender_id === user.id)
@@ -782,6 +790,7 @@ export default function Messages() {
                 />
               );
             })}
+            </AnimatePresence>
           </div>
         ))}
         <div ref={messagesEndRef} />
@@ -845,7 +854,7 @@ export default function Messages() {
       {/* Edit Nickname Modal */}
       {showNicknameModal && (
         <div className="modal-backdrop" onClick={() => setShowNicknameModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <div className="modal__handle" />
             <form onSubmit={handleSaveNickname} className="stack stack--md">
               <div className="text-center">
@@ -889,6 +898,6 @@ export default function Messages() {
           </div>
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 }

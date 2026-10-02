@@ -1,8 +1,9 @@
+import PageTransition from '../components/PageTransition';
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { MapPin } from '../lib/types';
-import Map, { Marker, Popup as MapboxPopup, MapRef } from 'react-map-gl/mapbox';
+import Map, { Marker, Popup as MapboxPopup, MapRef, GeolocateControl } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoiYW1hcm9jcGRpdGEiLCJhIjoiY211b3BpODA5MDFhZTJ4cHlidmxpZnJrYiJ9.UdCQhPOXT4aZuh25adhymA';
@@ -101,6 +102,17 @@ export default function CoupleMap() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [couple?.id, isMockMode]);
+
+  // Continuously watch and update user's location
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => setMyLocation([position.coords.latitude, position.coords.longitude]),
+      (err) => console.warn('Could not watch location', err),
+      { enableHighAccuracy: true }
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
 
   const fetchPins = async () => {
     if (!couple) return;
@@ -366,7 +378,7 @@ export default function CoupleMap() {
   const defaultCenter = { lat: -33.4489, lng: -70.6693 };
 
   return (
-    <div className="page" style={{ padding: 0, margin: 0, height: '100vh', width: '100vw', overflow: 'hidden', position: 'relative' }}>
+    <PageTransition className="page" style={{ padding: 0, margin: 0, height: '100vh', width: '100vw', overflow: 'hidden', position: 'relative' }}>
       <style>
         {`
           .mapboxgl-control-container {
@@ -670,7 +682,7 @@ export default function CoupleMap() {
       )}
 
       {/* Floating Controls (Right Side) */}
-      <div style={{ position: 'absolute', bottom: '24px', right: '16px', zIndex: 90, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ position: 'absolute', bottom: '110px', right: '16px', zIndex: 90, display: 'flex', flexDirection: 'column', gap: '12px' }}>
         
         {/* Style Selector Dropdown */}
         <div style={{ position: 'relative' }}>
@@ -803,6 +815,6 @@ export default function CoupleMap() {
           </div>
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 }

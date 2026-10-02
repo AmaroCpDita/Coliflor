@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
+import PageTransition from '../components/PageTransition';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { daysSince, generateInviteCode, formatDate } from '../lib/utils';
@@ -77,6 +78,8 @@ function IconGoldHeart({ size = 20 }: { size?: number }) {
 }
 
 const DEFAULT_DEDICATION = '¡Escribe aquí tu primera notita! Ámame mucho y dime cosas bonitas 💛';
+
+
 
 export default function Home() {
   const { user, profile, couple, partner, refreshProfile, isMockMode } = useAuth();
@@ -378,7 +381,7 @@ export default function Home() {
   };
 
   return (
-    <div className="page" style={{ paddingBottom: '150px', position: 'relative' }}>
+    <PageTransition className="page" style={{ paddingBottom: '150px', position: 'relative' }}>
       
       {/* Spectacular Dynamic Backgrounds */}
       {celebration?.type === 'aniversario' && (
@@ -652,7 +655,7 @@ export default function Home() {
       {/* Edit Note Modal */}
       {showEditNoteForm && (
         <div className="modal-backdrop" onClick={() => setShowEditNoteForm(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <div className="modal__handle" />
             <div className="stack stack--lg">
               <div className="text-center">
@@ -691,7 +694,7 @@ export default function Home() {
       {/* Join Code Modal (same as before) */}
       {showJoinModal && (
         <div className="modal-backdrop" onClick={() => setShowJoinModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <div className="modal__handle" />
             <div className="stack stack--lg">
               <div className="text-center">
@@ -775,6 +778,6 @@ export default function Home() {
           </select>
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 }

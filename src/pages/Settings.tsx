@@ -1,3 +1,4 @@
+import PageTransition from '../components/PageTransition';
 // ============================================================
 // Coliflor — Settings / Configuración Page
 // ============================================================
@@ -165,7 +166,7 @@ export default function Settings() {
   if (!profile) return null;
 
   return (
-    <div className="page">
+    <PageTransition className="page">
       <div className="stack stack--xl stagger-children">
         {/* Title */}
         <div>
@@ -370,6 +371,6 @@ export default function Settings() {
           <span>Cerrar sesión</span>
         </button>
       </div>
-    </div>
+    </PageTransition>
   );
 }

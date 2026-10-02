@@ -21,8 +21,12 @@ const Settings = lazy(() => import('./pages/Settings'));
 const BucketList = lazy(() => import('./pages/BucketList'));
 const MapPage = lazy(() => import('./pages/Map'));
 
+import { useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+
 function AppRoutes() {
   const { status } = useAuth();
+  const location = useLocation();
 
   if (status === 'loading') {
     return <LoadingScreen message="Cargando tu espacio de pareja..." />;

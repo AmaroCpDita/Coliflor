@@ -1,3 +1,4 @@
+import PageTransition from '../components/PageTransition';
 // ============================================================
 // Coliflor — Streak Page (Enhanced with Broken Streak Visual,
 // Recovery Photo Upload, and 7-Day Timeline)
@@ -713,7 +714,7 @@ export default function Streak() {
   };
 
   return (
-    <div className="page">
+    <PageTransition className="page">
       <div className="stack stack--xl stagger-children">
         {/* Header Hero */}
         <div className="text-center" style={{ paddingTop: 'var(--space-md)' }}>
@@ -1050,7 +1051,7 @@ export default function Streak() {
             <h4 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-secondary)', paddingLeft: '8px' }}>
               ÚLTIMOS 7 DÍAS
             </h4>
-            <div className="streak-timeline">
+            <div className="streak-timeline stagger-children">
               {history.map((h) => {
                 const status = getDayStatus(h);
                 const dayNum = new Date(h.date + 'T12:00:00').getDate();
@@ -1129,7 +1130,7 @@ export default function Streak() {
       {/* Recovery Modal */}
       {showRecovery && (
         <div className="modal-backdrop" onClick={handleCancelRecovery}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <div className="modal__handle" />
             <div className="stack stack--lg">
               {recoveryStep === 'confirm' && (
@@ -1265,7 +1266,7 @@ export default function Streak() {
       {/* Past Day Photo Upload Modal */}
       {pastDayUpload && (
         <div className="modal-backdrop" onClick={handleCancelPastDay}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <div className="modal__handle" />
             <div className="stack stack--lg">
               <div className="text-center">
@@ -1353,6 +1354,6 @@ export default function Streak() {
       )}
 
       <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
-    </div>
+    </PageTransition>
   );
 }

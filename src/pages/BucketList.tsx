@@ -1,4 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import PageTransition from '../components/PageTransition';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { BucketListItem, BucketListCategory } from '../lib/types';
@@ -235,10 +237,11 @@ export default function BucketList() {
   const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
   return (
-    <div className="page">
+    <PageTransition className="page">
       {/* Floating Action Button */}
       {!showAddForm && (
-        <button 
+        <motion.button 
+          whileTap={{ scale: 0.9 }}
           className="animate-slide-up"
           onClick={() => setShowAddForm(true)}
           style={{
@@ -260,12 +263,9 @@ export default function BucketList() {
             cursor: 'pointer',
             transition: 'transform 0.2s',
           }}
-          onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
-          onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >
           <IconPlus />
-        </button>
+        </motion.button>
       )}
 
       <div className="container" style={{ paddingBottom: '100px' }}>
@@ -562,6 +562,6 @@ export default function BucketList() {
           </div>
         )}
       </div>
-    </div>
+    </PageTransition>
   );
 }

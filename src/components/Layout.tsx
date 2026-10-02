@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatTime } from '../lib/utils';
@@ -116,13 +117,11 @@ export default function Layout() {
   const partnerName = partner ? partner.display_name : 'Tu pareja';
 
   const [showNotifCenter, setShowNotifCenter] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activityLogs, setActivityLogs] = useState<Message[]>([]);
   const [hasUnread, setHasUnread] = useState(false);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   const location = useLocation();
-  const isMapPage = location.pathname === '/map';
 
   const profileIdRef = useRef(profile?.id);
   const coupleRef = useRef(couple);
@@ -452,9 +451,9 @@ export default function Layout() {
     <>
       {/* Top Header */}
       <header className="top-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <button className="hamburger-btn" onClick={() => setIsSidebarOpen(true)} title="Menú lateral">
-          <IconMenu />
-        </button>
+        <NavLink to="/settings" className="hamburger-btn" style={{ textDecoration: 'none', color: 'inherit' }} title="Ajustes">
+          <IconSettings />
+        </NavLink>
         <h1 className="top-header__title">Coliflor</h1>
         <button className="hamburger-btn" onClick={openNotifCenter} style={{ position: 'relative' }}>
           <IconBellHeader />
@@ -464,62 +463,12 @@ export default function Layout() {
         </button>
       </header>
 
-      {/* Sidebar Drawer */}
-      {isSidebarOpen && (
-        <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)}>
-          <div className="sidebar-drawer" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-xl)' }}>
-              <h2 className="top-header__title" style={{ fontSize: '20px' }}>Coliflor</h2>
-              <button className="hamburger-btn" onClick={() => setIsSidebarOpen(false)}>
-                <IconClose />
-              </button>
-            </div>
-            
-            <nav style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '2px', overflowY: 'auto' }}>
-              <NavLink to="/" end className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconHome active={false} /></div>
-                <span>Inicio</span>
-              </NavLink>
-              <NavLink to="/streak" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconStreak active={false} /></div>
-                <span>Racha de Fotos</span>
-              </NavLink>
-              <NavLink to="/quiz" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconQuiz active={false} /></div>
-                <span>Quiz de Sintonía</span>
-              </NavLink>
-              <NavLink to="/calendar" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconCalendar active={false} /></div>
-                <span>Agenda & Recuerdos</span>
-              </NavLink>
-              <NavLink to="/bucket-list" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconBucketList /></div>
-                <span>Metas / Bucket List</span>
-              </NavLink>
-              <NavLink to="/map" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconMapNav /></div>
-                <span>Nuestro Mapa</span>
-              </NavLink>
-              <NavLink to="/messages" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                <div className="sidebar-item__icon"><IconMessages active={false} /></div>
-                <span>Chat Secreto</span>
-              </NavLink>
-              
-              <div style={{ marginTop: 'auto', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--color-border)' }}>
-                <NavLink to="/settings" className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item--active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-                  <div className="sidebar-item__icon"><IconSettings /></div>
-                  <span>Ajustes</span>
-                </NavLink>
-              </div>
-            </nav>
-          </div>
-        </div>
-      )}
+
 
       <Outlet context={{ openNotifCenter, hasUnread }} />
 
       {/* 5-Tab Floating Dock Nav */}
-      {(!isKeyboardOpen && !isMapPage) && (
+      {(!isKeyboardOpen) && (
         <nav className="floating-dock">
           <NavLink to="/" end className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
             {({ isActive }) => (
@@ -563,73 +512,88 @@ export default function Layout() {
           </NavLink>
         </nav>
       )}
+
       {/* Bell Notification Center Drawer (Sliding from Right Edge) */}
-      {showNotifCenter && (
-        <div
-          className="side-drawer-backdrop"
-          onClick={() => setShowNotifCenter(false)}
-        >
-          <div
-            className="side-drawer animate-slide-in-right"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showNotifCenter && (
+          <motion.div
+            className="side-drawer-backdrop"
+            onClick={() => setShowNotifCenter(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
           >
-            <div className="row row--between" style={{ paddingBottom: 'var(--space-xs)', borderBottom: '1px solid var(--color-border)' }}>
-              <div className="row row--gap-xs">
-                <IconBellHeader />
-                <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 700 }}>Historial de Actividad</h3>
-              </div>
-              <button
-                className="btn btn--ghost btn--xs"
-                onClick={() => setShowNotifCenter(false)}
-                style={{ color: 'var(--color-text-secondary)', fontSize: '12px' }}
-              >
-                Esconder ✕
-              </button>
-            </div>
-
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-              {activityLogs.length === 0 ? (
-                <div className="empty-state" style={{ padding: 'var(--space-xl) 0' }}>
+            <motion.div
+              className="side-drawer"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              style={{ animation: 'none' }} // override CSS animation
+            >
+              <div className="row row--between" style={{ paddingBottom: 'var(--space-xs)', borderBottom: '1px solid var(--color-border)' }}>
+                <div className="row row--gap-xs">
                   <IconBellHeader />
-                  <div className="empty-state__title" style={{ marginTop: 'var(--space-sm)' }}>Sin actividad reciente</div>
-                  <div className="empty-state__text">
-                    Aquí aparecerán los avisos cuando tu pareja agregue notitas, eventos al calendario o fotos de la racha.
-                  </div>
+                  <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 700 }}>Historial de Actividad</h3>
                 </div>
-              ) : (
-                activityLogs.map((log) => (
-                  <div
-                    key={log.id}
-                    className="glass-card"
-                    style={{
-                      padding: 'var(--space-sm) var(--space-md)',
-                      background: 'var(--color-bg-card)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--radius-lg)',
-                    }}
-                  >
-                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', lineHeight: 1.4 }}>
-                      {log.content}
-                    </div>
-                    <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginTop: '4px', textAlign: 'right' }}>
-                      {formatTime(log.created_at)}
+                <button
+                  className="btn btn--ghost btn--xs"
+                  onClick={() => setShowNotifCenter(false)}
+                  style={{ color: 'var(--color-text-secondary)', fontSize: '12px' }}
+                >
+                  Esconder ✕
+                </button>
+              </div>
+
+              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+                {activityLogs.length === 0 ? (
+                  <div className="empty-state" style={{ padding: 'var(--space-xl) 0' }}>
+                    <IconBellHeader />
+                    <div className="empty-state__title" style={{ marginTop: 'var(--space-sm)' }}>Sin actividad reciente</div>
+                    <div className="empty-state__text">
+                      Aquí aparecerán los avisos cuando tu pareja agregue notitas, eventos al calendario o fotos de la racha.
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                ) : (
+                  activityLogs.map((log) => (
+                    <motion.div
+                      key={log.id}
+                      className="glass-card"
+                      style={{
+                        padding: 'var(--space-sm) var(--space-md)',
+                        background: 'var(--color-bg-card)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius-lg)',
+                      }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', lineHeight: 1.4 }}>
+                        {log.content}
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginTop: '4px', textAlign: 'right' }}>
+                        {formatTime(log.created_at)}
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
 
-            <div style={{ marginTop: 'auto', paddingTop: 'var(--space-sm)', borderTop: '1px solid var(--color-border)' }}>
-              <button
-                className="btn btn--secondary btn--full btn--sm"
-                onClick={() => setShowNotifCenter(false)}
-              >
-                Esconder panel ✕
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              <div style={{ marginTop: 'auto', paddingTop: 'var(--space-sm)', borderTop: '1px solid var(--color-border)' }}>
+                <button
+                  className="btn btn--secondary btn--full btn--sm"
+                  onClick={() => setShowNotifCenter(false)}
+                >
+                  Esconder panel ✕
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
