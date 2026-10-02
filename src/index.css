@@ -1004,10 +1004,7 @@ body {
   }
 }
 
-body:has(input:focus) .chat-input-bar,
-body:has(textarea:focus) .chat-input-bar {
-  padding-bottom: 12px !important;
-}
+
 
 /* --- Keyframe Animations --- */
 @keyframes heartPulse {
@@ -1343,10 +1340,7 @@ body:has(textarea:focus) .chat-input-bar {
 @media (max-height: 600px) {
   .floating-dock { display: none !important; }
 }
-body:has(input:focus) .floating-dock,
-body:has(textarea:focus) .floating-dock {
-  display: none !important;
-}
+
 
 
 /* Stagger Children Animations */
@@ -1439,5 +1433,6 @@ body:has(textarea:focus) .floating-dock {
   border-radius: 50%;
   background: var(--dock-item-active-color);
 }
+
 
 
