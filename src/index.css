@@ -1414,6 +1414,8 @@ body:has(textarea:focus) .floating-dock {
   -webkit-overflow-scrolling: touch !important;
   scrollbar-width: none !important;
   justify-content: flex-start !important;
+  scroll-behavior: smooth;
+  padding: 8px !important;
 }
 
 .floating-dock::-webkit-scrollbar {
@@ -1422,6 +1424,19 @@ body:has(textarea:focus) .floating-dock {
 
 .dock-item {
   flex-shrink: 0 !important;
+  position: relative;
+}
+
+.dock-item--active::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--dock-item-active-color);
 }
 
 

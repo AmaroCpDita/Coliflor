@@ -135,99 +135,18 @@ export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Dock Roulette Logic
   const dockRef = useRef<HTMLElement>(null);
-  const isProgrammaticScroll = useRef(false);
-  const scrollTimeoutRef = useRef<number | null>(null);
-  const hasInitialized = useRef(false);
 
   // 1. Center the active item whenever the route changes
   useEffect(() => {
     if (!dockRef.current) return;
     
-    // Find all active items (there will be 51 of them now!)
-    const activeItems = Array.from(dockRef.current.querySelectorAll('.dock-item--active')) as HTMLElement[];
-    if (activeItems.length === 0) return;
-
-    let targetItem = activeItems[0];
-
-    if (!hasInitialized.current) {
-      // On mount, jump to the active item in the very middle group (Group 25 out of 51)
-      const middleGroupIndex = 25; 
-      const itemsPerGroup = NAV_ITEMS.length;
-      targetItem = activeItems.find((_, i) => i >= middleGroupIndex * itemsPerGroup) || activeItems[Math.floor(activeItems.length / 2)];
-    } else {
-      // Find closest active item to current scroll position so we don't jump across the whole list
-      const dockCenter = dockRef.current.scrollLeft + dockRef.current.offsetWidth / 2;
-      let minDiff = Infinity;
-      activeItems.forEach(item => {
-        const itemCenter = item.offsetLeft + item.offsetWidth / 2;
-        const diff = Math.abs(dockCenter - itemCenter);
-        if (diff < minDiff) {
-          minDiff = diff;
-          targetItem = item;
-        }
-      });
+    const activeItem = dockRef.current.querySelector('.dock-item--active') as HTMLElement;
+    if (activeItem) {
+      // Use native scrollIntoView to center it
+      activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
-
-    isProgrammaticScroll.current = true;
-    const targetItemCenter = targetItem.offsetLeft + targetItem.offsetWidth / 2;
-    const newScrollLeft = targetItemCenter - dockRef.current.offsetWidth / 2;
-    
-    // Temporarily disable scroll-snap when jumping on load
-    if (!hasInitialized.current) {
-      dockRef.current.style.scrollSnapType = 'none';
-      dockRef.current.scrollTo({ left: newScrollLeft, behavior: 'instant' });
-      // Restore snap
-      setTimeout(() => { 
-        if (dockRef.current) dockRef.current.style.scrollSnapType = 'x mandatory'; 
-      }, 50);
-    } else {
-      dockRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
-    }
-    
-    hasInitialized.current = true;
-    setTimeout(() => { isProgrammaticScroll.current = false; }, 350);
   }, [location.pathname]);
-
-  // 2. Handle scroll snapping (navigates when user finishes swiping)
-  const handleDockScroll = useCallback((e: React.UIEvent<HTMLElement>) => {
-    if (isProgrammaticScroll.current) return;
-
-    if (scrollTimeoutRef.current) {
-      window.clearTimeout(scrollTimeoutRef.current);
-    }
-
-    scrollTimeoutRef.current = window.setTimeout(() => {
-      if (!dockRef.current) return;
-      const dock = dockRef.current;
-      const scrollLeft = dock.scrollLeft;
-      const dockCenter = scrollLeft + dock.offsetWidth / 2;
-      
-      let closestItem: HTMLAnchorElement | null = null;
-      let minDistance = Infinity;
-
-      const items = Array.from(dock.querySelectorAll('.dock-item')) as HTMLAnchorElement[];
-      for (const item of items) {
-        const itemCenter = item.offsetLeft + item.offsetWidth / 2;
-        const distance = Math.abs(dockCenter - itemCenter);
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestItem = item;
-        }
-      }
-
-      if (closestItem && !closestItem.classList.contains('dock-item--active')) {
-        const targetPath = closestItem.getAttribute('href');
-        if (targetPath && targetPath !== location.pathname) {
-          isProgrammaticScroll.current = true;
-          navigate(targetPath);
-          // Wait for render to update active class and effect to scroll it
-          setTimeout(() => { isProgrammaticScroll.current = false; }, 350);
-        }
-      }
-    }, 150);
-  }, [location.pathname, navigate]);
 
   const profileIdRef = useRef(profile?.id);
   const coupleRef = useRef(couple);
@@ -575,28 +494,24 @@ export default function Layout() {
 
       {/* Floating Dock Nav */}
       {(!isKeyboardOpen) && (
-        <nav className="floating-dock" ref={dockRef} onScroll={handleDockScroll}>
-          {Array.from({ length: 51 }).map((_, groupIndex) => (
-            <React.Fragment key={groupIndex}>
-              {NAV_ITEMS.map((item) => (
-                <NavLink 
-                  key={`${groupIndex}-${item.path}`} 
-                  to={item.path} 
-                  end={item.path === '/'} 
-                  className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}
-                >
-                  {({ isActive }) => {
-                    const Icon = item.icon;
-                    return (
-                      <>
-                        <div className="dock-item__icon"><Icon active={isActive} /></div>
-                        <span>{item.label}</span>
-                      </>
-                    );
-                  }}
-                </NavLink>
-              ))}
-            </React.Fragment>
+        <nav className="floating-dock" ref={dockRef}>
+          {NAV_ITEMS.map((item) => (
+            <NavLink 
+              key={item.path} 
+              to={item.path} 
+              end={item.path === '/'} 
+              className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}
+            >
+              {({ isActive }) => {
+                const Icon = item.icon;
+                return (
+                  <>
+                    <div className="dock-item__icon"><Icon active={isActive} /></div>
+                    <span>{item.label}</span>
+                  </>
+                );
+              }}
+            </NavLink>
           ))}
         </nav>
       )}
