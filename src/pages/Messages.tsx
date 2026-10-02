@@ -308,6 +308,7 @@ export default function Messages() {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [dockOffset, setDockOffset] = useState(90); // fallback, refined on mount
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   );
@@ -686,8 +687,23 @@ export default function Messages() {
     }
   });
 
-  const dockHeight = 74;
-  const bottomPadding = keyboardHeight > 0 ? keyboardHeight : dockHeight;
+  // Measure the actual dock position on the screen to get exact bottom padding
+  useEffect(() => {
+    const measure = () => {
+      const dock = document.querySelector('.floating-dock') as HTMLElement;
+      if (dock) {
+        const rect = dock.getBoundingClientRect();
+        // Distance from top of dock to bottom of viewport = how much space we need
+        const offset = window.innerHeight - rect.top + 4;
+        setDockOffset(offset);
+      }
+    };
+    // Small delay so Layout has time to render the dock
+    const t = setTimeout(measure, 150);
+    return () => clearTimeout(t);
+  }, []);
+
+  const bottomPadding = keyboardHeight > 0 ? keyboardHeight : dockOffset;
 
   return (
     <PageTransition style={{
