@@ -137,14 +137,36 @@ export default function Layout() {
 
   const dockRef = useRef<HTMLElement>(null);
 
-  // 1. Center the active item whenever the route changes
+  // 1. Center the active item whenever the route changes using a custom premium easing
   useEffect(() => {
     if (!dockRef.current) return;
     
     const activeItem = dockRef.current.querySelector('.dock-item--active') as HTMLElement;
     if (activeItem) {
-      // Use native scrollIntoView to center it
-      activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      const targetLeft = activeItem.offsetLeft + (activeItem.offsetWidth / 2) - (dockRef.current.offsetWidth / 2);
+      const startLeft = dockRef.current.scrollLeft;
+      const distance = targetLeft - startLeft;
+      let startTime: number | null = null;
+      const duration = 700; // 700ms for a relaxed, premium glide
+
+      const animation = (currentTime: number) => {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const progress = Math.min(timeElapsed / duration, 1);
+        
+        // easeOutQuart
+        const ease = 1 - Math.pow(1 - progress, 4);
+        
+        if (dockRef.current) {
+          dockRef.current.scrollLeft = startLeft + distance * ease;
+        }
+
+        if (timeElapsed < duration) {
+          requestAnimationFrame(animation);
+        }
+      };
+
+      requestAnimationFrame(animation);
     }
   }, [location.pathname]);
 
