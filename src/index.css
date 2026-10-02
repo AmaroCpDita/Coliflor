@@ -983,28 +983,31 @@ body {
   display: none; /* Only useful for bottom sheets */
 }
 
-/* --- Keyboard Overlap Fix --- */
+/* --- Chat Input Bar (position:fixed to escape framer-motion stacking context) --- */
 .chat-input-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* Sit above the dock: dock is at bottom + safe + 16px, dock height ~68px */
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
+  z-index: 200; /* Above dock (z-index: 100) always */
+  max-width: 480px;
+  margin: 0 auto;
   padding: var(--space-sm) var(--space-md);
-  padding-bottom: calc(var(--safe-bottom) + 12px);
+  padding-bottom: 12px;
   border-top: 1px solid var(--color-border);
   background: var(--color-bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
-  transition: padding-bottom 0.2s ease-out;
+  transition: bottom 0.15s ease-out;
 }
 
-@media (max-height: 600px) {
-  .chat-input-bar {
-    padding-bottom: 12px !important;
-  }
-}
-
+/* When keyboard is open: dock hides, move input bar to bottom of visual viewport */
 body:has(input:focus) .chat-input-bar,
 body:has(textarea:focus) .chat-input-bar {
-  padding-bottom: 12px !important;
+  bottom: 0;
 }
 
 /* --- Keyframe Animations --- */

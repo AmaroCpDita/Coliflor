@@ -307,8 +307,6 @@ export default function Messages() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [dockOffset, setDockOffset] = useState(90); // pixels from bottom of viewport to top of dock
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   );
@@ -609,38 +607,14 @@ export default function Messages() {
     }
   };
 
-  // Track keyboard height so the input bar floats above it
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const update = () => {
-      const kbH = window.innerHeight - vv.height - vv.offsetTop;
-      setKeyboardHeight(Math.max(0, kbH));
-    };
-    vv.addEventListener('resize', update);
-    vv.addEventListener('scroll', update);
-    return () => { vv.removeEventListener('resize', update); vv.removeEventListener('scroll', update); };
-  }, []);
-
-  // Measure actual dock position so input bar sits flush on top of it
-  useEffect(() => {
-    const measure = () => {
-      const dock = document.querySelector('.floating-dock') as HTMLElement;
-      if (dock) {
-        const rect = dock.getBoundingClientRect();
-        setDockOffset(window.innerHeight - rect.top);
-      }
-    };
-    const t = setTimeout(measure, 150);
-    return () => clearTimeout(t);
-  }, []);
-
   // Lock body scroll to prevent rubber-banding and whole-page scroll
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     const originalOverscroll = document.body.style.overscrollBehaviorY;
+    
     document.body.style.overflow = 'hidden';
-    document.body.style.overscrollBehaviorY = 'none';
+    document.body.style.overscrollBehaviorY = 'none'; // Prevent pull-to-refresh bounce
+    
     return () => {
       document.body.style.overflow = originalOverflow;
       document.body.style.overscrollBehaviorY = originalOverscroll;
@@ -770,7 +744,7 @@ export default function Messages() {
         flex: 1,
         overflowY: 'auto',
         padding: 'var(--space-md) var(--space-lg)',
-        paddingBottom: `${dockOffset + 70}px`, // reserve space for fixed input bar + dock
+        paddingBottom: '160px', // space for fixed input bar (70px) + dock (90px)
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-sm)',
@@ -823,20 +797,8 @@ export default function Messages() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input bar — position:fixed so it escapes framer-motion stacking context and always renders above dock */}
-      <div
-        className="chat-input-bar"
-        style={{
-          position: 'fixed',
-          left: 0,
-          right: 0,
-          bottom: keyboardHeight > 0 ? keyboardHeight : dockOffset,
-          zIndex: 150,
-          maxWidth: 480,
-          margin: '0 auto',
-          transition: 'bottom 0.15s ease-out',
-        }}
-      >
+      {/* Input bar */}
+      <div className="chat-input-bar">
         {replyingTo && (
           <div className="row row--between" style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-md) var(--radius-md) 0 0', marginBottom: '8px', borderLeft: '3px solid var(--color-primary)' }}>
             <div style={{ flex: 1, overflow: 'hidden' }}>
