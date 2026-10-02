@@ -2,7 +2,7 @@
 // Coliflor — Layout Component (Clean 5-Tab Navigation & Triple Realtime Push Notification Engine)
 // ============================================================
 
-import { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
@@ -113,6 +113,16 @@ function IconSettings() {
 
 
 
+const NAV_ITEMS = [
+  { path: '/', label: 'Inicio', icon: IconHome },
+  { path: '/calendar', label: 'Agenda', icon: IconCalendar },
+  { path: '/bucket-list', label: 'Metas', icon: IconBucketList },
+  { path: '/map', label: 'Mapa', icon: IconMapNav },
+  { path: '/messages', label: 'Chat', icon: IconMessages },
+  { path: '/streak', label: 'Racha', icon: IconStreak },
+  { path: '/quiz', label: 'Quiz', icon: IconQuiz },
+];
+
 export default function Layout() {
   const { couple, profile, partner, isMockMode } = useAuth();
   const partnerName = partner ? partner.display_name : 'Tu pareja';
@@ -129,22 +139,55 @@ export default function Layout() {
   const dockRef = useRef<HTMLElement>(null);
   const isProgrammaticScroll = useRef(false);
   const scrollTimeoutRef = useRef<number | null>(null);
+  const hasInitialized = useRef(false);
 
   // 1. Center the active item whenever the route changes
   useEffect(() => {
     if (!dockRef.current) return;
-    const activeItem = dockRef.current.querySelector('.dock-item--active') as HTMLElement;
-    if (activeItem) {
-      isProgrammaticScroll.current = true;
-      const dockCenter = dockRef.current.offsetWidth / 2;
-      const itemCenter = activeItem.offsetLeft + activeItem.offsetWidth / 2;
-      dockRef.current.scrollTo({
-        left: itemCenter - dockCenter,
-        behavior: 'smooth'
+    
+    // Find all active items (there will be 51 of them now!)
+    const activeItems = Array.from(dockRef.current.querySelectorAll('.dock-item--active')) as HTMLElement[];
+    if (activeItems.length === 0) return;
+
+    let targetItem = activeItems[0];
+
+    if (!hasInitialized.current) {
+      // On mount, jump to the active item in the very middle group (Group 25 out of 51)
+      const middleGroupIndex = 25; 
+      const itemsPerGroup = NAV_ITEMS.length;
+      targetItem = activeItems.find((_, i) => i >= middleGroupIndex * itemsPerGroup) || activeItems[Math.floor(activeItems.length / 2)];
+    } else {
+      // Find closest active item to current scroll position so we don't jump across the whole list
+      const dockCenter = dockRef.current.scrollLeft + dockRef.current.offsetWidth / 2;
+      let minDiff = Infinity;
+      activeItems.forEach(item => {
+        const itemCenter = item.offsetLeft + item.offsetWidth / 2;
+        const diff = Math.abs(dockCenter - itemCenter);
+        if (diff < minDiff) {
+          minDiff = diff;
+          targetItem = item;
+        }
       });
-      // Allow scroll events to process user input again after the smooth scroll animation completes
-      setTimeout(() => { isProgrammaticScroll.current = false; }, 350);
     }
+
+    isProgrammaticScroll.current = true;
+    const targetItemCenter = targetItem.offsetLeft + targetItem.offsetWidth / 2;
+    const newScrollLeft = targetItemCenter - dockRef.current.offsetWidth / 2;
+    
+    // Temporarily disable scroll-snap when jumping on load
+    if (!hasInitialized.current) {
+      dockRef.current.style.scrollSnapType = 'none';
+      dockRef.current.scrollTo({ left: newScrollLeft, behavior: 'instant' });
+      // Restore snap
+      setTimeout(() => { 
+        if (dockRef.current) dockRef.current.style.scrollSnapType = 'x mandatory'; 
+      }, 50);
+    } else {
+      dockRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
+    }
+    
+    hasInitialized.current = true;
+    setTimeout(() => { isProgrammaticScroll.current = false; }, 350);
   }, [location.pathname]);
 
   // 2. Handle scroll snapping (navigates when user finishes swiping)
@@ -164,15 +207,15 @@ export default function Layout() {
       let closestItem: HTMLAnchorElement | null = null;
       let minDistance = Infinity;
 
-      const items = dock.querySelectorAll('.dock-item') as NodeListOf<HTMLAnchorElement>;
-      items.forEach(item => {
+      const items = Array.from(dock.querySelectorAll('.dock-item')) as HTMLAnchorElement[];
+      for (const item of items) {
         const itemCenter = item.offsetLeft + item.offsetWidth / 2;
         const distance = Math.abs(dockCenter - itemCenter);
         if (distance < minDistance) {
           minDistance = distance;
           closestItem = item;
         }
-      });
+      }
 
       if (closestItem && !closestItem.classList.contains('dock-item--active')) {
         const targetPath = closestItem.getAttribute('href');
@@ -533,62 +576,28 @@ export default function Layout() {
       {/* Floating Dock Nav */}
       {(!isKeyboardOpen) && (
         <nav className="floating-dock" ref={dockRef} onScroll={handleDockScroll}>
-          <NavLink to="/" end className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-            {({ isActive }) => (
-              <>
-                <div className="dock-item__icon"><IconHome active={isActive} /></div>
-                <span>Inicio</span>
-              </>
-            )}
-          </NavLink>
-          <NavLink to="/calendar" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-            {({ isActive }) => (
-              <>
-                <div className="dock-item__icon"><IconCalendar active={isActive} /></div>
-                <span>Agenda</span>
-              </>
-            )}
-          </NavLink>
-          <NavLink to="/bucket-list" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-            {({ isActive }) => (
-              <>
-                <div className="dock-item__icon"><IconBucketList active={isActive} /></div>
-                <span>Metas</span>
-              </>
-            )}
-          </NavLink>
-          <NavLink to="/map" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-            {({ isActive }) => (
-              <>
-                <div className="dock-item__icon"><IconMapNav active={isActive} /></div>
-                <span>Mapa</span>
-              </>
-            )}
-          </NavLink>
-          <NavLink to="/messages" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-            {({ isActive }) => (
-              <>
-                <div className="dock-item__icon"><IconMessages active={isActive} /></div>
-                <span>Chat</span>
-              </>
-            )}
-          </NavLink>
-          <NavLink to="/streak" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-            {({ isActive }) => (
-              <>
-                <div className="dock-item__icon"><IconStreak active={isActive} /></div>
-                <span>Racha</span>
-              </>
-            )}
-          </NavLink>
-          <NavLink to="/quiz" className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}>
-            {({ isActive }) => (
-              <>
-                <div className="dock-item__icon"><IconQuiz active={isActive} /></div>
-                <span>Quiz</span>
-              </>
-            )}
-          </NavLink>
+          {Array.from({ length: 51 }).map((_, groupIndex) => (
+            <React.Fragment key={groupIndex}>
+              {NAV_ITEMS.map((item) => (
+                <NavLink 
+                  key={`${groupIndex}-${item.path}`} 
+                  to={item.path} 
+                  end={item.path === '/'} 
+                  className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}
+                >
+                  {({ isActive }) => {
+                    const Icon = item.icon;
+                    return (
+                      <>
+                        <div className="dock-item__icon"><Icon active={isActive} /></div>
+                        <span>{item.label}</span>
+                      </>
+                    );
+                  }}
+                </NavLink>
+              ))}
+            </React.Fragment>
+          ))}
         </nav>
       )}
 
