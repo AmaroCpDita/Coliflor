@@ -986,7 +986,7 @@ body {
 /* --- Keyboard Overlap Fix --- */
 .chat-input-bar {
   padding: var(--space-sm) var(--space-md);
-  padding-bottom: calc(var(--safe-bottom) + 84px);
+  padding-bottom: calc(var(--safe-bottom) + 12px);
   border-top: 1px solid var(--color-border);
   background: var(--color-bg-card);
   backdrop-filter: blur(20px);
@@ -994,8 +994,6 @@ body {
   display: flex;
   flex-direction: column;
   transition: padding-bottom 0.2s ease-out;
-  position: relative;
-  z-index: 110;
 }
 
 @media (max-height: 600px) {
@@ -1004,7 +1002,10 @@ body {
   }
 }
 
-
+body:has(input:focus) .chat-input-bar,
+body:has(textarea:focus) .chat-input-bar {
+  padding-bottom: 12px !important;
+}
 
 /* --- Keyframe Animations --- */
 @keyframes heartPulse {
@@ -1340,7 +1341,10 @@ body {
 @media (max-height: 600px) {
   .floating-dock { display: none !important; }
 }
-
+body:has(input:focus) .floating-dock,
+body:has(textarea:focus) .floating-dock {
+  display: none !important;
+}
 
 
 /* Stagger Children Animations */
@@ -1433,6 +1437,5 @@ body {
   border-radius: 50%;
   background: var(--dock-item-active-color);
 }
-
 
 

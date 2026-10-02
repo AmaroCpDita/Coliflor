@@ -308,7 +308,7 @@ export default function Messages() {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [dockOffset, setDockOffset] = useState(90); // fallback, refined on mount
+  const [dockOffset, setDockOffset] = useState(90); // pixels from bottom of viewport to top of dock
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   );
@@ -609,20 +609,30 @@ export default function Messages() {
     }
   };
 
-  // Track keyboard height via visualViewport API
+  // Track keyboard height so the input bar floats above it
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
     const update = () => {
-      const kbHeight = window.innerHeight - vv.height - vv.offsetTop;
-      setKeyboardHeight(Math.max(0, kbHeight));
+      const kbH = window.innerHeight - vv.height - vv.offsetTop;
+      setKeyboardHeight(Math.max(0, kbH));
     };
     vv.addEventListener('resize', update);
     vv.addEventListener('scroll', update);
-    return () => {
-      vv.removeEventListener('resize', update);
-      vv.removeEventListener('scroll', update);
+    return () => { vv.removeEventListener('resize', update); vv.removeEventListener('scroll', update); };
+  }, []);
+
+  // Measure actual dock position so input bar sits flush on top of it
+  useEffect(() => {
+    const measure = () => {
+      const dock = document.querySelector('.floating-dock') as HTMLElement;
+      if (dock) {
+        const rect = dock.getBoundingClientRect();
+        setDockOffset(window.innerHeight - rect.top);
+      }
     };
+    const t = setTimeout(measure, 150);
+    return () => clearTimeout(t);
   }, []);
 
   // Lock body scroll to prevent rubber-banding and whole-page scroll
@@ -687,24 +697,6 @@ export default function Messages() {
     }
   });
 
-  // Measure the actual dock position on the screen to get exact bottom padding
-  useEffect(() => {
-    const measure = () => {
-      const dock = document.querySelector('.floating-dock') as HTMLElement;
-      if (dock) {
-        const rect = dock.getBoundingClientRect();
-        // Distance from top of dock to bottom of viewport = how much space we need
-        const offset = window.innerHeight - rect.top + 4;
-        setDockOffset(offset);
-      }
-    };
-    // Small delay so Layout has time to render the dock
-    const t = setTimeout(measure, 150);
-    return () => clearTimeout(t);
-  }, []);
-
-  const bottomPadding = keyboardHeight > 0 ? keyboardHeight : dockOffset;
-
   return (
     <PageTransition style={{
       display: 'flex',
@@ -713,9 +705,6 @@ export default function Messages() {
       maxWidth: '480px',
       margin: '0 auto',
       width: '100%',
-      paddingBottom: `${bottomPadding}px`,
-      transition: 'padding-bottom 0.15s ease-out',
-      boxSizing: 'border-box',
     }}>
       {/* Header */}
       <div style={{
@@ -781,6 +770,7 @@ export default function Messages() {
         flex: 1,
         overflowY: 'auto',
         padding: 'var(--space-md) var(--space-lg)',
+        paddingBottom: `${dockOffset + 70}px`, // reserve space for fixed input bar + dock
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-sm)',
@@ -833,8 +823,20 @@ export default function Messages() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input bar */}
-      <div className="chat-input-bar">
+      {/* Input bar — position:fixed so it escapes framer-motion stacking context and always renders above dock */}
+      <div
+        className="chat-input-bar"
+        style={{
+          position: 'fixed',
+          left: 0,
+          right: 0,
+          bottom: keyboardHeight > 0 ? keyboardHeight : dockOffset,
+          zIndex: 150,
+          maxWidth: 480,
+          margin: '0 auto',
+          transition: 'bottom 0.15s ease-out',
+        }}
+      >
         {replyingTo && (
           <div className="row row--between" style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-md) var(--radius-md) 0 0', marginBottom: '8px', borderLeft: '3px solid var(--color-primary)' }}>
             <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -865,8 +867,7 @@ export default function Messages() {
           <button
             className="btn btn--primary"
             onClick={handleSend}
-            onPointerDown={(e) => e.preventDefault()}
-disabled={!input.trim() || sending}
+            disabled={!input.trim() || sending}
             style={{
               width: '42px',
               height: '42px',

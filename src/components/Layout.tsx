@@ -183,19 +183,39 @@ export default function Layout() {
     partnerNameRef.current = partnerName;
   }, [profile?.id, couple, partner, partnerName]);
 
-  // Use visualViewport to reliably detect keyboard open/close on mobile
+  // Detect input focus to hide the floating dock when virtual keyboard is open
   useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const update = () => {
-      const kbHeight = window.innerHeight - vv.height - vv.offsetTop;
-      setIsKeyboardOpen(kbHeight > 150);
+    const handleFocus = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA') {
+        setIsKeyboardOpen(true);
+      }
     };
-    vv.addEventListener('resize', update);
-    vv.addEventListener('scroll', update);
+    
+    const handleBlur = () => {
+      setIsKeyboardOpen(false);
+    };
+
+    window.addEventListener('focusin', handleFocus);
+    window.addEventListener('focusout', handleBlur);
+    
+    // Also use visualViewport as a fallback/enhancement for Android/iOS
+    const handleResize = () => {
+      if (!window.visualViewport) return;
+      const isShrunk = window.visualViewport.height < window.innerHeight - 150;
+      setIsKeyboardOpen(isShrunk || document.activeElement?.tagName === 'INPUT');
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+    }
+
     return () => {
-      vv.removeEventListener('resize', update);
-      vv.removeEventListener('scroll', update);
+      window.removeEventListener('focusin', handleFocus);
+      window.removeEventListener('focusout', handleBlur);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+      }
     };
   }, []);
 
