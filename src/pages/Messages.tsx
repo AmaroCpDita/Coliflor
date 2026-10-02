@@ -307,6 +307,7 @@ export default function Messages() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   );
@@ -607,14 +608,28 @@ export default function Messages() {
     }
   };
 
+  // Track keyboard height via visualViewport API
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const kbHeight = window.innerHeight - vv.height - vv.offsetTop;
+      setKeyboardHeight(Math.max(0, kbHeight));
+    };
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, []);
+
   // Lock body scroll to prevent rubber-banding and whole-page scroll
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     const originalOverscroll = document.body.style.overscrollBehaviorY;
-    
     document.body.style.overflow = 'hidden';
-    document.body.style.overscrollBehaviorY = 'none'; // Prevent pull-to-refresh bounce
-    
+    document.body.style.overscrollBehaviorY = 'none';
     return () => {
       document.body.style.overflow = originalOverflow;
       document.body.style.overscrollBehaviorY = originalOverscroll;
@@ -671,6 +686,9 @@ export default function Messages() {
     }
   });
 
+  const dockHeight = 74;
+  const bottomPadding = keyboardHeight > 0 ? keyboardHeight : dockHeight;
+
   return (
     <PageTransition style={{
       display: 'flex',
@@ -679,6 +697,9 @@ export default function Messages() {
       maxWidth: '480px',
       margin: '0 auto',
       width: '100%',
+      paddingBottom: `${bottomPadding}px`,
+      transition: 'padding-bottom 0.15s ease-out',
+      boxSizing: 'border-box',
     }}>
       {/* Header */}
       <div style={{
