@@ -828,7 +828,8 @@ export default function Messages() {
           <button
             className="btn btn--primary"
             onClick={handleSend}
-            disabled={!input.trim() || sending}
+            onPointerDown={(e) => e.preventDefault()}
+disabled={!input.trim() || sending}
             style={{
               width: '42px',
               height: '42px',
