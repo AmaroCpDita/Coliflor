@@ -994,6 +994,8 @@ body {
   display: flex;
   flex-direction: column;
   transition: padding-bottom 0.2s ease-out;
+  position: relative;
+  z-index: 110;
 }
 
 @media (max-height: 600px) {
