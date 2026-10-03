@@ -35,7 +35,7 @@ export default function WorldWelcome({ checking, failed, onRetry, onEnter }: Pro
         <h1 id="world-welcome-title">Este bosque empieza vacío.</h1>
         <p id="world-welcome-intro">Irán desbloqueando objetos con las recompensas y podrán colocarlos donde les guste.</p>
         <ol className="world-welcome__steps">
-          <li><strong>Reclamen la recompensa diaria</strong><p>El regalo de arriba trae los primeros objetos. Si ambos suben su foto del día, ganan el doble de XP.</p></li>
+          <li><strong>Hagan crecer su mundo juntos</strong><p>El calendario suma XP por sus encuentros. Cuando ambos completan las fotos de una fecha, reciben 15 XP, incluso al recuperarla. El regalo diario trae objetos.</p></li>
           <li><strong>Acomódenlo a su manera</strong><p>Con el martillo pueden mover o quitar objetos. Usen dos dedos para cambiar su tamaño.</p></li>
           <li><strong>Exploren de a poco</strong><p>Al completar el bosque se abre el siguiente bioma.</p></li>
         </ol>

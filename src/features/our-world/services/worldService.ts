@@ -47,6 +47,11 @@ export const switchBiome = (coupleId: string, biomeId: string) => forestAction('
 
 // --- World State ---
 
+export async function syncCalendarXP(coupleId: string): Promise<void> {
+  const { error } = await supabase.rpc('sync_world_date_xp', { p_couple_id: coupleId });
+  if (error && error.code !== 'PGRST202' && error.code !== '42883') throw new Error(error.message);
+}
+
 export async function initWorld(coupleId: string): Promise<RewardResult | null> {
   const { data, error } = await supabase.rpc('init_world', { p_couple_id: coupleId });
   if (error) { console.error('initWorld error:', error); return null; }

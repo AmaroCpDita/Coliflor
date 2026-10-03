@@ -705,6 +705,7 @@ export default function Calendar() {
             Simbología
           </div>
 
+          <p className="text-muted" style={{ fontSize: 'var(--font-size-sm)' }}>Su mundo gana 70 XP por verse, 100 por una cita y 150 por un viaje o día especial. Se cuenta la categoría mayor de cada fecha para ambos; el bonus de día especial se aplica una vez al mes. Las fechas futuras suman cuando llegan. Editar o borrar ajusta los puntos.</p>
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',

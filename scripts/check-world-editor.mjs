@@ -158,12 +158,12 @@ try {
   for (let level = 2; level <= 31; level++) assert.equal(LEVEL_REWARDS.find(reward => reward.level === level).unlocks.filter(unlock => unlock.type === 'item').length, 1, 'A single new object per level keeps progression gradual');
   assert(!LEVEL_REWARDS.some(reward => reward.unlocks.some(unlock => unlock.id === 'forest_heart')), 'Completion landmark cannot be obtained from a level alone');
   const journalProps = { isOpen: true, onClose() {}, async onClaim() { return { success: true }; }, async onComplete() { return { success: true }; }, onRetry() {} };
-  const progress = { visits: 1, member_visits: [1,0], level: 1, target_level: 21, target_days: 56, completed: false, can_complete: false,
+  const progress = { visits: 1, member_visits: [1,0], level: 1, target_level: 21, target_days: 0, completed: false, can_complete: false,
     goals: FOREST_GOALS.map(goal => ({ id: goal.id, current: 0, target: 3, claimed: false })) };
   assert.equal(forestCompletionPercent({ ...progress, visits: 0 }), 0);
   const journal = renderToStaticMarkup(React.createElement(ForestJournal, { ...journalProps, progress }));
   assert.equal((journal.match(/class="forest-journal__goal /g) || []).length, 5);
-  assert(journal.includes('56') && journal.includes('consecutivas') && journal.includes('forest-heart-v1-thumb.webp'));
+  assert(!journal.includes('Días visitando el bosque') && journal.includes('encuentros y su racha') && journal.includes('forest-heart-v1-thumb.webp'));
   assert(journal.includes('disabled=""'), 'Unavailable goals and finale remain disabled');
   assert(!renderToStaticMarkup(React.createElement(ForestJournal, { ...journalProps, progress: null, unavailable: true })).includes('Reintentar'));
   const loadingJournal = renderToStaticMarkup(React.createElement(ForestJournal, { ...journalProps, progress: null, loading: true }));

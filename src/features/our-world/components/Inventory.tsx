@@ -77,7 +77,7 @@ export default function Inventory({ isOpen, onClose, items, onSelectItem, select
               }) && <p className="world-inventory__hint">Estás en {getBiomeDef(biomeId)?.name || biomeId}. Los objetos de otros biomas siguen siendo tuyos: podrás colocarlos al visitar su bioma.</p>}
               {tab === 'collection' ? (
                 <>
-                  <p className="world-inventory__hint">Cada nivel trae algo nuevo para hacer crecer su mundo. Las rachas dan copias extra de objetos disponibles.</p>
+                  <p className="world-inventory__hint">Cada nivel trae algo nuevo. Disponible significa que puedes obtenerlo; para colocarlo necesitas una copia en Mis objetos. El regalo diario da copias extra.</p>
                   <div className="world-inventory__grid">
                     {[...ALL_OBJECTS].sort((a, b) => a.requiredLevel - b.requiredLevel).map(def => {
                       const chapterBlocked = forestChapterRequired && def.requiredLevel >= 21;
@@ -87,7 +87,7 @@ export default function Inventory({ isOpen, onClose, items, onSelectItem, select
                       return <button type="button" key={def.id} className={`world-inventory__item world-collection__item ${unlocked ? '' : 'world-collection__item--locked'}`} title={def.description} disabled={isSaving || !action?.canSelect} onClick={() => action?.select()}>
                         <ObjectPreview itemId={def.id} />
                         <span className="world-inventory__item-name">{def.name}</span>
-                        <span className="world-collection__status">{unlocked ? (catalogUnavailable && !owned.has(def.id) && def.requiredLevel > 1 ? 'Por recibir' : '✓ Desbloqueado') : def.unlockCondition || (chapterBlocked && level >= def.requiredLevel) ? '💚 Completa el bosque' : `🔒 Nivel ${def.requiredLevel}`}</span>
+                        <span className="world-collection__status">{unlocked ? (owned.has(def.id) ? '✓ Obtenido' : catalogUnavailable && def.requiredLevel > 1 ? 'Por recibir' : 'Disponible para obtener') : def.unlockCondition || (chapterBlocked && level >= def.requiredLevel) ? '💚 Completa el bosque' : `🔒 Nivel ${def.requiredLevel}`}</span>
                         {item && <span className="world-collection__status">{action?.compatible ? `Colocar · ×${item.quantity}` : action?.destination ? `Ir a ${getBiomeDef(action.destination)?.name} y colocar` : `Para ${def.biomes?.map(id => getBiomeDef(id)?.name || id).join(' / ')}`}</span>}
                         {!item && unlocked && <span className="world-collection__status">{owned.has(def.id) ? 'Ya colocado' : 'Sin copias disponibles'}</span>}
                       </button>;

@@ -108,6 +108,7 @@ export function useWorld() {
     try {
       // New worlds begin empty; initializing never refills an existing inventory.
       if (!await worldService.getWorldState(coupleId)) await worldService.initWorld(coupleId);
+      await worldService.syncCalendarXP(coupleId);
 
       const [state, inv, placed, achv, intro] = await Promise.all([
         worldService.getWorldState(coupleId),
@@ -232,12 +233,23 @@ export function useWorld() {
     const boostChannel = supabase.channel(`world-streak-today-${coupleId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'streak_photos', filter: `couple_id=eq.${coupleId}` }, refreshBoost)
       .subscribe();
-    const onFocus = () => { refreshBoost(); };
+    const reconcile = () => {
+      worldService.syncCalendarXP(coupleId)
+        .then(() => worldService.getWorldState(coupleId))
+        .then(state => { if (state && activeCoupleRef.current === coupleId) setWorldState(state); })
+        .catch(err => console.error('Calendar XP sync:', err));
+    };
+    const onFocus = () => { refreshBoost(); reconcile(); };
+    const calendarChannel = supabase.channel(`world-calendar-${coupleId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events', filter: `couple_id=eq.${coupleId}` }, reconcile)
+      .subscribe();
+    const dateTimer = window.setInterval(reconcile, 60000);
     window.addEventListener('focus', onFocus);
-    realtimeChannelsRef.current = [stateChannel, objChannel, invChannel, forestChannel, boostChannel];
+    realtimeChannelsRef.current = [stateChannel, objChannel, invChannel, forestChannel, boostChannel, calendarChannel];
 
     return () => {
       window.removeEventListener('focus', onFocus);
+      window.clearInterval(dateTimer);
       realtimeChannelsRef.current.forEach(ch => supabase.removeChannel(ch));
       realtimeChannelsRef.current = [];
     };
@@ -354,7 +366,7 @@ export function useWorld() {
     placedObjects,
     achievements,
     dayNight,
-    xpBoostActive: (worldState?.progression_version || 1) >= 4 && boostDay === forestDay,
+    xpBoostActive: !worldState?.calendar_xp_started_on && (worldState?.progression_version || 1) >= 4 && boostDay === forestDay,
     isLoading,
     error,
     pendingReward,

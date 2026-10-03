@@ -26,6 +26,7 @@ export interface WorldState {
   xp: number;
   progression_version?: number;
   onboarding_epoch?: string | null;
+  calendar_xp_started_on?: string;
   forest_completed_at?: string | null;
   energy: number;
   max_energy: number;
