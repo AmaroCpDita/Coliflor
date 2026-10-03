@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  // Keep the live app independent from scripts that create their own Vite server.
+  cacheDir: 'node_modules/.vite-app',
   plugins: [
     react(),
     VitePWA({
@@ -38,9 +40,22 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Illustrated world assets can exceed Workbox's default 2 MiB limit.
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         importScripts: ['https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js'],
         globPatterns: ['**/*.{js,css,html,ico,png,jpg,jpeg,webp,svg,woff2}'],
+        // Fetch garden artwork when used instead of downloading the entire collection at install.
+        globIgnores: ['assets/world/**'],
         runtimeCaching: [
+          {
+            urlPattern: /\/assets\/world\/.*\.(?:png|webp|svg)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'world-artwork-v3',
+              expiration: { maxEntries: 128, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',

@@ -105,16 +105,27 @@ function IconBucketList({ active }: { active?: boolean }) {
 
 function IconSettings() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polygon points="10.61,2.10 13.39,2.10 13.88,4.74 15.81,5.54 18.02,4.01 19.99,5.98 18.46,8.19 19.26,10.12 21.90,10.61 21.90,13.39 19.26,13.88 18.46,15.81 19.99,18.02 18.02,19.99 15.81,18.46 13.88,19.26 13.39,21.90 10.61,21.90 10.12,19.26 8.19,18.46 5.98,19.99 4.01,18.02 5.54,15.81 4.74,13.88 2.10,13.39 2.10,10.61 4.74,10.12 5.54,8.19 4.01,5.98 5.98,4.01 8.19,5.54 10.12,4.74" />
       <circle cx="12" cy="12" r="3"></circle>
     </svg>
   );
 }
 
+function IconWorld({ active }: { active?: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+      <path d="M2 12h20" />
+    </svg>
+  );
+}
 
 
 const NAV_ITEMS = [
   { path: '/', label: 'Inicio', icon: IconHome },
+  { path: '/world', label: 'Mundo', icon: IconWorld },
   { path: '/streak', label: 'Racha', icon: IconStreak },
   { path: '/quiz', label: 'Quiz', icon: IconQuiz },
   { path: '/calendar', label: 'Agenda', icon: IconCalendar },
@@ -498,7 +509,7 @@ export default function Layout() {
     <>
       {/* Top Header */}
       <header className="top-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <NavLink to="/settings" className="hamburger-btn" style={{ textDecoration: 'none', color: 'inherit' }} title="Ajustes">
+        <NavLink to="/settings" className="hamburger-btn" style={{ textDecoration: 'none', color: 'inherit' }} title="Configuración" aria-label="Configuración">
           <IconSettings />
         </NavLink>
         <h1 className="top-header__title">Coliflor</h1>

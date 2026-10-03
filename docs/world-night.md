@@ -1,0 +1,15 @@
+# Day and night scenery
+
+The forest and garden share two painted landscapes registered to the same world camera: `public/assets/world/garden-empty-v3.png` and `public/assets/world/garden-night-v1.png`. The night image changes sky, vegetation, path and water lighting, rather than relying on the ambient overlay. Its opacity fades during the first third of morning and throughout evening; daytime is fully daylight and nighttime fully moonlit. Object coordinates and progressive placement are unchanged.
+
+Ambient fireflies use an intermediate density: twelve at night and seven at dusk, with smaller glows and a lower-screen spawning area. Placed shrubs show up to four each, with a total budget of twelve. Stars are limited to ten. Particle types that are absent from the next phase are removed when configs change, so night fireflies do not linger in daytime.
+
+Every light source has a separate ground spill with a world-unit radius, depth and intensity. The lamp reaches 145 units with strength .52; indoor windows spill 95–115 units at .18–.24; the well lantern reaches 85 units at .34; mushrooms only 28–45 units at .16–.24. Pools follow the emitter's horizontal position, flipping and saved rotation, sit at the ground anchor, scale with the source/camera, and fade smoothly toward their edges. Screen blending brightens the visible terrain and neighboring objects locally; this is stylized 2D lighting without geometry-based shadow occlusion. Bulb blooms are distinct from the wider ground illumination.
+
+Generated with the built-in imagegen tool, using the daytime landscape as the edit target. Saved asset: `public/assets/world/garden-night-v1.png`.
+
+Exact prompt:
+
+> Use case: lighting-weather. Asset type: portrait background for a progressive garden game. Input image is the edit target. Convert this EXACT landscape into a true moonlit night painting. Preserve the camera, framing, all terrain geometry, path, pond outline, rocks, trees, mountains and open placement clearings in exactly the same pixel positions. Keep the same portrait aspect ratio and painterly game style. Replace bright blue daytime sky with deep midnight indigo, subtle cool clouds and a sparse few tiny distant stars. No sun, no large moon (moon is rendered by the game separately). Repaint illumination throughout: dark emerald and blue-green vegetation, cool moonlit highlights, deep soft shadows, no golden sunny grass or sunlit yellow path. Pond has dark navy water with muted silver-blue reflections. Clearly night but readable, magical tranquil atmosphere. No fireflies or glowing dots on the ground, no lamps, buildings, benches, characters or new objects. No text, no interface. This is a genuine night lighting edit rather than a dark translucent filter. Strictly lock scene layout for switching between the daytime and nighttime images.
+
+Validation: `npm run build` and `node scripts/check-world-editor.mjs`. The editor checks include day/night landscape markup, dawn/dusk interpolation and the shrub firefly budget. The generated artwork was visually inspected; no live browser interaction was available in this session.

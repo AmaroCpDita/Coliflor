@@ -9,6 +9,7 @@ import { Suspense, lazy } from 'react';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import LoadingScreen from './components/LoadingScreen';
+import AppErrorBoundary from './components/AppErrorBoundary';
 
 // Lazy-loaded pages for code splitting
 const Setup = lazy(() => import('./pages/Setup'));
@@ -20,6 +21,7 @@ const Messages = lazy(() => import('./pages/Messages'));
 const Settings = lazy(() => import('./pages/Settings'));
 const BucketList = lazy(() => import('./pages/BucketList'));
 const MapPage = lazy(() => import('./pages/Map'));
+const OurWorldPage = lazy(() => import('./features/our-world/OurWorldPage'));
 
 import { useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
@@ -53,6 +55,7 @@ function AppRoutes() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/bucket-list" element={<BucketList />} />
           <Route path="/map" element={<MapPage />} />
+          <Route path="/world" element={<OurWorldPage />} />
           <Route path="/setup" element={<Setup />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -66,7 +69,9 @@ export default function App() {
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <AppRoutes />
+          <AppErrorBoundary>
+            <AppRoutes />
+          </AppErrorBoundary>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

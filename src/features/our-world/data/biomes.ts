@@ -1,0 +1,197 @@
+// ============================================================
+// Nuestro Mundo — Biome Definitions (Data-Driven)
+// ============================================================
+
+import type { BiomeDef } from '../types';
+
+export const BIOMES: BiomeDef[] = [
+  {
+    id: 'forest',
+    name: 'Bosque Encantado',
+    description: 'Un bosque mágico lleno de vida y misterio.',
+    emoji: '🌳',
+    requiredLevel: 1,
+    isDefault: true,
+    skyGradients: {
+      morning: ['#FFE4B5', '#FFB347', '#87CEEB', '#B0E0E6'],
+      day: ['#87CEEB', '#B0E0E6', '#E0F0FF', '#F0F8FF'],
+      evening: ['#2C1810', '#8B4513', '#CD853F', '#DEB887', '#F4A460'],
+      night: ['#0a0a1a', '#0d1117', '#1a1a3e', '#191970'],
+    },
+    groundColor: '#2d4a2e',
+    groundGradient: 'linear-gradient(180deg, #3a5a3b 0%, #2d4a2e 40%, #1e3520 100%)',
+    defaultObjects: ['oak_tree', 'pine_tree', 'fern', 'wild_grass', 'mushroom_red', 'stone_small', 'basic_flower'],
+    creatures: ['rabbit', 'squirrel', 'butterfly', 'bird', 'fox', 'deer', 'owl'],
+    particles: {
+      morning: [
+        { type: 'dust', count: 15, area: [0, 100, 10, 90], size: [1, 3], speed: [0.1, 0.3], opacity: [0.1, 0.3], life: [200, 400], colors: ['#FFD700', '#FFF8DC'], behavior: 'float', glow: 2, pulseSpeed: 0 },
+        { type: 'leaf', count: 4, area: [0, 100, 0, 60], size: [4, 8], speed: [0.3, 0.8], opacity: [0.4, 0.7], life: [150, 300], colors: ['#228B22', '#32CD32', '#90EE90'], behavior: 'fall', glow: 0, pulseSpeed: 0 },
+      ],
+      day: [
+        { type: 'dust', count: 10, area: [0, 100, 20, 80], size: [1, 2], speed: [0.05, 0.2], opacity: [0.1, 0.2], life: [300, 500], colors: ['#FFFFF0', '#FAFAD2'], behavior: 'float', glow: 1, pulseSpeed: 0 },
+        { type: 'leaf', count: 3, area: [0, 100, 0, 50], size: [4, 7], speed: [0.2, 0.6], opacity: [0.3, 0.6], life: [200, 400], colors: ['#228B22', '#32CD32', '#6B8E23'], behavior: 'fall', glow: 0, pulseSpeed: 0 },
+      ],
+      evening: [
+        { type: 'firefly', count: 20, area: [5, 95, 20, 85], size: [2, 4], speed: [0.1, 0.4], opacity: [0.3, 0.9], life: [200, 500], colors: ['#FFFF66', '#FFE44D', '#FFCC00'], behavior: 'wander', glow: 8, pulseSpeed: 0.02 },
+        { type: 'dust', count: 8, area: [0, 100, 30, 90], size: [1, 2], speed: [0.05, 0.15], opacity: [0.05, 0.15], life: [300, 600], colors: ['#DEB887', '#D2B48C'], behavior: 'float', glow: 0, pulseSpeed: 0 },
+      ],
+      night: [
+        { type: 'firefly', count: 35, area: [5, 95, 15, 90], size: [2, 5], speed: [0.1, 0.5], opacity: [0.4, 1.0], life: [250, 600], colors: ['#FFFF66', '#FFE44D', '#FFCC00', '#7FFF00'], behavior: 'wander', glow: 12, pulseSpeed: 0.03 },
+        { type: 'star', count: 40, area: [0, 100, 0, 35], size: [1, 3], speed: [0, 0], opacity: [0.2, 0.8], life: [500, 1000], colors: ['#FFFFFF', '#F0F0FF', '#E8E8FF'], behavior: 'float', glow: 3, pulseSpeed: 0.01 },
+      ],
+    },
+    ambientOverlay: {
+      morning: 'rgba(255, 200, 100, 0.08)',
+      day: 'rgba(255, 255, 255, 0.03)',
+      evening: 'rgba(255, 140, 50, 0.12)',
+      night: 'rgba(20, 20, 60, 0.35)',
+    },
+    fogColor: '#c8d6c0',
+    fogOpacity: { morning: 0.15, day: 0.05, evening: 0.1, night: 0.2 },
+  },
+  {
+    id: 'garden',
+    name: 'Jardín Secreto',
+    description: 'Un jardín lleno de flores y paz.',
+    emoji: '🌺',
+    requiredLevel: 21,
+    skyGradients: {
+      morning: ['#FFECD2', '#FCB69F', '#A8EDEA', '#FED6E3'],
+      day: ['#89CFF0', '#B0E0E6', '#E6F3FF', '#F8F8FF'],
+      evening: ['#3D1C02', '#8B4513', '#D2691E', '#FFDAB9'],
+      night: ['#0a0a1a', '#101030', '#1a1a40', '#2a2a5a'],
+    },
+    groundColor: '#4a7c4b',
+    groundGradient: 'linear-gradient(180deg, #5a9c5b 0%, #4a7c4b 40%, #3a6c3b 100%)',
+    defaultObjects: ['basic_flower', 'daisy', 'tulip', 'sunflower', 'rose', 'stone_bench', 'garden_arch'],
+    creatures: ['rabbit', 'butterfly', 'bird', 'squirrel'],
+    particles: {
+      morning: [
+        { type: 'petal', count: 12, area: [0, 100, 0, 70], size: [3, 6], speed: [0.2, 0.5], opacity: [0.4, 0.7], life: [150, 300], colors: ['#FFB6C1', '#FF69B4', '#FFC0CB', '#FFFFFF'], behavior: 'fall', glow: 0, pulseSpeed: 0 },
+      ],
+      day: [
+        { type: 'petal', count: 8, area: [0, 100, 0, 60], size: [3, 6], speed: [0.15, 0.4], opacity: [0.3, 0.6], life: [150, 300], colors: ['#FFB6C1', '#FF69B4', '#FFFFFF'], behavior: 'fall', glow: 0, pulseSpeed: 0 },
+        { type: 'dust', count: 6, area: [0, 100, 30, 80], size: [1, 2], speed: [0.05, 0.15], opacity: [0.1, 0.2], life: [300, 500], colors: ['#FFFFF0'], behavior: 'float', glow: 1, pulseSpeed: 0 },
+      ],
+      evening: [
+        { type: 'firefly', count: 15, area: [5, 95, 25, 85], size: [2, 4], speed: [0.1, 0.3], opacity: [0.3, 0.8], life: [200, 500], colors: ['#FFFF66', '#FFE44D'], behavior: 'wander', glow: 8, pulseSpeed: 0.02 },
+      ],
+      night: [
+        { type: 'firefly', count: 25, area: [5, 95, 15, 90], size: [2, 4], speed: [0.1, 0.4], opacity: [0.4, 1.0], life: [250, 600], colors: ['#FFFF66', '#FFE44D', '#FFCC00'], behavior: 'wander', glow: 10, pulseSpeed: 0.025 },
+        { type: 'star', count: 30, area: [0, 100, 0, 30], size: [1, 2], speed: [0, 0], opacity: [0.2, 0.7], life: [500, 1000], colors: ['#FFFFFF', '#F0F0FF'], behavior: 'float', glow: 2, pulseSpeed: 0.01 },
+      ],
+    },
+    ambientOverlay: {
+      morning: 'rgba(255, 220, 180, 0.1)',
+      day: 'rgba(255, 255, 255, 0.03)',
+      evening: 'rgba(255, 150, 80, 0.1)',
+      night: 'rgba(20, 20, 50, 0.3)',
+    },
+  },
+  {
+    id: 'beach',
+    name: 'Playa Secreta',
+    description: 'Una playa tranquila solo para ustedes.',
+    emoji: '🏖️',
+    requiredLevel: 31,
+    skyGradients: {
+      morning: ['#FFF5E6', '#FFD700', '#87CEEB', '#00BFFF'],
+      day: ['#00BFFF', '#87CEEB', '#E0F7FF', '#F0FFFF'],
+      evening: ['#1a0a00', '#8B0000', '#FF4500', '#FF8C00', '#FFD700'],
+      night: ['#000510', '#0a1628', '#162040', '#1a2a5a'],
+    },
+    groundColor: '#e6d5a8',
+    groundGradient: 'linear-gradient(180deg, #d4c494 0%, #e6d5a8 30%, #f0e6c8 70%, #4da6c9 85%, #2980b9 100%)',
+    defaultObjects: [],
+    creatures: [],
+    particles: {
+      morning: [{ type: 'dust', count: 8, area: [0, 100, 40, 90], size: [1, 2], speed: [0.1, 0.3], opacity: [0.1, 0.2], life: [200, 400], colors: ['#FFFFF0'], behavior: 'drift', glow: 0, pulseSpeed: 0 }],
+      day: [{ type: 'dust', count: 5, area: [0, 100, 50, 90], size: [1, 2], speed: [0.1, 0.2], opacity: [0.1, 0.15], life: [300, 500], colors: ['#FFFFF0'], behavior: 'drift', glow: 0, pulseSpeed: 0 }],
+      evening: [{ type: 'firefly', count: 10, area: [5, 95, 20, 70], size: [2, 3], speed: [0.1, 0.3], opacity: [0.3, 0.7], life: [200, 400], colors: ['#FFFF66'], behavior: 'wander', glow: 6, pulseSpeed: 0.02 }],
+      night: [
+        { type: 'firefly', count: 15, area: [5, 95, 15, 75], size: [2, 4], speed: [0.1, 0.4], opacity: [0.4, 0.9], life: [200, 500], colors: ['#FFFF66', '#FFE44D'], behavior: 'wander', glow: 10, pulseSpeed: 0.025 },
+        { type: 'star', count: 50, area: [0, 100, 0, 40], size: [1, 3], speed: [0, 0], opacity: [0.3, 0.9], life: [500, 1000], colors: ['#FFFFFF', '#F0F0FF', '#E0E0FF'], behavior: 'float', glow: 3, pulseSpeed: 0.008 },
+      ],
+    },
+    ambientOverlay: {
+      morning: 'rgba(255, 240, 200, 0.08)',
+      day: 'rgba(255, 255, 255, 0.02)',
+      evening: 'rgba(255, 100, 30, 0.15)',
+      night: 'rgba(10, 10, 40, 0.35)',
+    },
+  },
+  {
+    id: 'magical',
+    name: 'Claro Mágico',
+    description: 'Un claro en el bosque lleno de magia.',
+    emoji: '✨',
+    requiredLevel: 41,
+    skyGradients: {
+      morning: ['#E8D5F5', '#C8A2C8', '#DDA0DD', '#E6E6FA'],
+      day: ['#9370DB', '#BA55D3', '#DDA0DD', '#E6E6FA'],
+      evening: ['#2D1B4E', '#4B0082', '#800080', '#DA70D6'],
+      night: ['#0a0014', '#110022', '#1a0033', '#2d0055'],
+    },
+    groundColor: '#2a3a4a',
+    groundGradient: 'linear-gradient(180deg, #3a4a5a 0%, #2a3a4a 40%, #1a2a3a 100%)',
+    defaultObjects: ['rare_orchid', 'willow_tree'],
+    creatures: ['deer', 'fox', 'owl'],
+    particles: {
+      morning: [{ type: 'magic', count: 20, area: [0, 100, 10, 90], size: [2, 5], speed: [0.1, 0.3], opacity: [0.3, 0.7], life: [200, 500], colors: ['#DA70D6', '#BA55D3', '#9370DB', '#E6E6FA'], behavior: 'wander', glow: 8, pulseSpeed: 0.02 }],
+      day: [{ type: 'magic', count: 15, area: [0, 100, 15, 85], size: [2, 4], speed: [0.1, 0.3], opacity: [0.2, 0.5], life: [200, 500], colors: ['#DA70D6', '#BA55D3', '#FFFFFF'], behavior: 'wander', glow: 6, pulseSpeed: 0.015 }],
+      evening: [{ type: 'magic', count: 30, area: [0, 100, 5, 95], size: [2, 6], speed: [0.1, 0.4], opacity: [0.4, 0.9], life: [200, 600], colors: ['#DA70D6', '#FFD700', '#7FFF00', '#FF69B4'], behavior: 'wander', glow: 12, pulseSpeed: 0.03 }],
+      night: [
+        { type: 'magic', count: 40, area: [0, 100, 5, 95], size: [2, 6], speed: [0.1, 0.5], opacity: [0.5, 1.0], life: [250, 700], colors: ['#DA70D6', '#FFD700', '#7FFF00', '#FF69B4', '#00FFFF'], behavior: 'wander', glow: 15, pulseSpeed: 0.035 },
+        { type: 'star', count: 30, area: [0, 100, 0, 30], size: [1, 3], speed: [0, 0], opacity: [0.3, 0.9], life: [500, 1000], colors: ['#FFFFFF', '#E6E6FA'], behavior: 'float', glow: 4, pulseSpeed: 0.01 },
+      ],
+    },
+    ambientOverlay: {
+      morning: 'rgba(200, 162, 200, 0.1)',
+      day: 'rgba(150, 100, 200, 0.08)',
+      evening: 'rgba(100, 0, 150, 0.15)',
+      night: 'rgba(30, 0, 60, 0.3)',
+    },
+  },
+  {
+    id: 'mountain',
+    name: 'Montaña Nevada',
+    description: 'Cumbres nevadas con una vista maravillosa.',
+    emoji: '🏔️',
+    requiredLevel: 51,
+    skyGradients: {
+      morning: ['#FFF0E0', '#FFD4A8', '#A8D8EA', '#D4E8F0'],
+      day: ['#6CA6CD', '#87CEEB', '#C0E0F0', '#E8F4F8'],
+      evening: ['#1C1008', '#4A2000', '#8B4513', '#CD853F'],
+      night: ['#050510', '#0A0A1A', '#101030', '#151540'],
+    },
+    groundColor: '#8a9a7a',
+    groundGradient: 'linear-gradient(180deg, #FFFFFF 0%, #E8E8E8 15%, #9aaa8a 40%, #7a8a6a 100%)',
+    defaultObjects: ['pine_tree', 'stone_small'],
+    creatures: ['bird', 'owl'],
+    particles: {
+      morning: [{ type: 'dust', count: 8, area: [0, 100, 20, 80], size: [1, 2], speed: [0.1, 0.3], opacity: [0.1, 0.2], life: [200, 400], colors: ['#FFFFFF', '#F0F0FF'], behavior: 'drift', glow: 0, pulseSpeed: 0 }],
+      day: [{ type: 'dust', count: 5, area: [0, 100, 30, 70], size: [1, 2], speed: [0.05, 0.2], opacity: [0.05, 0.15], life: [300, 500], colors: ['#FFFFFF'], behavior: 'drift', glow: 0, pulseSpeed: 0 }],
+      evening: [{ type: 'snow', count: 10, area: [0, 100, 0, 100], size: [2, 4], speed: [0.2, 0.5], opacity: [0.3, 0.6], life: [200, 400], colors: ['#FFFFFF', '#F0F8FF'], behavior: 'fall', glow: 0, pulseSpeed: 0 }],
+      night: [
+        { type: 'snow', count: 15, area: [0, 100, 0, 100], size: [2, 5], speed: [0.2, 0.6], opacity: [0.3, 0.7], life: [200, 500], colors: ['#FFFFFF', '#F0F8FF'], behavior: 'fall', glow: 0, pulseSpeed: 0 },
+        { type: 'star', count: 60, area: [0, 100, 0, 35], size: [1, 3], speed: [0, 0], opacity: [0.4, 1.0], life: [500, 1000], colors: ['#FFFFFF', '#F0F0FF', '#E0E0FF'], behavior: 'float', glow: 4, pulseSpeed: 0.008 },
+      ],
+    },
+    ambientOverlay: {
+      morning: 'rgba(255, 230, 200, 0.08)',
+      day: 'rgba(200, 220, 255, 0.05)',
+      evening: 'rgba(200, 100, 50, 0.1)',
+      night: 'rgba(10, 10, 30, 0.4)',
+    },
+  },
+];
+
+/** Look up biome by ID */
+export function getBiomeDef(id: string): BiomeDef | undefined {
+  return BIOMES.find(b => b.id === id);
+}
+
+/** Get all biomes unlocked at a given level */
+export function getUnlockedBiomes(level: number): BiomeDef[] {
+  return BIOMES.filter(b => b.requiredLevel <= level);
+}
