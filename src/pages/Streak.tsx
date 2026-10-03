@@ -716,7 +716,6 @@ export default function Streak() {
   return (
     <PageTransition className="page">
       <div className="stack stack--xl stagger-children">
-        <p className="text-muted text-center" style={{ fontSize: 'var(--font-size-sm)' }}>Cada fecha completada con las fotos de ambos suma 15 XP a su mundo. Las recuperaciones también cuentan cuando ambos completan esa fecha, una sola vez.</p>
         {/* Header Hero */}
         <div className="text-center" style={{ paddingTop: 'var(--space-md)' }}>
           <div style={{ 

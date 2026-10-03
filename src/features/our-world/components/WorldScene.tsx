@@ -16,6 +16,7 @@ import WorldCompanions from './WorldCompanions';
 import { getWorldCompanions } from '../data/companions';
 import type { WorldCompanionDef } from '../data/companions';
 import WorldHUD from './WorldHUD';
+import WorldWelcome from './WorldWelcome';
 import Inventory from './Inventory';
 import WorldMap from './WorldMap';
 import RewardModal from './RewardModal';
@@ -67,6 +68,7 @@ export default function WorldScene({
   forestProgress = null, forestUnavailable, forestLoading, onRetryForest, onClaimForestGoal, onCompleteForest, onSwitchBiome,
 }: WorldSceneProps) {
   const [showInventory, setShowInventory] = useState(false);
+  const [showWorldHelp, setShowWorldHelp] = useState(false);
   const [inventorySelectionError, setInventorySelectionError] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
   const [showForest, setShowForest] = useState(false);
@@ -564,6 +566,7 @@ export default function WorldScene({
         worldState={worldState}
         dayNight={dayNight}
         xpBoostActive={xpBoostActive}
+        onOpenHelp={() => setShowWorldHelp(true)}
         onOpenForest={biomeId === 'forest' && !buildMode ? () => { if (!savingRef.current) { onRetryForest?.(); setShowForest(true); } } : undefined}
         onOpenInventory={() => { if (!savingRef.current) { setInventorySelectionError(null); setShowInventory(true); } }}
         onOpenMap={() => { if (!savingRef.current) setShowMap(true); }}
@@ -577,6 +580,7 @@ export default function WorldScene({
       />}
 
       {/* Panels */}
+      {showWorldHelp && <WorldWelcome checking={false} failed={false} onRetry={() => {}} onEnter={async () => { setShowWorldHelp(false); return true; }} />}
       <Inventory
         isOpen={showInventory}
         onClose={() => setShowInventory(false)}

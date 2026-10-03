@@ -12,6 +12,7 @@ interface WorldHUDProps {
   onOpenInventory: () => void;
   onOpenMap: () => void;
   onOpenForest?: () => void;
+  onOpenHelp?: () => void;
   xpBoostActive?: boolean;
   onToggleBuild: () => void;
   onClaimDaily: () => void;
@@ -61,16 +62,9 @@ function IconGift() {
   );
 }
 
-const TIME_EMOJI: Record<string, string> = {
-  morning: '🌅',
-  day: '☀️',
-  evening: '🌇',
-  night: '🌙',
-};
-
 export default function WorldHUD({
-  worldState, dayNight, onOpenInventory, onOpenMap,
-  onToggleBuild, onClaimDaily, buildMode, canClaimDaily, onOpenForest, xpBoostActive,
+  worldState, onOpenInventory, onOpenMap,
+  onToggleBuild, onClaimDaily, buildMode, canClaimDaily, onOpenForest, onOpenHelp, xpBoostActive,
 }: WorldHUDProps) {
   if (!worldState) return null;
 
@@ -85,7 +79,7 @@ export default function WorldHUD({
           <span className="world-hud__level-badge">Nv. {worldState.level}</span>
           <span className="world-hud__xp-text">{worldState.xp} / {xpNeeded} XP</span>
           {xpBoostActive && <span className="world-hud__xp-boost" title="Ambos subieron su foto hoy. XP doble hasta medianoche en Santiago.">×2 hoy</span>}
-          <span className="world-hud__time">{TIME_EMOJI[dayNight.phase] || '☀️'}</span>
+          {onOpenHelp && <button type="button" className="world-hud__btn world-hud__xp-help" onClick={onOpenHelp} aria-label="Cómo funciona nuestro mundo y la XP" title="Cómo ganar XP">!</button>}
         </div>
         <div className="world-hud__xp-bar">
           <div className="world-hud__xp-fill" style={{ width: `${Math.min(100, xpProgress)}%` }} />
@@ -94,7 +88,7 @@ export default function WorldHUD({
 
       {/* Action buttons */}
       <div className="world-hud__actions">
-        {onOpenForest && <button className="world-hud__btn" onClick={onOpenForest} title="Diario del bosque" aria-label="Abrir diario del bosque">
+        {onOpenForest && <button className="world-hud__btn world-hud__btn--objectives" onClick={onOpenForest} title="Diario del bosque" aria-label="Abrir diario del bosque">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v16M12 5C8 2 4 3 2 4v15c3-1 6-1 10 2 4-3 7-3 10-2V4c-2-1-6-2-10 1Z" /></svg>
         </button>}
         <button className={`world-hud__btn ${canClaimDaily ? 'world-hud__btn--daily' : 'world-hud__btn--claimed'}`} onClick={onClaimDaily}

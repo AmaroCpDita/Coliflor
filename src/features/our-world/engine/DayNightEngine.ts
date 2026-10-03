@@ -10,11 +10,11 @@ import { getNowInTimezone } from '../../../lib/utils';
 
 /** Phase boundaries (hour ranges) */
 const PHASES: Array<{ phase: TimeOfDay; start: number; end: number }> = [
-  { phase: 'night', start: 0, end: 6 },
-  { phase: 'morning', start: 6, end: 12 },
+  { phase: 'night', start: 0, end: 6.5 },
+  { phase: 'morning', start: 6.5, end: 12 },
   { phase: 'day', start: 12, end: 17 },
-  { phase: 'evening', start: 17, end: 21 },
-  { phase: 'night', start: 21, end: 24 },
+  { phase: 'evening', start: 17, end: 20 },
+  { phase: 'night', start: 20, end: 24 },
 ];
 
 /** Get current phase and progress */

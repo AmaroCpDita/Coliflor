@@ -82,12 +82,21 @@ define(['./workbox-afac4cd2'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.db1s7lr3hu8"
+    "revision": "0.kms40l6a2c"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
     allowlist: [/^\/$/]
   }));
+  workbox.registerRoute(/\/assets\/world\/.*\.(?:png|webp|svg)$/i, new workbox.CacheFirst({
+    "cacheName": "world-artwork-v3",
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 128,
+      maxAgeSeconds: 31536000
+    }), new workbox.CacheableResponsePlugin({
+      statuses: [0, 200]
+    })]
+  }), 'GET');
   workbox.registerRoute(/^https:\/\/fonts\.googleapis\.com\/.*/i, new workbox.CacheFirst({
     "cacheName": "google-fonts-cache",
     plugins: [new workbox.ExpirationPlugin({

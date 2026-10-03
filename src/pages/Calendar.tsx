@@ -15,6 +15,7 @@ interface CategoryConfig {
   id: EventCategory;
   label: string;
   color: string;
+  points: number;
 }
 
 interface DayPhotos {
@@ -24,11 +25,11 @@ interface DayPhotos {
 }
 
 const CATEGORIES: CategoryConfig[] = [
-  { id: 'nos_vimos', label: 'Nos vimos', color: '#F59E0B' }, // Vibrant Amber
-  { id: 'cita', label: 'Cita / Salida', color: '#EF4444' }, // Vibrant Red
-  { id: 'aniversario', label: 'Día especial', color: '#8B5CF6' }, // Vibrant Purple
-  { id: 'viaje', label: 'Viaje / Escapada', color: '#3B82F6' }, // Vibrant Blue
-  { id: 'nota', label: 'Nota / Recuerdo', color: '#10B981' }, // Vibrant Green
+  { id: 'nos_vimos', label: 'Nos vimos', color: '#F59E0B', points: 70 }, // Vibrant Amber
+  { id: 'cita', label: 'Cita / Salida', color: '#EF4444', points: 100 }, // Vibrant Red
+  { id: 'aniversario', label: 'Día especial', color: '#8B5CF6', points: 150 }, // Vibrant Purple
+  { id: 'viaje', label: 'Viaje / Escapada', color: '#3B82F6', points: 150 }, // Vibrant Blue
+  { id: 'nota', label: 'Nota / Recuerdo', color: '#10B981', points: 0 }, // Vibrant Green
 ];
 
 const PLACEHOLDERS: Record<EventCategory, string> = {
@@ -705,7 +706,6 @@ export default function Calendar() {
             Simbología
           </div>
 
-          <p className="text-muted" style={{ fontSize: 'var(--font-size-sm)' }}>Su mundo gana 70 XP por verse, 100 por una cita y 150 por un viaje o día especial. Se cuenta la categoría mayor de cada fecha para ambos; el bonus de día especial se aplica una vez al mes. Las fechas futuras suman cuando llegan. Editar o borrar ajusta los puntos.</p>
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
@@ -719,10 +719,14 @@ export default function Calendar() {
                   borderRadius: '50%',
                   backgroundColor: cat.color,
                   boxShadow: `0 0 6px ${cat.color}66`,
+                  flexShrink: 0,
+                  alignSelf: 'flex-start',
+                  marginTop: 5,
                 }} />
-                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                  {cat.label}
-                </span>
+                <div className="calendar-legend__text">
+                  <span>{cat.label}</span>
+                  <small>{cat.points}pts.</small>
+                </div>
               </div>
             ))}
             <div className="row row--gap-xs" style={{ padding: '4px 0' }}>
@@ -732,10 +736,14 @@ export default function Calendar() {
                 borderBottom: '6px solid var(--color-accent-light)',
                 borderLeft: '6px solid transparent',
                 opacity: 0.5,
+                flexShrink: 0,
+                alignSelf: 'flex-start',
+                marginTop: 5,
               }} />
-              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                Racha
-              </span>
+              <div className="calendar-legend__text">
+                <span>Racha</span>
+                <small>15pts.</small>
+              </div>
             </div>
           </div>
         </div>
