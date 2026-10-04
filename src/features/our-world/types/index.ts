@@ -244,6 +244,7 @@ export interface AchievementCondition {
 
 // --- Reward Result (from RPC) ---
 export interface RewardResult {
+  reward_levels?: number[];
   completed_biome?: string;
   success?: boolean;
   claimed_any?: boolean;

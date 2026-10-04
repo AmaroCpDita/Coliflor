@@ -346,7 +346,7 @@ export const DECORATIONS: WorldObjectDef[] = [
     emoji: '🏡',
     rarity: 'epic',
     category: 'structures',
-    requiredLevel: 20,
+    requiredLevel: 1,
     renderKey: 'treehouse',
     width: 14,
     height: 16,

@@ -1,0 +1,87 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { PGlite } from '../tmp.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js';
+
+const db = new PGlite();
+const u='00000000-0000-0000-0000-000000000001', p='00000000-0000-0000-0000-000000000002', c='10000000-0000-0000-0000-000000000001';
+const exec = sql => db.exec(sql);
+const value = async sql => (await db.query(sql)).rows[0].value;
+const claim = () => value(`SELECT claim_world_level_rewards('${c}') AS value`);
+const pending = () => value(`SELECT get_world_level_rewards('${c}') AS value`);
+const submit = (answers='[0,1,2,3,0]', id='daily-quiz-2026-10-04') => value(`SELECT submit_daily_quiz('${c}','${id}','${answers}'::jsonb) AS value`);
+const total = () => value(`SELECT (xp+COALESCE((SELECT SUM(world_xp_to_next(n)) FROM generate_series(1,level-1) n),0))::int AS value FROM world_states WHERE couple_id='${c}'`);
+const stock = id => value(`SELECT COALESCE(sum(quantity),0)::int AS value FROM world_inventory WHERE couple_id='${c}' AND item_id='${id}'`);
+try {
+  await exec(`CREATE ROLE authenticated; CREATE ROLE anon; CREATE SCHEMA auth;
+    CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT nullif(current_setting('test.uid',true),'')::uuid $$;
+    CREATE FUNCTION get_today_santiago() RETURNS date LANGUAGE sql AS $$ SELECT COALESCE(nullif(current_setting('test.today',true),''),'2026-10-04')::date $$;
+    CREATE TABLE profiles(id uuid PRIMARY KEY);
+    CREATE TABLE couples(id uuid PRIMARY KEY,user1_id uuid,user2_id uuid,current_streak int DEFAULT 0,max_streak int DEFAULT 0);
+    CREATE TABLE streak_photos(couple_id uuid,user_id uuid,photo_date date,uploaded_at timestamptz DEFAULT now(),PRIMARY KEY(couple_id,user_id,photo_date));
+    CREATE TABLE calendar_events(id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,couple_id uuid,event_date date,category text,created_at timestamptz DEFAULT now());
+    CREATE TABLE quiz_responses(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),couple_id uuid REFERENCES couples(id),quiz_date date,user_id uuid REFERENCES profiles(id),answers jsonb,created_at timestamptz DEFAULT now(),UNIQUE(couple_id,quiz_date,user_id));
+    INSERT INTO profiles VALUES('${u}'),('${p}'); INSERT INTO couples(id,user1_id,user2_id) VALUES('${c}','${u}','${p}'); SET test.uid='${u}';`);
+  for (const name of ['013_our_world','014_world_streak_milestones','015_world_catalog','016_world_pacing','017_forest_chapter','018_world_daily_boost','019_world_progress_repair','020_world_fresh_start','021_world_calendar_xp','022_world_starter_and_quiz','023_quiz_series','024_world_level_gifts']) {
+    await exec(readFileSync(`supabase/migrations/${name}.sql`,'utf8').replace(/^ALTER PUBLICATION[^;]*;/gm,''));
+  }
+  await value(`SELECT init_world('${c}') AS value`);
+  await exec(`INSERT INTO world_inventory(couple_id,item_type,item_id,quantity) VALUES('${c}','tree','oak_tree',1)`);
+  assert.deepEqual((await pending()).levels,[1]);
+  assert.equal(await stock('treehouse'),0,'Reading the gift never claims it automatically');
+  const first = await claim();
+  assert.deepEqual(first.reward_levels,[1]);
+  assert.equal(first.items_granted.length,4,'Four missing starter types delivered, including home');
+  assert.equal(await stock('oak_tree'),1,'Existing daily-gift oak not duplicated');
+  assert.equal(await stock('treehouse'),1,'Home at level 1');
+  assert.deepEqual((await pending()).levels,[],'Gift turns off after collecting every reward');
+  assert.equal((await claim()).already_claimed,true,'Reopening never refills welcome pack');
+  await exec(`UPDATE world_inventory SET quantity=0 WHERE item_id='basic_flower'`);
+  await claim(); assert.equal(await stock('basic_flower'),0,'Used-up stock not refilled');
+  await exec(`UPDATE world_states SET xp=97 WHERE couple_id='${c}'`);
+  const answer = await submit();
+  assert.equal(answer.xp_granted,5); assert.equal(await total(),102,'Quiz can cross a level boundary');
+  assert.deepEqual((await pending()).levels,[2],'The gift activates at the next level');
+  assert.equal(await stock('mushroom_red'),0,'Level-up unlocks the gift without delivering items');
+  await claim(); assert.equal(await stock('mushroom_red'),2,'One gift gives every copy for its level');
+  assert.equal((await submit()).xp_granted,0,'Retry earns nothing');
+  assert.deepEqual((await submit('[3,3,3,3,3]')).response.answers,[0,1,2,3,0],'Completed answers are immutable');
+  await exec(`SET test.uid='${p}'`);
+  assert.equal((await submit()).xp_granted,5); assert.equal(await total(),107,'Both partners earn once');
+  await exec(`DELETE FROM quiz_responses WHERE user_id='${p}'`);
+  assert.equal((await submit()).xp_granted,0,'Delete and resubmit cannot farm XP');
+  for (const bad of ['[]','[0,1,2,3]','[0,1,2,3,4]','[0,1,2,3,null]','[0,1,2,3,"0"]','[0,1,2,3,0.5]','{}','null']) {
+    await assert.rejects(submit(bad), /cinco preguntas/);
+  }
+  await assert.rejects(submit('[0,1,2,3,0]','daily-quiz-2026-10-05'), /cambió/);
+  await exec(`SET test.uid='00000000-0000-0000-0000-000000000099'`);
+  await assert.rejects(submit(), /Not authorized/); await assert.rejects(claim(), /Not authorized/);
+  await exec(`SET test.uid='${u}'; SET test.today='2026-10-05'`);
+  assert.equal((await submit('[0,0,0,0,0]','daily-quiz-2026-10-05')).xp_granted,5,'Next day earns normally');
+  assert.equal(await total(),112);
+  await exec(`UPDATE world_states SET level=4,xp=0 WHERE couple_id='${c}'`);
+  assert.deepEqual((await pending()).levels,[3,4],'Skipped levels stay claimable');
+  const bundle = await claim();
+  assert.deepEqual(bundle.reward_levels,[3,4]);
+  assert.equal(await stock('stepping_stones'),3); assert.equal(await stock('bush'),2);
+  assert.deepEqual((await pending()).levels,[]);
+  await exec(`SET test.uid='${p}'`);
+  assert.equal((await claim()).already_claimed,true,'Partner cannot duplicate a shared level gift');
+  await exec(`UPDATE world_states SET level=2 WHERE couple_id='${c}'`);
+  assert.deepEqual((await pending()).levels,[],'Level rollback does not reopen old gifts');
+  await exec(`UPDATE world_states SET level=4 WHERE couple_id='${c}'`);
+  assert.deepEqual((await pending()).levels,[],'Regaining a level does not duplicate its objects');
+  await exec(readFileSync('supabase/migrations/023_quiz_series.sql','utf8'));
+  assert.equal(await value('SELECT count(*)::int AS value FROM daily_quizzes'),31,'Replay preserves published schedule');
+  const payload = await value(`SELECT payload AS value FROM daily_quizzes WHERE quiz_date='2026-10-04'`);
+  await assert.rejects(exec(`INSERT INTO daily_quizzes VALUES('2027-01-01','${JSON.stringify(payload).replace(/'/g,"''")}'::jsonb)`), /unique constraint/);
+  assert.equal(await value(`SELECT count(*)::int AS value FROM daily_quizzes WHERE quiz_date='2027-01-01'`),0,'Repeated question aborts entire edition');
+  assert.equal(await value(`SELECT has_function_privilege('authenticated','grant_world_xp(uuid,text,text,integer,jsonb)','EXECUTE') AS value`),false);
+  assert.equal(await value(`SELECT has_table_privilege('authenticated','daily_quizzes','INSERT') AS value`),false);
+  const beforeReplay = await total();
+  await exec(readFileSync('supabase/activate-starter-and-quizzes.sql','utf8'));
+  assert.equal(await total(),beforeReplay,'Complete rollout preserves XP on replay');
+  assert.deepEqual((await pending()).levels,[],'Complete rollout preserves already-opened gifts');
+  await exec(`SET test.uid='${u}'`);
+  assert.equal((await submit('[0,0,0,0,0]','daily-quiz-2026-10-05')).xp_granted,0,'Rollout replay never reopens quiz XP');
+  console.log('Starter/quiz SQL passed: manual bundled level gifts, skipped levels, partner claims, level rollback, missing starters, 5 daily XP per partner, retries, authorization and unique quiz schedule.');
+} finally { await db.close(); }

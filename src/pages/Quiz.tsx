@@ -9,7 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { getTodayInTimezone, formatDate } from '../lib/utils';
 import { getDailyQuiz } from '../lib/quizBank';
-import type { QuizResponse } from '../lib/types';
+import type { DailyQuiz, QuizResponse } from '../lib/types';
 import LoadingScreen from '../components/LoadingScreen';
 
 function IconCheck() {
@@ -71,7 +71,7 @@ function getTimeUntilMidnight(): string {
 export default function Quiz() {
   const { couple, profile, partner, isMockMode } = useAuth();
   const today = getTodayInTimezone();
-  const dailyQuiz = getDailyQuiz(today);
+  const [dailyQuiz, setDailyQuiz] = useState<DailyQuiz>(() => getDailyQuiz(today));
 
   // Quiz state
   const [quizStarted, setQuizStarted] = useState(false);
@@ -81,10 +81,20 @@ export default function Quiz() {
   const [partnerResponse, setPartnerResponse] = useState<QuizResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [earnedXp, setEarnedXp] = useState(0);
+  const [quizRewardsAvailable, setQuizRewardsAvailable] = useState(false);
   const [nudgeSent, setNudgeSent] = useState(false);
 
   // Countdown timer to midnight
   const [countdownStr, setCountdownStr] = useState(getTimeUntilMidnight());
+
+  useEffect(() => {
+    setQuizStarted(false); setCurrentStep(0); setSelectedAnswers([]);
+    setMyResponse(null); setPartnerResponse(null); setEarnedXp(0);
+    setSaveError(null); setQuizRewardsAvailable(false); setNudgeSent(false);
+    setDailyQuiz(getDailyQuiz(today)); setLoading(true);
+  }, [today, couple?.id, profile?.id]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -122,11 +132,12 @@ export default function Quiz() {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('quiz_responses')
-        .select('*')
-        .eq('couple_id', couple.id)
-        .eq('quiz_date', today);
+      const [{ data, error }, scheduled] = await Promise.all([
+        supabase.from('quiz_responses').select('*').eq('couple_id', couple.id).eq('quiz_date', today),
+        supabase.from('daily_quizzes').select('payload').eq('quiz_date', today).maybeSingle(),
+      ]);
+      setDailyQuiz(scheduled.data?.payload || getDailyQuiz(today));
+      setQuizRewardsAvailable(!!scheduled.data?.payload);
 
       if (!error && data) {
         const mine = data.find((r: QuizResponse) => r.user_id === profile.id);
@@ -193,6 +204,7 @@ export default function Quiz() {
       return;
     }
     setSubmitting(true);
+    setSaveError(null);
 
     if (isMockMode) {
       const resp: QuizResponse = {
@@ -209,27 +221,36 @@ export default function Quiz() {
     }
 
     try {
-      const { error: quizErr } = await supabase
-        .from('quiz_responses')
-        .upsert({
-          couple_id: couple.id,
-          quiz_date: today,
-          user_id: profile.id,
-          answers: selectedAnswers,
-        }, { onConflict: 'couple_id,quiz_date,user_id' });
+      let { data: result, error: quizErr } = await supabase.rpc('submit_daily_quiz', {
+        p_couple_id: couple.id,
+        p_quiz_id: dailyQuiz.id,
+        p_answers: selectedAnswers,
+      });
+
+      // Preserve response saving while the database update is pending.
+      // XP is only announced when the server actually grants it.
+      if (quizErr?.code === 'PGRST202' || quizErr?.code === '42883') {
+        const saved = await supabase.from('quiz_responses').insert({
+          couple_id: couple.id, quiz_date: today, user_id: profile.id, answers: selectedAnswers,
+        }).select('*').single();
+        quizErr = saved.error;
+        result = saved.data ? { success: true, response: saved.data, xp_granted: 0 } : null;
+        if (saved.error?.code === '23505') {
+          const existing = await supabase.from('quiz_responses').select('*').eq('couple_id', couple.id)
+            .eq('quiz_date', today).eq('user_id', profile.id).single();
+          quizErr = existing.error;
+          result = existing.data ? { success: true, response: existing.data, xp_granted: 0, already_answered: true } : null;
+        }
+      }
 
       if (quizErr) {
-        console.warn('Quiz upsert warning:', quizErr);
-        const resp: QuizResponse = {
-          id: 'mr-' + Date.now(),
-          couple_id: couple.id,
-          quiz_date: today,
-          user_id: profile.id,
-          answers: selectedAnswers,
-          created_at: new Date().toISOString(),
-        };
-        setMyResponse(resp);
+        console.warn('Quiz save warning:', quizErr);
+        setSaveError('No pudimos guardar tus respuestas. Inténtalo de nuevo; tu selección sigue aquí.');
       } else {
+        if (!result?.success || !result.response) throw new Error('Respuesta de guardado incompleta');
+        setMyResponse(result.response);
+        setEarnedXp(result.xp_granted || 0);
+        if (result.already_answered) return;
         const pushText = partnerResponse
           ? `📊 ¡${myName} respondió! Tus resultados de sintonía están listos para comparar.`
           : `📊 ${myName} ya respondió el cuestionario de hoy, ¡faltas tú!`;
@@ -248,15 +269,7 @@ export default function Quiz() {
       }
     } catch (err: any) {
       console.error('Unexpected error saving quiz:', err);
-      const resp: QuizResponse = {
-        id: 'mr-' + Date.now(),
-        couple_id: couple.id,
-        quiz_date: today,
-        user_id: profile.id,
-        answers: selectedAnswers,
-        created_at: new Date().toISOString(),
-      };
-      setMyResponse(resp);
+      setSaveError('No pudimos guardar tus respuestas. Inténtalo de nuevo; tu selección sigue aquí.');
     } finally {
       setSubmitting(false);
     }
@@ -293,6 +306,13 @@ export default function Quiz() {
     return <LoadingScreen message="Cargando cuestionario del día..." />;
   }
 
+  if (dailyQuiz.questions.length === 0) {
+    return <PageTransition className="page"><div className="glass-card text-center stack stack--md">
+      <h2>Nuevas preguntas en camino</h2>
+      <p>Completaron esta serie. Los quiz anteriores no volverán a salir.</p>
+    </div></PageTransition>;
+  }
+
   const currentQ = dailyQuiz.questions[currentStep];
   const isOptionSelected = selectedAnswers[currentStep] !== undefined;
 
@@ -308,6 +328,9 @@ export default function Quiz() {
         </div>
 
         {/* STATE 1: User hasn't answered yet */}
+        {earnedXp > 0 && <p className="text-center" role="status">✨ +{earnedXp} XP para su mundo por completar el quiz.</p>}
+        {saveError && <p className="text-center" role="alert">{saveError}</p>}
+        {!myResponse && quizRewardsAvailable && <p className="text-secondary text-center">Completa el quiz y suma 5 XP a su mundo.</p>}
         {!myResponse && (
           <>
             {/* Theme Welcome Intro Card */}

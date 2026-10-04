@@ -36,7 +36,8 @@ export default function WorldWelcome({ checking, failed, onRetry, onEnter }: Pro
         <p id="world-welcome-intro">Su mundo empieza de cero y crece con los momentos que comparten desde ahora.</p>
         <ol className="world-welcome__steps">
           <li><strong>Sus momentos y su racha suman</strong><p>Los encuentros que registran en el calendario y su racha de fotos hacen crecer su mundo. Pueden ver cómo funciona en la simbología del calendario.</p></li>
-          <li><strong>Decoren a su manera</strong><p>Suban de nivel para obtener nuevos objetos y reclamen el regalo diario para recibir más copias. Con el martillo pueden colocarlos, moverlos o devolverlos al inventario; con dos dedos cambian su tamaño.</p></li>
+          <li><strong>Conózcanse un poquito más</strong><p>Completar el quiz del día también suma experiencia para su mundo.</p></li>
+          <li><strong>Decoren a su manera</strong><p>Al subir de nivel, abran el regalo para recibir todas sus recompensas juntas. Con el martillo pueden colocarlas, moverlas o devolverlas al inventario; con dos dedos cambian su tamaño.</p></li>
           <li><strong>Exploren de a poco</strong><p>Al completar el bosque se abre el siguiente bioma.</p></li>
         </ol>
         {(failed || saveError) && <p className="world-welcome__error" role="alert">No pudimos guardar la bienvenida. Inténtenlo de nuevo.</p>}

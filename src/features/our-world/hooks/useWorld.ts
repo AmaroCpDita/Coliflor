@@ -52,6 +52,9 @@ export function useWorld() {
     return success;
   }, [coupleId, welcome, refreshWelcome]);
   const [rewardsStatus, setRewardsStatus] = useState<'loading' | 'ready' | 'unavailable' | 'error'>('loading');
+  const [rewardLevels, setRewardLevels] = useState<number[]>([]);
+  const [claimingRewards, setClaimingRewards] = useState(false);
+  const claimingRewardsRef = useRef(false);
   const [rewardsRetry, setRewardsRetry] = useState(0);
   const [forestProgress, setForestProgress] = useState<ForestProgress | null>(null);
   const [forestUnavailable, setForestUnavailable] = useState(false);
@@ -136,26 +139,19 @@ export function useWorld() {
     initializeWorld();
   }, [initializeWorld]);
 
-  // The server grants each eligible level once, including previously reached levels.
+  // Read pending gifts; reaching a level never silently claims its objects.
   useEffect(() => {
     if (!coupleId || !worldState || isLoading || welcomePending || worldState.couple_id !== coupleId) return;
     let cancelled = false;
     setRewardsStatus('loading');
-    worldService.claimCatalogRewards(coupleId).then(async response => {
+    setRewardLevels([]);
+    worldService.getLevelRewards(coupleId).then(response => {
       if (cancelled) return;
       setRewardsStatus(response.status);
-      if (response.status !== 'ready' || !response.reward.claimed_any) return;
-      const result = response.reward;
-      const inv = await worldService.getInventory(coupleId);
-      if (cancelled) return;
-      setInventory(inv);
-      setPendingReward(previous => previous ? {
-        ...previous,
-        items_granted: [...(previous.items_granted || []), ...(result.items_granted || [])],
-      } : result);
-    });
+      if (response.status === 'ready') setRewardLevels(response.levels);
+    }).catch(() => { if (!cancelled) setRewardsStatus('error'); });
     return () => { cancelled = true; };
-  }, [coupleId, worldState?.level, worldState?.forest_completed_at, isLoading, rewardsRetry, welcomePending]);
+  }, [coupleId, worldState?.level, worldState?.updated_at, worldState?.forest_completed_at, isLoading, rewardsRetry, welcomePending]);
 
   // --- Day/Night Timer ---
   useEffect(() => {
@@ -257,18 +253,27 @@ export function useWorld() {
 
   // --- Actions ---
 
-  const claimDaily = useCallback(async (): Promise<RewardResult | null> => {
-    if (!coupleId) return null;
-    const result = await worldService.claimDailyReward(coupleId);
-    if (result && result.success) {
-      setPendingReward(result);
-      // Refresh state
-      const state = await worldService.getWorldState(coupleId);
+  const claimLevelRewards = useCallback(async (): Promise<RewardResult | null> => {
+    if (!coupleId || claimingRewardsRef.current) return null;
+    claimingRewardsRef.current = true; setClaimingRewards(true);
+    try {
+      const response = await worldService.claimLevelRewards(coupleId);
+      if (activeCoupleRef.current !== coupleId) return null;
+      setRewardsStatus(response.status);
+      if (response.status !== 'ready') return null;
+      const result = response.reward;
+      if (!result.already_claimed) setPendingReward(result);
+      const [state, inv, pending] = await Promise.all([
+        worldService.getWorldState(coupleId), worldService.getInventory(coupleId), worldService.getLevelRewards(coupleId),
+      ]);
+      if (activeCoupleRef.current !== coupleId) return null;
       if (state) setWorldState(state);
-      const inv = await worldService.getInventory(coupleId);
       setInventory(inv);
-    }
-    return result;
+      if (pending.status === 'ready') setRewardLevels(pending.levels);
+      else { setRewardsStatus(pending.status); setRewardLevels([]); }
+      return result;
+    } catch { setRewardsStatus('error'); return null; }
+    finally { claimingRewardsRef.current = false; setClaimingRewards(false); }
   }, [coupleId]);
 
   const placeItem = useCallback(async (
@@ -370,10 +375,11 @@ export function useWorld() {
     isLoading,
     error,
     pendingReward,
+    rewardLevels, claimingRewards,
     rewardsError: rewardsStatus === 'error',
     catalogUnavailable: rewardsStatus === 'unavailable',
     retryRewards: () => setRewardsRetry(retry => retry + 1),
-    claimDaily,
+    claimLevelRewards,
     placeItem,
     removeItem,
     moveItem,

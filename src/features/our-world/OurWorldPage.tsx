@@ -15,8 +15,8 @@ export default function OurWorldPage() {
   const {
     welcomePending, welcome, refreshWelcome, acknowledgeWelcome,
     worldState, inventory, placedObjects, achievements, dayNight, xpBoostActive,
-    isLoading, error, pendingReward, rewardsError, catalogUnavailable, retryRewards,
-    claimDaily, placeItem, removeItem, moveItem, resizeItem, flipItem, grantInteractionXP, dismissReward,
+    isLoading, error, pendingReward, rewardLevels, claimingRewards, rewardsError, catalogUnavailable, retryRewards,
+    claimLevelRewards, placeItem, removeItem, moveItem, resizeItem, flipItem, grantInteractionXP, dismissReward,
     forestProgress, forestUnavailable, forestLoading, refreshForest, claimForestGoal, completeForest, switchBiome,
   } = useWorld();
 
@@ -62,7 +62,9 @@ export default function OurWorldPage() {
       dayNight={dayNight}
       xpBoostActive={xpBoostActive}
       pendingReward={pendingReward}
-      onClaimDaily={claimDaily}
+      rewardLevels={rewardLevels}
+      claimingRewards={claimingRewards}
+      onClaimLevelRewards={claimLevelRewards}
       forestProgress={forestProgress}
       forestUnavailable={forestUnavailable}
       forestLoading={forestLoading}

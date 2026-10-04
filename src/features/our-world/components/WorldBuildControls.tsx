@@ -76,7 +76,7 @@ export default function WorldBuildControls({ object, camera, isSaving, onPreview
       </button>
       <div className="world-build-controls__toolbar">
         <div className="world-build-controls__info">
-          <strong>{name}</strong>
+          <strong>🔨 Editando: {name}</strong>
           <span role="status">{isSaving ? 'Guardando…' : `${Math.round(object.scale * 100)} % · 2 dedos: tamaño`}</span>
         </div>
         <button type="button" disabled={isSaving} aria-label={`Voltear ${name}`} aria-pressed={isObjectFlipped(object)} title="Cambiar lado" onClick={() => { if (!drag.current) onFlip(); }}>↔</button>

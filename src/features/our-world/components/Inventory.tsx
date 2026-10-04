@@ -25,9 +25,12 @@ interface InventoryProps {
   onSelectItemInBiome?: (item: InventoryItem, biomeId: string) => void;
   isSaving?: boolean;
   selectionError?: string | null;
+  rewardLevels?: number[];
+  onClaimRewards?: () => void;
+  claimingRewards?: boolean;
 }
 
-export default function Inventory({ isOpen, onClose, items, onSelectItem, selectedItemId, level = 1, placedObjects = [], rewardsError, catalogUnavailable, onRetryRewards, biomeId = 'forest', forestCompleted = false, forestChapterRequired = false, unlockedBiomes = [], onSelectItemInBiome, isSaving = false, selectionError }: InventoryProps) {
+export default function Inventory({ isOpen, onClose, items, onSelectItem, selectedItemId, level = 1, placedObjects = [], rewardsError, catalogUnavailable, onRetryRewards, biomeId = 'forest', forestCompleted = false, forestChapterRequired = false, unlockedBiomes = [], onSelectItemInBiome, isSaving = false, selectionError, rewardLevels = [], onClaimRewards, claimingRewards = false }: InventoryProps) {
   const [tab, setTab] = useState<'inventory' | 'collection'>('inventory');
   const stock = useMemo(() => getInventoryObjects(items), [items]);
   const grouped = useMemo(() => {
@@ -69,6 +72,10 @@ export default function Inventory({ isOpen, onClose, items, onSelectItem, select
               ? <div className="world-inventory__notice" role="status">Las nuevas recompensas todavía no están disponibles.</div>
               : rewardsError && <div className="world-inventory__notice" role="status">No pudimos cargar las nuevas recompensas. <button onClick={onRetryRewards}>Reintentar</button></div>}
             <div className="world-inventory__content" role="tabpanel">
+              {rewardLevels.length > 0 && onClaimRewards && <div className="world-inventory__notice" role="status">
+                <button type="button" disabled={claimingRewards} onClick={onClaimRewards}>{claimingRewards ? 'Abriendo regalo…' : '🎁 Recibir recompensas'}</button>
+              </div>}
+              <p className="world-inventory__hint">{stock.length} tipos con copias disponibles · {placedObjects.length} objetos ya colocados. Los objetos colocados siguen siendo tuyos; devuélvelos con el martillo para usarlos de nuevo.</p>
               {selectionError && <p className="world-inventory__notice" role="alert">{selectionError}</p>}
               {isSaving && <p className="world-inventory__notice" role="status">Abriendo el bioma…</p>}
               {tab === 'inventory' && stock.some(item => {
@@ -77,9 +84,9 @@ export default function Inventory({ isOpen, onClose, items, onSelectItem, select
               }) && <p className="world-inventory__hint">Estás en {getBiomeDef(biomeId)?.name || biomeId}. Los objetos de otros biomas siguen siendo tuyos: podrás colocarlos al visitar su bioma.</p>}
               {tab === 'collection' ? (
                 <>
-                  <p className="world-inventory__hint">Cada nivel trae algo nuevo. Disponible significa que puedes obtenerlo; para colocarlo necesitas una copia en Mis objetos. El regalo diario da copias extra.</p>
+                  <p className="world-inventory__hint">Su hogar se desbloquea en el nivel 1. Abran el regalo para recibir juntas todas las recompensas de los niveles alcanzados.</p>
                   <div className="world-inventory__grid">
-                    {[...ALL_OBJECTS].sort((a, b) => a.requiredLevel - b.requiredLevel).map(def => {
+                    {[...ALL_OBJECTS].sort((a, b) => a.requiredLevel - b.requiredLevel || Number(b.id === 'treehouse') - Number(a.id === 'treehouse')).map(def => {
                       const chapterBlocked = forestChapterRequired && def.requiredLevel >= 21;
                       const unlocked = (def.unlockCondition ? forestCompleted : !chapterBlocked && level >= def.requiredLevel) || owned.has(def.id);
                       const item = stock.find(item => item.item_id === def.id);
@@ -89,14 +96,14 @@ export default function Inventory({ isOpen, onClose, items, onSelectItem, select
                         <span className="world-inventory__item-name">{def.name}</span>
                         <span className="world-collection__status">{unlocked ? (owned.has(def.id) ? '✓ Obtenido' : catalogUnavailable && def.requiredLevel > 1 ? 'Por recibir' : 'Disponible para obtener') : def.unlockCondition || (chapterBlocked && level >= def.requiredLevel) ? '💚 Completa el bosque' : `🔒 Nivel ${def.requiredLevel}`}</span>
                         {item && <span className="world-collection__status">{action?.compatible ? `Colocar · ×${item.quantity}` : action?.destination ? `Ir a ${getBiomeDef(action.destination)?.name} y colocar` : `Para ${def.biomes?.map(id => getBiomeDef(id)?.name || id).join(' / ')}`}</span>}
-                        {!item && unlocked && <span className="world-collection__status">{owned.has(def.id) ? 'Ya colocado' : 'Sin copias disponibles'}</span>}
+                        {!item && unlocked && <span className="world-collection__status">{owned.has(def.id) ? 'Ya colocado · recupéralo con el martillo' : 'Pendiente de entrega'}</span>}
                       </button>;
                     })}
                   </div>
                 </>
               ) : stock.length === 0 ? (
-                <div className="world-inventory__empty"><p>Tu inventario está vacío</p><p>Reclama recompensas o sube de nivel para obtener objetos.</p></div>
-              ) : Object.entries(grouped).map(([category, categoryItems]) => (
+                <div className="world-inventory__empty"><p>Tu inventario está vacío</p><p>Abre el regalo para recibir las recompensas desbloqueadas.</p></div>
+              ) : Object.entries(grouped).sort(([a], [b]) => Number(b === 'building') - Number(a === 'building')).map(([category, categoryItems]) => (
                 <div key={category} className="world-inventory__category">
                   <h4 className="world-inventory__category-title">{categoryLabels[category] || 'Otros objetos'}</h4>
                   <div className="world-inventory__grid">

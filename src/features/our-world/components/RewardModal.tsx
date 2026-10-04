@@ -41,6 +41,11 @@ export default function RewardModal({ reward, onDismiss }: RewardModalProps) {
                 <h3 className="world-reward__title">¡Completaron el bosque!</h3>
                 <p className="world-inventory__hint">Este lugar cuenta su historia. El jardín ya los espera, y siempre podrán volver aquí.</p>
               </>
+            ) : reward.reward_levels?.length ? (
+              <>
+                <div className="world-reward__icon">🎁</div>
+                <h3 className="world-reward__title">{reward.reward_levels.length === 1 ? `Regalo del nivel ${reward.reward_levels[0]}` : '¡Sus regalos de nivel!'}</h3>
+              </>
             ) : reward.leveled_up ? (
               <>
                 <div className="world-reward__icon">🎉</div>

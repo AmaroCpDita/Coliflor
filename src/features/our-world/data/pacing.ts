@@ -11,7 +11,7 @@ export const OBJECT_UNLOCKS: Record<string, { level: number; quantity: number }>
   birdbath: { level: 14, quantity: 1 }, glowing_mushrooms: { level: 15, quantity: 1 },
   forest_sign: { level: 16, quantity: 1 }, picnic_table: { level: 17, quantity: 1 },
   campfire: { level: 18, quantity: 1 }, wishing_well: { level: 19, quantity: 1 },
-  treehouse: { level: 20, quantity: 1 }, forest_heart: { level: 21, quantity: 1 },
+  treehouse: { level: 1, quantity: 1 }, forest_heart: { level: 21, quantity: 1 },
   willow_tree: { level: 21, quantity: 1 }, daisy: { level: 22, quantity: 3 },
   tulip: { level: 23, quantity: 2 }, sunflower: { level: 24, quantity: 2 },
   rose: { level: 25, quantity: 2 }, flower_bed: { level: 26, quantity: 1 },

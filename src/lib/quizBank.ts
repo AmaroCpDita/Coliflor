@@ -4,6 +4,7 @@
 // ============================================================
 
 import type { DailyQuiz, QuizQuestion } from './types';
+import { NEW_QUIZZES, QUIZ_SERIES_START } from './quizSeries';
 
 export interface ThemedQuiz {
   theme: string;
@@ -2472,6 +2473,16 @@ export const THEMED_QUIZZES: ThemedQuiz[] = [
  * Gets a dynamically selected themed quiz based on the current date.
  */
 export function getDailyQuiz(dateStr: string): DailyQuiz {
+  if (dateStr >= QUIZ_SERIES_START) {
+    const day = Math.floor((Date.parse(`${dateStr}T00:00:00Z`) - Date.parse(`${QUIZ_SERIES_START}T00:00:00Z`)) / 86400000);
+    const edition = NEW_QUIZZES[day];
+    return {
+      id: `daily-quiz-${dateStr}`,
+      theme: edition?.theme || 'Nuevas preguntas en camino',
+      subtitle: edition?.subtitle || 'Completaron esta serie. Las preguntas anteriores no volverán a salir.',
+      questions: edition?.questions.map((question, index) => ({ ...question, id: `series-1-${day}-${index}`, options: question.options as [string, string, string, string] })) || [],
+    };
+  }
   const dateParts = dateStr.split('-');
   const yearNum = parseInt(dateParts[0] || '2026', 10);
   const monthNum = parseInt(dateParts[1] || '1', 10);

@@ -102,7 +102,7 @@ function WorldObject({
   const depthFactor = Math.max(0, placedObject.position_y - 20) / 80;
   const atmosContrast = 1 - depthFactor * 0.06;
   const atmosSaturate = 1 - depthFactor * 0.08;
-  const baseFilter = `contrast(${atmosContrast}) saturate(${atmosSaturate}) brightness(${isInteracting && objDef.interaction?.effect === 'glow' ? 1.8 : 0.65 + lightIntensity * 0.35})`;
+  const baseFilter = `contrast(${atmosContrast}) saturate(${atmosSaturate}) brightness(${isInteracting && objDef.interaction?.effect === 'glow' ? 1.8 : buildMode ? 1.12 : 0.65 + lightIntensity * 0.35})`;
 
   return (
     <div
@@ -182,7 +182,7 @@ function WorldObject({
           height: '100%',
           transformOrigin: `${assetDef.anchorX * 100}% ${assetDef.anchorY * 100}%`,
           transform: `scale(${isInteracting ? 0.96 : 1}) rotate(${placedObject.rotation || 0}deg)`,
-          filter: `${baseFilter} ${selected ? 'drop-shadow(0 0 10px rgba(255,255,255,0.8))' : ''}`,
+          filter: `${baseFilter} ${selected ? 'drop-shadow(0 0 3px #fffce5) drop-shadow(0 0 14px rgba(255,220,130,.95))' : buildMode ? 'drop-shadow(0 0 2px rgba(255,250,210,.9)) drop-shadow(0 0 9px rgba(255,220,130,.7))' : ''}`,
           transition: 'filter 0.3s ease, transform 0.1s cubic-bezier(0.25, 1, 0.5, 1)', // Rebote rápido
         }}
       >

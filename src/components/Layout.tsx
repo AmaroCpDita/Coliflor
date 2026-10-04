@@ -508,6 +508,7 @@ export default function Layout() {
   return (
     <>
       {/* Top Header */}
+      {location.pathname !== '/world' && (
       <header className="top-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
         <NavLink to="/settings" className="hamburger-btn" style={{ textDecoration: 'none', color: 'inherit' }} title="Configuración" aria-label="Configuración">
           <IconSettings />
@@ -520,6 +521,7 @@ export default function Layout() {
           )}
         </button>
       </header>
+      )}
 
 
 

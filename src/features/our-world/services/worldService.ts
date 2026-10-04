@@ -169,6 +169,20 @@ export type CatalogRewardsResult =
   | { status: 'unavailable' }
   | { status: 'error' };
 
+export type LevelRewardsStatus = { status: 'ready'; levels: number[] } | { status: 'unavailable' | 'error' };
+export async function getLevelRewards(coupleId: string): Promise<LevelRewardsStatus> {
+  const { data, error } = await supabase.rpc('get_world_level_rewards', { p_couple_id: coupleId });
+  if (error?.code === 'PGRST202' || error?.code === '42883') return { status: 'unavailable' };
+  if (error || !data?.success || !Array.isArray(data.levels)) return { status: 'error' };
+  return { status: 'ready', levels: data.levels };
+}
+export async function claimLevelRewards(coupleId: string): Promise<CatalogRewardsResult> {
+  const { data, error } = await supabase.rpc('claim_world_level_rewards', { p_couple_id: coupleId });
+  if (error?.code === 'PGRST202' || error?.code === '42883') return { status: 'unavailable' };
+  if (error || !data?.success) return { status: 'error' };
+  return { status: 'ready', reward: data as RewardResult };
+}
+
 export async function claimCatalogRewards(coupleId: string): Promise<CatalogRewardsResult> {
   try {
     const { data, error } = await supabase.rpc('claim_world_catalog', { p_couple_id: coupleId });

@@ -26,7 +26,6 @@ import { clampObjectScale, clampWorldPosition } from '../engine/placement';
 import type { WorldPosition } from '../engine/placement';
 import { isObjectFlipped } from '../engine/orientation';
 import type { PlacedObject, InventoryItem, ParticleType, DayNightState, WorldState, WorldAchievement, RewardResult, WorldActionResult } from '../types';
-import { getTodayInTimezone } from '../../../lib/utils';
 import { WORLD_FRAME, fitWorldFrame, getNightLandscapeOpacity } from '../data/dioramas';
 import ForestJournal from './ForestJournal';
 import type { ForestProgress } from '../data/forest';
@@ -40,7 +39,9 @@ interface WorldSceneProps {
   achievements: WorldAchievement[];
   dayNight: DayNightState;
   pendingReward: RewardResult | null;
-  onClaimDaily: () => void;
+  onClaimLevelRewards: () => Promise<RewardResult | null> | void;
+  rewardLevels?: number[];
+  claimingRewards?: boolean;
   xpBoostActive?: boolean;
   onPlaceItem: (biomeId: string, itemType: string, itemId: string, x: number, y: number) => Promise<WorldActionResult | null>;
   onRemoveItem: (objId: string) => Promise<WorldActionResult | null>;
@@ -64,7 +65,7 @@ interface WorldSceneProps {
 export default function WorldScene({
   isWelcomePreview = false,
   worldState, inventory, placedObjects, achievements, dayNight,
-  pendingReward, onClaimDaily, xpBoostActive, onPlaceItem, onRemoveItem, onMoveItem, onFlipItem, onResizeItem, onInteractXP, onDismissReward, rewardsError, catalogUnavailable, onRetryRewards,
+  pendingReward, onClaimLevelRewards, rewardLevels = [], claimingRewards = false, xpBoostActive, onPlaceItem, onRemoveItem, onMoveItem, onFlipItem, onResizeItem, onInteractXP, onDismissReward, rewardsError, catalogUnavailable, onRetryRewards,
   forestProgress = null, forestUnavailable, forestLoading, onRetryForest, onClaimForestGoal, onCompleteForest, onSwitchBiome,
 }: WorldSceneProps) {
   const [showInventory, setShowInventory] = useState(false);
@@ -121,8 +122,7 @@ export default function WorldScene({
   const companions = isWelcomePreview ? [] : getWorldCompanions(worldState?.couple_id, biomeId);
 
   // Determine if daily reward is claimable
-  const today = getTodayInTimezone();
-  const canClaimDaily = !worldState?.last_daily_date || worldState.last_daily_date !== today;
+  const canClaimLevelRewards = rewardLevels.length > 0;
 
   // Get active creatures for current biome and time
   const creatures = useMemo(() => {
@@ -305,8 +305,7 @@ export default function WorldScene({
   // Camera panning
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     hasDragged.current = false;
-    if (buildMode) return;
-    if ((e.target as HTMLElement).closest('button, .world-hud, .world-scene__build-menu, .world-inventory-backdrop, .world-map-backdrop, .world-reward-backdrop')) return;
+    if ((e.target as HTMLElement).closest('button, .world-hud, .world-build-controls, .world-scene__build-indicator, .world-scene__build-menu, .world-inventory-backdrop, .world-map-backdrop, .world-reward-backdrop')) return;
 
     isDraggingCamera.current = true;
     hasDragged.current = false;
@@ -315,7 +314,7 @@ export default function WorldScene({
     try {
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
     } catch (err) {}
-  }, [buildMode]);
+  }, []);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!isDraggingCamera.current) return;
@@ -554,9 +553,9 @@ export default function WorldScene({
       )}
 
       {/* Build mode indicator */}
-      {buildMode && !activeObject && selectedItem && (
-        <div className="world-scene__build-indicator">
-          <span>🔨 {isSaving ? 'Guardando…' : selectedItem ? `Colocando: ${getPlacementDef(selectedItem.item_id)?.name || selectedItem.item_id}` : activeObject ? 'Ajusta el tamaño, mueve o cambia de lado el objeto' : 'Selecciona un objeto para editarlo o devolverlo al inventario'}</span>
+      {buildMode && !activeObject && (
+        <div className="world-scene__build-indicator" role="status">
+          <span>🔨 {isSaving ? 'Guardando…' : selectedItem ? 'Toca el suelo para colocar' : 'Toca un objeto para editar'}</span>
           <button disabled={isSaving} onClick={() => { setBuildMode(false); setSelectedItem(null); setSelectedPlacedObject(null); setMovePreview(null); }}>Salir</button>
         </div>
       )}
@@ -571,12 +570,17 @@ export default function WorldScene({
         onOpenInventory={() => { if (!savingRef.current) { setInventorySelectionError(null); setShowInventory(true); } }}
         onOpenMap={() => { if (!savingRef.current) setShowMap(true); }}
         onToggleBuild={() => { if (!savingRef.current) { setBuildMode(!buildMode); setSelectedItem(null); setSelectedPlacedObject(null); setMovePreview(null); } }}
-        onClaimDaily={() => {
-          if (canClaimDaily) onClaimDaily();
-          else showMessage('La recompensa de hoy ya fue reclamada. Vuelve mañana.');
+        onClaimLevelRewards={async () => {
+          if (!canClaimLevelRewards || claimingRewards) return;
+          try {
+            const result = await onClaimLevelRewards();
+            if (result === null) showMessage('No pudimos abrir el regalo. Intenta de nuevo.');
+            else if (result?.already_claimed) showMessage('Este regalo ya fue recibido.');
+          } catch { showMessage('No pudimos abrir el regalo. Intenta de nuevo.'); }
         }}
+        claimingRewards={claimingRewards}
         buildMode={buildMode}
-        canClaimDaily={canClaimDaily}
+        canClaimLevelRewards={canClaimLevelRewards}
       />}
 
       {/* Panels */}
@@ -592,6 +596,15 @@ export default function WorldScene({
         rewardsError={rewardsError}
         catalogUnavailable={catalogUnavailable}
         onRetryRewards={onRetryRewards}
+        rewardLevels={rewardLevels}
+        claimingRewards={claimingRewards}
+        onClaimRewards={async () => {
+          try {
+            const result = await onClaimLevelRewards();
+            if (result?.success) setShowInventory(false);
+            else setInventorySelectionError('No pudimos abrir el regalo. Intenta de nuevo.');
+          } catch { setInventorySelectionError('No pudimos abrir el regalo. Intenta de nuevo.'); }
+        }}
         biomeId={biomeId}
         unlockedBiomes={worldState?.unlocked_biomes || []}
         onSelectItemInBiome={onSwitchBiome ? handleSelectItemInBiome : undefined}

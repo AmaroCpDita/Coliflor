@@ -45,7 +45,7 @@ try {
   const dayNight = { phase: 'day', progress: 0.5, hour: 14, skyColors: ['#87ceeb', '#fff'], ambientOverlay: 'transparent', lightIntensity: 1 };
   const worldState = { id: 'world', couple_id: 'couple', level: 20, xp: 0, current_biome: 'forest', unlocked_biomes: ['forest'], last_daily_date: null };
   const sceneProps = { worldState, inventory: [], placedObjects: [], achievements: [], dayNight, pendingReward: null,
-    onClaimDaily() {}, async onPlaceItem() { return { success: true }; }, async onRemoveItem() { return { success: true }; },
+    onClaimLevelRewards() {}, async onPlaceItem() { return { success: true }; }, async onRemoveItem() { return { success: true }; },
     async onMoveItem() { return { success: true }; }, async onFlipItem() { return { success: true }; }, onInteractXP() {}, onDismissReward() {} };
   const blank = renderToStaticMarkup(React.createElement(Scene, sceneProps));
   assert.equal(getWorldCompanions('unrelated-couple','forest').length,0,'Personal pets must not appear in other couples\' worlds');
@@ -71,13 +71,14 @@ try {
   assert(COMPANION_MOMENTS.some(moment=>moment.max.pose==='play'&&moment.abi.facingRight===false));
   assert(COMPANION_MOMENTS.some(moment=>moment.abi.pose==='play'&&moment.max.facingRight));
   assert(!CREATURES.some(creature=>creature.id==='max'||creature.id==='abi'),'Personal pets are not global level rewards');
-  const hudProps = { worldState, dayNight, onOpenInventory() {}, onOpenMap() {}, onToggleBuild() {}, onClaimDaily() {}, buildMode: false };
-  for (const canClaimDaily of [true, false]) {
-    const hud = renderToStaticMarkup(React.createElement(HUD, { ...hudProps, canClaimDaily }));
+  const hudProps = { worldState, dayNight, onOpenInventory() {}, onOpenMap() {}, onToggleBuild() {}, onClaimLevelRewards() {}, buildMode: false };
+  for (const canClaimLevelRewards of [true, false]) {
+    const hud = renderToStaticMarkup(React.createElement(HUD, { ...hudProps, canClaimLevelRewards }));
     assert.equal((hud.match(/<button /g) || []).length, 4, 'Daily reward button remains visible after claiming');
-    assert(hud.includes(canClaimDaily ? 'Reclamar recompensa diaria' : 'Recompensa diaria reclamada hoy'));
+    assert(hud.includes(canClaimLevelRewards ? 'Reclamar recompensas de nivel' : 'Recompensas de nivel reclamadas'));
+    assert.equal(hud.includes('disabled=""'),!canClaimLevelRewards, 'The gift is active only for unclaimed levels');
   }
-  const journalHUD = renderToStaticMarkup(React.createElement(HUD, { ...hudProps, canClaimDaily: false, onOpenForest() {}, xpBoostActive: true }));
+  const journalHUD = renderToStaticMarkup(React.createElement(HUD, { ...hudProps, canClaimLevelRewards: false, onOpenForest() {}, xpBoostActive: true }));
   assert.equal((journalHUD.match(/<button /g) || []).length, 5);
   assert(journalHUD.includes('Abrir diario del bosque') && journalHUD.includes('×2 hoy'));
   assert(!blank.includes('forest-journal-launcher'), 'Diary belongs in the top action row');
@@ -136,6 +137,15 @@ try {
   assert.equal(JSON.stringify(inventory), inventorySnapshot, 'Display grouping must not mutate server stock');
   const sql = readFileSync('supabase/migrations/017_forest_chapter.sql', 'utf8');
   const serverCatalog = new Map([...sql.matchAll(/\('([^']+)','([^']+)',(\d+),(\d+)\)/g)].map(match => [match[1], { type: match[2], level: +match[3], quantity: +match[4] }]));
+  const starterSql = readFileSync('supabase/migrations/022_world_starter_and_quiz.sql', 'utf8');
+  for (const update of starterSql.matchAll(/UPDATE public.world_object_catalog SET required_level=(\d+) WHERE item_id='([^']+)'/g)) {
+    serverCatalog.get(update[2]).level = +update[1];
+  }
+  assert.equal(getObjectDef('treehouse').requiredLevel, 1, 'A home is part of the welcome pack');
+  const editingHud = renderToStaticMarkup(React.createElement(HUD, { worldState, dayNight, buildMode: true, canClaimLevelRewards: false }));
+  assert(editingHud.includes('aria-pressed="true"') && editingHud.includes('Salir del modo construcción'));
+  const editingHouse = renderToStaticMarkup(React.createElement(WorldObject, { placedObject: house, buildMode: true, lightIntensity: .15 }));
+  assert(editingHouse.includes('drop-shadow(0 0 9px') && editingHouse.includes('brightness(1.12)'), 'All edit-mode objects glow, even at night');
   assert.equal(serverCatalog.size, ALL_OBJECTS.length);
   for (const object of ALL_OBJECTS) {
     assert.equal(serverCatalog.get(object.id)?.type, object.type);
@@ -154,8 +164,8 @@ try {
   assert.deepEqual(BIOMES.map(biome => biome.requiredLevel), [1,21,31,41,51]);
   for (const biome of BIOMES) assert(LEVEL_REWARDS.some(reward => reward.level === biome.requiredLevel && reward.unlocks.some(unlock => unlock.id === biome.id)));
   for (const creature of CREATURES) assert(LEVEL_REWARDS.some(reward => reward.level === creature.requiredLevel && reward.unlocks.some(unlock => unlock.id === creature.id)));
-  assert.equal(ALL_OBJECTS.filter(object => object.requiredLevel <= 9).length, 12, 'Level nine must not reveal most of the catalog');
-  for (let level = 2; level <= 31; level++) assert.equal(LEVEL_REWARDS.find(reward => reward.level === level).unlocks.filter(unlock => unlock.type === 'item').length, 1, 'A single new object per level keeps progression gradual');
+  assert.equal(ALL_OBJECTS.filter(object => object.requiredLevel <= 9).length, 13, 'Level nine has the original unlocks plus the starter home');
+  for (let level = 2; level <= 31; level++) assert((LEVEL_REWARDS.find(reward => reward.level === level)?.unlocks.filter(unlock => unlock.type === 'item').length || 0) <= 1, 'At most one new object per later level keeps progression gradual');
   assert(!LEVEL_REWARDS.some(reward => reward.unlocks.some(unlock => unlock.id === 'forest_heart')), 'Completion landmark cannot be obtained from a level alone');
   const journalProps = { isOpen: true, onClose() {}, async onClaim() { return { success: true }; }, async onComplete() { return { success: true }; }, onRetry() {} };
   const progress = { visits: 1, member_visits: [1,0], level: 1, target_level: 21, target_days: 0, completed: false, can_complete: false,
