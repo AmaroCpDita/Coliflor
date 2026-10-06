@@ -612,6 +612,7 @@
 }
 
 .world-hud__btn {
+  position: relative;
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -642,8 +643,25 @@
 .world-hud__btn--daily {
   background: rgba(229, 197, 115, 0.2);
   border-color: var(--color-accent, #e5c573);
-  animation: worldPulse 2s ease-in-out infinite;
-  --pulse-scale: 1.1;
+}
+
+.world-hud__reward-indicator {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 15px;
+  height: 15px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #e5c573;
+  color: #252016;
+  border: 2px solid #252016;
+  box-shadow: 0 0 8px rgba(229, 197, 115, 0.35);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
 }
 
 .world-hud__btn--objectives { margin-right: auto; }

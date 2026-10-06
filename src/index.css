@@ -69,6 +69,8 @@
   /* Safe Area Offsets */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --dock-bottom: calc(var(--safe-bottom) + 16px);
+  --dock-height: 70px;
 
   /* Z-index layers */
   --z-dock: 100;
@@ -1293,7 +1295,7 @@ body:has(textarea:focus) .chat-input-bar {
 /* --- Floating Glass Capsule Dock --- */
 .floating-dock {
   position: fixed;
-  bottom: calc(var(--safe-bottom) + 16px);
+  bottom: var(--dock-bottom);
   left: 50%;
   transform: translateX(-50%);
   z-index: var(--z-dock);
@@ -1313,7 +1315,7 @@ body:has(textarea:focus) .chat-input-bar {
   align-items: center;
   justify-content: center;
   width: 56px;
-  height: 52px;
+  height: calc(var(--dock-height) - 18px);
   border-radius: var(--radius-full);
   color: var(--dock-item-color);
   text-decoration: none;

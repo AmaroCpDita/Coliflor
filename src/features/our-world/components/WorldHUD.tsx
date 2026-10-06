@@ -18,6 +18,7 @@ interface WorldHUDProps {
   onClaimLevelRewards: () => void;
   buildMode: boolean;
   canClaimLevelRewards: boolean;
+  canClaimForestRewards?: boolean;
   claimingRewards?: boolean;
 }
 
@@ -65,7 +66,7 @@ function IconGift() {
 
 export default function WorldHUD({
   worldState, onOpenInventory, onOpenMap,
-  onToggleBuild, onClaimLevelRewards, buildMode, canClaimLevelRewards, claimingRewards = false, onOpenForest, onOpenHelp, xpBoostActive,
+  onToggleBuild, onClaimLevelRewards, buildMode, canClaimLevelRewards, canClaimForestRewards = false, claimingRewards = false, onOpenForest, onOpenHelp, xpBoostActive,
 }: WorldHUDProps) {
   if (!worldState) return null;
 
@@ -89,14 +90,16 @@ export default function WorldHUD({
 
       {/* Action buttons */}
       <div className="world-hud__actions">
-        {onOpenForest && <button className="world-hud__btn world-hud__btn--objectives" onClick={onOpenForest} title="Diario del bosque" aria-label="Abrir diario del bosque">
+        {onOpenForest && <button className="world-hud__btn world-hud__btn--objectives" onClick={onOpenForest} title={canClaimForestRewards ? "Hay recompensas por reclamar en el bosque" : "Diario del bosque"} aria-label={canClaimForestRewards ? "Abrir diario del bosque, recompensas disponibles" : "Abrir diario del bosque"}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v16M12 5C8 2 4 3 2 4v15c3-1 6-1 10 2 4-3 7-3 10-2V4c-2-1-6-2-10 1Z" /></svg>
+          {canClaimForestRewards && <span className="world-hud__reward-indicator" aria-hidden="true">!</span>}
         </button>}
         <button className={`world-hud__btn ${canClaimLevelRewards ? 'world-hud__btn--daily' : 'world-hud__btn--claimed'}`} onClick={onClaimLevelRewards}
           disabled={!canClaimLevelRewards || claimingRewards} aria-busy={claimingRewards}
           aria-label={canClaimLevelRewards ? 'Reclamar recompensas de nivel' : 'Recompensas de nivel reclamadas'}
           title={claimingRewards ? 'Abriendo regalo…' : canClaimLevelRewards ? 'Recibir todas las recompensas desbloqueadas' : 'El próximo regalo llega al subir de nivel'}>
           <IconGift />
+          {canClaimLevelRewards && <span className="world-hud__reward-indicator" aria-hidden="true">!</span>}
           {!canClaimLevelRewards && <span className="world-hud__daily-check" aria-hidden="true">✓</span>}
         </button>
         <button className={`world-hud__btn ${buildMode ? 'world-hud__btn--active' : ''}`} onClick={onToggleBuild} title={buildMode ? 'Salir del modo construcción' : 'Construir'} aria-label={buildMode ? 'Salir del modo construcción' : 'Activar modo construcción'} aria-pressed={buildMode}>

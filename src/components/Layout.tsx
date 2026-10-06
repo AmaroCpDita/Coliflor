@@ -125,10 +125,10 @@ function IconWorld({ active }: { active?: boolean }) {
 
 const NAV_ITEMS = [
   { path: '/', label: 'Inicio', icon: IconHome },
-  { path: '/world', label: 'Mundo', icon: IconWorld },
   { path: '/streak', label: 'Racha', icon: IconStreak },
   { path: '/quiz', label: 'Quiz', icon: IconQuiz },
-  { path: '/calendar', label: 'Agenda', icon: IconCalendar },
+  { path: '/calendar', label: 'Calendario', icon: IconCalendar },
+  { path: '/world', label: 'Mundo', icon: IconWorld },
   { path: '/bucket-list', label: 'Metas', icon: IconBucketList },
   { path: '/map', label: 'Mapa', icon: IconMapNav },
   { path: '/messages', label: 'Chat', icon: IconMessages },

@@ -581,6 +581,7 @@ export default function WorldScene({
         claimingRewards={claimingRewards}
         buildMode={buildMode}
         canClaimLevelRewards={canClaimLevelRewards}
+        canClaimForestRewards={forestProgress?.goals.some((goal) => !goal.claimed && goal.current >= goal.target) ?? false}
       />}
 
       {/* Panels */}

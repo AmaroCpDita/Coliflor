@@ -243,10 +243,11 @@ export default function BucketList() {
         <motion.button 
           whileTap={{ scale: 0.9 }}
           className="animate-slide-up"
+          aria-label="Añadir meta"
           onClick={() => setShowAddForm(true)}
           style={{
             position: 'fixed',
-            bottom: 'var(--space-2xl)',
+            bottom: 'calc(var(--dock-bottom) + var(--dock-height) + var(--space-md))',
             right: 'var(--space-md)',
             width: '60px',
             height: '60px',
