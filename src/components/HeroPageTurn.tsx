@@ -26,6 +26,7 @@ export default function HeroPageTurn({
   isCelebrating,
 }: HeroPageTurnProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  // Placeholder: nextImage will be computed after activeImages are defined.
   const [direction, setDirection] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
   const touchStartXRef = useRef<number | null>(null);
@@ -33,7 +34,8 @@ export default function HeroPageTurn({
   // Normalize image list
   const activeImages = images.length > 0 ? images : [defaultImage];
   const hasMultiple = activeImages.length > 1;
-
+  const nextImage =
+    activeImages[(currentIndex + direction + activeImages.length) % activeImages.length];
   // Auto-advance every 4 seconds
   useEffect(() => {
     if (!hasMultiple || isPaused) return;
@@ -89,10 +91,10 @@ export default function HeroPageTurn({
   // 3D Page turn animation variants
   const pageVariants: Record<string, any> = {
     enter: (dir: number) => ({
-      rotateY: dir > 0 ? 80 : -80,
-      opacity: 0.1,
-      scale: 0.94,
-      boxShadow: dir > 0 ? '-25px 0 35px rgba(0,0,0,0.7)' : '25px 0 35px rgba(0,0,0,0.7)',
+      rotateY: dir > 0 ? 120 : -120,
+      opacity: 1,
+      scale: 0.96,
+      boxShadow: dir > 0 ? '-30px 0 45px rgba(0,0,0,0.8)' : '30px 0 45px rgba(0,0,0,0.8)',
     }),
     center: {
       rotateY: 0,
@@ -100,17 +102,17 @@ export default function HeroPageTurn({
       scale: 1,
       boxShadow: '0 0 0 rgba(0,0,0,0)',
       transition: {
-        duration: 0.75,
+        duration: 0.8,
         ease: 'easeOut',
       },
     },
     exit: (dir: number) => ({
-      rotateY: dir > 0 ? -80 : 80,
-      opacity: 0,
-      scale: 0.94,
-      boxShadow: dir > 0 ? '25px 0 35px rgba(0,0,0,0.7)' : '-25px 0 35px rgba(0,0,0,0.7)',
+      rotateY: dir > 0 ? -120 : 120,
+      opacity: 1,
+      scale: 0.96,
+      boxShadow: dir > 0 ? '30px 0 45px rgba(0,0,0,0.8)' : '-30px 0 45px rgba(0,0,0,0.8)',
       transition: {
-        duration: 0.7,
+        duration: 0.8,
         ease: 'easeIn',
       },
     }),
@@ -147,7 +149,7 @@ export default function HeroPageTurn({
         alignItems: 'center',
         position: 'relative',
         overflow: 'hidden',
-        perspective: '1400px',
+        perspective: '2000px',
       }}
     >
       {/* 3D Page Turn Background Layer */}
@@ -179,10 +181,23 @@ export default function HeroPageTurn({
               backgroundSize: 'cover',
               backgroundRepeat: 'no-repeat',
               transformOrigin: direction > 0 ? 'left center' : 'right center',
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
+              backfaceVisibility: 'visible',
+              WebkitBackfaceVisibility: 'visible',
             }}
           >
+            {/* Backside showing next image during turn */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage: `url('${nextImage}')`,
+                backgroundPosition: 'center',
+                backgroundSize: 'cover',
+                backgroundRepeat: 'no-repeat',
+                transform: 'rotateY(180deg)',
+                backfaceVisibility: 'hidden',
+              }}
+            />
             {/* Spine Shadow on Left (Book Spine Effect) */}
             <div
               style={{

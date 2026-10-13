@@ -209,23 +209,6 @@ export default function PhotoFilmRoll({
             </h3>
           </div>
         </div>
-        <span
-          style={{
-            fontSize: '11px',
-            fontWeight: 700,
-            padding: '3px 10px',
-            borderRadius: 'var(--radius-full)',
-            background:
-              items.length >= maxPhotos ? 'rgba(239, 68, 68, 0.2)' : 'rgba(229, 197, 115, 0.15)',
-            color: items.length >= maxPhotos ? '#fca5a5' : 'var(--color-accent, #e5c573)',
-            border: `1px solid ${
-              items.length >= maxPhotos ? 'rgba(239, 68, 68, 0.35)' : 'rgba(229, 197, 115, 0.3)'
-            }`,
-            letterSpacing: '0.5px',
-          }}
-        >
-          {items.length} / {maxPhotos} fotogramas
-        </span>
       </div>
 
       <p
@@ -624,7 +607,6 @@ export default function PhotoFilmRoll({
             >
               <span style={{ fontSize: '18px' }}>🔒</span>
               <span style={{ fontSize: '10px', fontWeight: 700 }}>Rollo Completo</span>
-              <span style={{ fontSize: '8px', opacity: 0.8 }}>20 / 20 fotos</span>
             </div>
           )}
         </div>
@@ -675,7 +657,7 @@ export default function PhotoFilmRoll({
               ? '➕ Subir fotos a la portada (hasta 20)'
               : items.length >= maxPhotos
                 ? '🔄 Reemplazar fotos del rollo (20/20)'
-                : `➕ Agregar más fotos (${items.length}/${maxPhotos})`}
+                : '➕ Agregar más fotos'}
         </button>
 
         {items.length > 0 && (
