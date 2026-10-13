@@ -18,14 +18,23 @@ const pageVariants = {
 const pageTransition: Transition = {
   type: 'tween',
   ease: 'easeOut',
-  duration: 0.25
+  duration: 0.25,
 };
 
-export default function PageTransition({ children, className = '', style }: { children: ReactNode, className?: string, style?: CSSProperties }) {
+export default function PageTransition({
+  children,
+  className = '',
+  style,
+}: {
+  children: ReactNode;
+  className?: string;
+  style?: CSSProperties;
+}) {
   // Use prefers-reduced-motion to disable transforms if requested
-  const isReducedMotion = typeof window !== 'undefined' 
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    : false;
+  const isReducedMotion =
+    typeof window !== 'undefined'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false;
 
   return (
     <motion.div
@@ -33,7 +42,7 @@ export default function PageTransition({ children, className = '', style }: { ch
       animate="in"
       exit="out"
       variants={
-        isReducedMotion 
+        isReducedMotion
           ? { initial: { opacity: 0 }, in: { opacity: 1 }, out: { opacity: 0 } }
           : pageVariants
       }

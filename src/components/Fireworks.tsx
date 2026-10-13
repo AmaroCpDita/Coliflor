@@ -108,7 +108,14 @@ function getCachedEmoji(emoji: string): HTMLCanvasElement {
   return c;
 }
 
-export default function Fireworks({ intensity, colors, confetti = false, effect = 'fireworks', particleShape = 'circle', interactive = false }: FireworksProps) {
+export default function Fireworks({
+  intensity,
+  colors,
+  confetti = false,
+  effect = 'fireworks',
+  particleShape = 'circle',
+  interactive = false,
+}: FireworksProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
 
@@ -170,8 +177,8 @@ export default function Fireworks({ intensity, colors, confetti = false, effect 
     function launchRocket(clickX?: number, clickY?: number) {
       if (rockets.length >= cfg.maxRockets * (clickX ? 2 : 1)) return; // Allow extra on click
 
-      const x = clickX ?? (W * 0.15 + Math.random() * W * 0.7);
-      const targetY = clickY ?? (H * 0.1 + Math.random() * H * 0.3);
+      const x = clickX ?? W * 0.15 + Math.random() * W * 0.7;
+      const targetY = clickY ?? H * 0.1 + Math.random() * H * 0.3;
       const color = colors[Math.floor(Math.random() * colors.length)];
 
       rockets.push({
@@ -193,10 +200,9 @@ export default function Fireworks({ intensity, colors, confetti = false, effect 
         const speed = cfg.particleSpeed * (0.5 + Math.random() * 0.8);
 
         // Mix in some color variation
-        const particleColor = Math.random() > 0.7
-          ? colors[Math.floor(Math.random() * colors.length)]
-          : baseColor;
-          
+        const particleColor =
+          Math.random() > 0.7 ? colors[Math.floor(Math.random() * colors.length)] : baseColor;
+
         const pShape = getRandomShape();
 
         particles.push({
@@ -207,7 +213,9 @@ export default function Fireworks({ intensity, colors, confetti = false, effect 
           life: cfg.particleLife * (0.6 + Math.random() * 0.4),
           maxLife: cfg.particleLife,
           color: particleColor,
-          size: 1.5 + Math.random() * (pShape === 'circle' ? 1.5 : (pShape?.startsWith('emoji:') ? 8 : 4)), // larger size for shapes/emojis
+          size:
+            1.5 +
+            Math.random() * (pShape === 'circle' ? 1.5 : pShape?.startsWith('emoji:') ? 8 : 4), // larger size for shapes/emojis
           decay: 0.015 + Math.random() * 0.01,
           gravity: effect === 'floaters' ? -0.02 : 0.03, // floaters go up
           type: 'spark',
@@ -278,7 +286,9 @@ export default function Fireworks({ intensity, colors, confetti = false, effect 
         life: 300 + Math.random() * 200,
         maxLife: 500,
         color: colors[Math.floor(Math.random() * colors.length)],
-        size: (pShape?.startsWith('emoji:') ? 8 : 2) + Math.random() * (pShape?.startsWith('emoji:') ? 10 : 3),
+        size:
+          (pShape?.startsWith('emoji:') ? 8 : 2) +
+          Math.random() * (pShape?.startsWith('emoji:') ? 10 : 3),
         decay: 0.002,
         gravity: 0.005,
         type: 'spark',
@@ -293,10 +303,15 @@ export default function Fireworks({ intensity, colors, confetti = false, effect 
       if (!interactive) return; // Only allow click interactions if interactive is true
 
       // Ignore clicks on buttons or links
-      if ((e.target as HTMLElement).tagName === 'BUTTON' || (e.target as HTMLElement).tagName === 'A' || (e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) {
+      if (
+        (e.target as HTMLElement).tagName === 'BUTTON' ||
+        (e.target as HTMLElement).tagName === 'A' ||
+        (e.target as HTMLElement).closest('button') ||
+        (e.target as HTMLElement).closest('a')
+      ) {
         return;
       }
-      
+
       let x, y;
       if ('touches' in e) {
         if (e.touches.length === 0) return;
@@ -310,9 +325,9 @@ export default function Fireworks({ intensity, colors, confetti = false, effect 
       if (effect === 'fireworks') {
         launchRocket(x, y);
       } else if (effect === 'snowfall') {
-        for(let i=0; i<8; i++) spawnSnow(x, y);
+        for (let i = 0; i < 8; i++) spawnSnow(x, y);
       } else {
-        for(let i=0; i<8; i++) spawnSnow(x, y);
+        for (let i = 0; i < 8; i++) spawnSnow(x, y);
       }
     };
 
@@ -336,13 +351,17 @@ export default function Fireworks({ intensity, colors, confetti = false, effect 
       if (effect === 'floaters' && Math.random() > (intensity === 'high' ? 0.94 : 0.97)) {
         spawnFloater();
       }
-      
+
       if (effect === 'snowfall') {
         const isEmoji = particleShape?.startsWith('emoji:');
-        const threshold = isEmoji 
-          ? (intensity === 'high' ? 0.94 : 0.98) // emojis take up a lot of space, spawn them rarely
-          : (intensity === 'high' ? 0.4 : 0.7);  // regular snow is small, spawn it frequently
-          
+        const threshold = isEmoji
+          ? intensity === 'high'
+            ? 0.94
+            : 0.98 // emojis take up a lot of space, spawn them rarely
+          : intensity === 'high'
+            ? 0.4
+            : 0.7; // regular snow is small, spawn it frequently
+
         if (Math.random() > threshold) {
           spawnSnow();
           // double spawn only for regular snow on high intensity
@@ -430,8 +449,8 @@ export default function Fireworks({ intensity, colors, confetti = false, effect 
           ctx.save();
           ctx.translate(p.x, p.y);
           if (p.rotation) {
-             ctx.rotate((p.rotation * Math.PI) / 180);
-             if (p.rotationSpeed) p.rotation += p.rotationSpeed;
+            ctx.rotate((p.rotation * Math.PI) / 180);
+            if (p.rotationSpeed) p.rotation += p.rotationSpeed;
           }
 
           if (p.shape?.startsWith('emoji:')) {
@@ -457,20 +476,20 @@ export default function Fireworks({ intensity, colors, confetti = false, effect 
             const outerRadius = p.size * 2;
             const innerRadius = p.size;
             ctx.beginPath();
-            let rot = Math.PI / 2 * 3;
+            let rot = (Math.PI / 2) * 3;
             let x = 0;
             let y = 0;
             let step = Math.PI / spikes;
             ctx.moveTo(0, -outerRadius);
-            for(let j=0; j<spikes; j++) {
-                x = Math.cos(rot) * outerRadius;
-                y = Math.sin(rot) * outerRadius;
-                ctx.lineTo(x, y);
-                rot += step;
-                x = Math.cos(rot) * innerRadius;
-                y = Math.sin(rot) * innerRadius;
-                ctx.lineTo(x, y);
-                rot += step;
+            for (let j = 0; j < spikes; j++) {
+              x = Math.cos(rot) * outerRadius;
+              y = Math.sin(rot) * outerRadius;
+              ctx.lineTo(x, y);
+              rot += step;
+              x = Math.cos(rot) * innerRadius;
+              y = Math.sin(rot) * innerRadius;
+              ctx.lineTo(x, y);
+              rot += step;
             }
             ctx.lineTo(0, -outerRadius);
             ctx.closePath();
@@ -481,7 +500,7 @@ export default function Fireworks({ intensity, colors, confetti = false, effect 
             ctx.arc(0, 0, p.size * alpha, 0, Math.PI * 2);
             ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
             ctx.fill();
-            
+
             // Glow effect for brighter particles
             if (alpha > 0.5) {
               ctx.beginPath();

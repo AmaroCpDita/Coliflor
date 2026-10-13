@@ -13,11 +13,39 @@ import './our-world.css';
 export default function OurWorldPage() {
   const { couple } = useAuth();
   const {
-    welcomePending, welcome, refreshWelcome, acknowledgeWelcome,
-    worldState, inventory, placedObjects, achievements, dayNight, xpBoostActive,
-    isLoading, error, pendingReward, rewardLevels, claimingRewards, rewardsError, catalogUnavailable, retryRewards,
-    claimLevelRewards, placeItem, removeItem, moveItem, resizeItem, flipItem, grantInteractionXP, dismissReward,
-    forestProgress, forestUnavailable, forestLoading, refreshForest, claimForestGoal, completeForest, switchBiome,
+    welcomePending,
+    welcome,
+    refreshWelcome,
+    acknowledgeWelcome,
+    worldState,
+    inventory,
+    placedObjects,
+    achievements,
+    dayNight,
+    xpBoostActive,
+    isLoading,
+    error,
+    pendingReward,
+    rewardLevels,
+    claimingRewards,
+    rewardsError,
+    catalogUnavailable,
+    retryRewards,
+    claimLevelRewards,
+    placeItem,
+    removeItem,
+    moveItem,
+    resizeItem,
+    flipItem,
+    grantInteractionXP,
+    dismissReward,
+    forestProgress,
+    forestUnavailable,
+    forestLoading,
+    refreshForest,
+    claimForestGoal,
+    completeForest,
+    switchBiome,
   } = useWorld();
 
   if (!couple) {
@@ -52,38 +80,45 @@ export default function OurWorldPage() {
 
   return (
     <>
-    <WorldScene
-      key={`${worldState?.onboarding_epoch}:${welcomePending}`}
-      isWelcomePreview={welcomePending}
-      worldState={worldState}
-      inventory={inventory}
-      placedObjects={placedObjects}
-      achievements={achievements}
-      dayNight={dayNight}
-      xpBoostActive={xpBoostActive}
-      pendingReward={pendingReward}
-      rewardLevels={rewardLevels}
-      claimingRewards={claimingRewards}
-      onClaimLevelRewards={claimLevelRewards}
-      forestProgress={forestProgress}
-      forestUnavailable={forestUnavailable}
-      forestLoading={forestLoading}
-      onRetryForest={refreshForest}
-      onClaimForestGoal={claimForestGoal}
-      onCompleteForest={completeForest}
-      onSwitchBiome={switchBiome}
-      onPlaceItem={placeItem}
-      onRemoveItem={removeItem}
-      onMoveItem={moveItem}
-      onFlipItem={flipItem}
-      onResizeItem={resizeItem}
-      onInteractXP={grantInteractionXP}
-      onDismissReward={dismissReward}
-      rewardsError={rewardsError}
-      catalogUnavailable={catalogUnavailable}
-      onRetryRewards={retryRewards}
-    />
-    {welcomePending && <WorldWelcome checking={!welcome} failed={welcome?.status === 'error'} onRetry={refreshWelcome} onEnter={acknowledgeWelcome} />}
+      <WorldScene
+        key={`${worldState?.onboarding_epoch}:${welcomePending}`}
+        isWelcomePreview={welcomePending}
+        worldState={worldState}
+        inventory={inventory}
+        placedObjects={placedObjects}
+        achievements={achievements}
+        dayNight={dayNight}
+        xpBoostActive={xpBoostActive}
+        pendingReward={pendingReward}
+        rewardLevels={rewardLevels}
+        claimingRewards={claimingRewards}
+        onClaimLevelRewards={claimLevelRewards}
+        forestProgress={forestProgress}
+        forestUnavailable={forestUnavailable}
+        forestLoading={forestLoading}
+        onRetryForest={refreshForest}
+        onClaimForestGoal={claimForestGoal}
+        onCompleteForest={completeForest}
+        onSwitchBiome={switchBiome}
+        onPlaceItem={placeItem}
+        onRemoveItem={removeItem}
+        onMoveItem={moveItem}
+        onFlipItem={flipItem}
+        onResizeItem={resizeItem}
+        onInteractXP={grantInteractionXP}
+        onDismissReward={dismissReward}
+        rewardsError={rewardsError}
+        catalogUnavailable={catalogUnavailable}
+        onRetryRewards={retryRewards}
+      />
+      {welcomePending && (
+        <WorldWelcome
+          checking={!welcome}
+          failed={welcome?.status === 'error'}
+          onRetry={refreshWelcome}
+          onEnter={acknowledgeWelcome}
+        />
+      )}
     </>
   );
 }

@@ -14,7 +14,16 @@ import type { Message } from '../lib/types';
 
 function IconSend() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <line x1="22" y1="2" x2="11" y2="13" />
       <polygon points="22 2 15 22 11 13 2 9 22 2" />
     </svg>
@@ -23,7 +32,16 @@ function IconSend() {
 
 function IconBell() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e07a7a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#e07a7a"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
@@ -32,7 +50,16 @@ function IconBell() {
 
 function IconEdit() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
     </svg>
@@ -41,16 +68,31 @@ function IconEdit() {
 
 function IconMessageLarge() {
   return (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(242,242,247,0.3)" strokeWidth="1.5">
+    <svg
+      width="40"
+      height="40"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="rgba(242,242,247,0.3)"
+      strokeWidth="1.5"
+    >
       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
     </svg>
   );
 }
 
-
 function IconReplyAction() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <polyline points="9 17 4 12 9 7" />
       <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
     </svg>
@@ -59,7 +101,16 @@ function IconReplyAction() {
 
 function IconTrash() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <polyline points="3 6 5 6 21 6" />
       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
     </svg>
@@ -76,7 +127,7 @@ const MessageRow = ({
   isSelected,
   onToggleSelection,
   onStartSelection,
-  onReply
+  onReply,
 }: any) => {
   const startXRef = useRef<number | null>(null);
   const startYRef = useRef<number | null>(null);
@@ -89,13 +140,13 @@ const MessageRow = ({
   useEffect(() => {
     const el = rowRef.current;
     if (!el) return;
-    
+
     const handleNativeTouchMove = (e: TouchEvent) => {
       if (selectionMode || startXRef.current === null || startYRef.current === null) return;
-      
+
       const deltaX = Math.abs(e.touches[0].clientX - startXRef.current);
       const deltaY = Math.abs(e.touches[0].clientY - startYRef.current);
-      
+
       // If moving horizontally more than vertically, prevent browser navigation
       if (deltaX > deltaY && deltaX > 5) {
         e.preventDefault();
@@ -110,7 +161,7 @@ const MessageRow = ({
     if (selectionMode) return;
     startXRef.current = e.touches[0].clientX;
     startYRef.current = e.touches[0].clientY;
-    
+
     longPressTimerRef.current = setTimeout(() => {
       onStartSelection(msg.id);
       startXRef.current = null;
@@ -119,27 +170,28 @@ const MessageRow = ({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (selectionMode) return;
-    
+
     if (startXRef.current !== null && startYRef.current !== null) {
       const deltaX = e.touches[0].clientX - startXRef.current;
       const deltaY = Math.abs(e.touches[0].clientY - startYRef.current);
-      
+
       if (deltaY > 20) {
-         if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
-         startXRef.current = null;
-         
-         // Reset DOM manually
-         currentDragXRef.current = 0;
-         if (bubbleRef.current) {
-           bubbleRef.current.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-           bubbleRef.current.style.transform = 'translateX(0px)';
-         }
-         if (iconRef.current) {
-           iconRef.current.style.opacity = '0';
-         }
-         return;
+        if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+        startXRef.current = null;
+
+        // Reset DOM manually
+        currentDragXRef.current = 0;
+        if (bubbleRef.current) {
+          bubbleRef.current.style.transition =
+            'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+          bubbleRef.current.style.transform = 'translateX(0px)';
+        }
+        if (iconRef.current) {
+          iconRef.current.style.opacity = '0';
+        }
+        return;
       }
-      
+
       if (Math.abs(deltaX) > 10 && longPressTimerRef.current) {
         clearTimeout(longPressTimerRef.current);
         longPressTimerRef.current = null;
@@ -167,17 +219,18 @@ const MessageRow = ({
       if (currentDragXRef.current > 50) {
         onReply(msg);
       }
-      
+
       // Reset DOM manually
       currentDragXRef.current = 0;
       if (bubbleRef.current) {
-        bubbleRef.current.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        bubbleRef.current.style.transition =
+          'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
         bubbleRef.current.style.transform = 'translateX(0px)';
       }
       if (iconRef.current) {
         iconRef.current.style.opacity = '0';
       }
-      
+
       startXRef.current = null;
     }
   };
@@ -197,15 +250,15 @@ const MessageRow = ({
   };
 
   return (
-    <motion.div 
+    <motion.div
       layout="position"
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
       ref={rowRef}
-      className={`message-row ${isMe ? 'message-row--me' : 'message-row--partner'}`} 
-      style={{ 
+      className={`message-row ${isMe ? 'message-row--me' : 'message-row--partner'}`}
+      style={{
         position: 'relative',
         background: isSelected ? 'rgba(255,255,255,0.1)' : 'transparent',
         borderRadius: '8px',
@@ -214,7 +267,7 @@ const MessageRow = ({
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
-        touchAction: 'pan-y'
+        touchAction: 'pan-y',
       }}
       onClick={() => {
         if (selectionMode) onToggleSelection(msg.id);
@@ -229,59 +282,77 @@ const MessageRow = ({
         if (!selectionMode) e.preventDefault();
       }}
     >
-      <div 
+      <div
         ref={iconRef}
         style={{
-        position: 'absolute',
-        left: '20px',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        opacity: 0,
-        color: 'var(--color-primary)',
-        pointerEvents: 'none'
-      }}>
+          position: 'absolute',
+          left: '20px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          opacity: 0,
+          color: 'var(--color-primary)',
+          pointerEvents: 'none',
+        }}
+      >
         <IconReplyAction />
       </div>
 
       {selectionMode && (
-        <div style={{
-          width: '20px', height: '20px', borderRadius: '50%', 
-          border: `2px solid ${isSelected ? 'var(--color-primary)' : 'rgba(255,255,255,0.3)'}`,
-          background: isSelected ? 'var(--color-primary)' : 'transparent',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0
-        }}>
-          {isSelected && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+        <div
+          style={{
+            width: '20px',
+            height: '20px',
+            borderRadius: '50%',
+            border: `2px solid ${isSelected ? 'var(--color-primary)' : 'rgba(255,255,255,0.3)'}`,
+            background: isSelected ? 'var(--color-primary)' : 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          {isSelected && (
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          )}
         </div>
       )}
 
-      <div 
+      <div
         ref={bubbleRef}
         className={`message-bubble ${isMe ? 'message-bubble--me' : 'message-bubble--partner'}`}
-        style={{ 
+        style={{
           transform: 'translateX(0px)',
           transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
           flex: 1,
           pointerEvents: selectionMode ? 'none' : 'auto',
-          maxWidth: selectionMode ? 'calc(80% - 32px)' : '80%'
+          maxWidth: selectionMode ? 'calc(80% - 32px)' : '80%',
         }}
       >
-        {!isMe && (
-          <div className="message-sender-label">
-            {displayPartnerName}
-          </div>
-        )}
-        
+        {!isMe && <div className="message-sender-label">{displayPartnerName}</div>}
+
         {repliedMsg && !repliedMsg.is_deleted && (
-          <div style={{ 
-            background: 'rgba(0,0,0,0.15)', 
-            padding: '6px 8px', 
-            borderRadius: '6px', 
-            marginBottom: '4px',
-            borderLeft: `3px solid ${isMe ? 'rgba(255,255,255,0.5)' : 'var(--color-primary)'}`,
-            fontSize: '11px',
-            opacity: 0.8
-          }}>
+          <div
+            style={{
+              background: 'rgba(0,0,0,0.15)',
+              padding: '6px 8px',
+              borderRadius: '6px',
+              marginBottom: '4px',
+              borderLeft: `3px solid ${isMe ? 'rgba(255,255,255,0.5)' : 'var(--color-primary)'}`,
+              fontSize: '11px',
+              opacity: 0.8,
+            }}
+          >
             <div style={{ fontWeight: 600, marginBottom: '2px' }}>
               {repliedMsg.sender_id === profile?.id ? 'Tú' : displayPartnerName}
             </div>
@@ -290,10 +361,8 @@ const MessageRow = ({
             </div>
           </div>
         )}
-        
-        <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
-          {msg.content}
-        </div>
+
+        <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
         <div className="message-time" style={{ textAlign: isMe ? 'right' : 'left' }}>
           {formatTime(msg.created_at)}
         </div>
@@ -308,7 +377,7 @@ export default function Messages() {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
-    typeof Notification !== 'undefined' ? Notification.permission : 'default'
+    typeof Notification !== 'undefined' ? Notification.permission : 'default',
   );
 
   const partnerName = partner ? partner.display_name : 'Tu pareja';
@@ -319,7 +388,9 @@ export default function Messages() {
 
   // Nickname state
   const [partnerNickname, setPartnerNickname] = useState<string>(() => {
-    return dbNickname || localStorage.getItem('partner_nickname_' + (partner?.id || 'default')) || '';
+    return (
+      dbNickname || localStorage.getItem('partner_nickname_' + (partner?.id || 'default')) || ''
+    );
   });
   const [showNicknameModal, setShowNicknameModal] = useState(false);
   const [nicknameInput, setNicknameInput] = useState('');
@@ -332,7 +403,7 @@ export default function Messages() {
 
   const displayPartnerName = partnerNickname.trim() || partnerName;
 
-    const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -380,11 +451,13 @@ export default function Messages() {
 
       try {
         if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
-          navigator.serviceWorker.ready.then(reg => {
-            reg.showNotification(`💛 ${sender}`, notifOptions as any);
-          }).catch(() => {
-            new Notification(`💛 ${sender}`, notifOptions);
-          });
+          navigator.serviceWorker.ready
+            .then((reg) => {
+              reg.showNotification(`💛 ${sender}`, notifOptions as any);
+            })
+            .catch(() => {
+              new Notification(`💛 ${sender}`, notifOptions);
+            });
         } else {
           new Notification(`💛 ${sender}`, notifOptions);
         }
@@ -400,11 +473,41 @@ export default function Messages() {
 
     if (isMockMode) {
       const mockMsgs: Message[] = [
-        { id: 'm1', couple_id: 'mock', sender_id: 'mock-user-2', content: 'Hola amor! ❤️ No olvides tomar la foto de hoy para no perder la racha', created_at: new Date(Date.now() - 3600000 * 3).toISOString() },
-        { id: 'm2', couple_id: 'mock', sender_id: 'mock-user-1', content: 'Siii ya la tomé! Te ves hermosa en la tuya 💖', created_at: new Date(Date.now() - 3600000 * 2.5).toISOString() },
-        { id: 'm3', couple_id: 'mock', sender_id: 'mock-user-2', content: 'Gracias mi vida 🥰 ¿Nos vemos hoy en la noche?', created_at: new Date(Date.now() - 3600000 * 2).toISOString() },
-        { id: 'm4', couple_id: 'mock', sender_id: 'mock-user-1', content: 'Paso por ti a las 8pm y cenamos juntos!', created_at: new Date(Date.now() - 3600000 * 1.5).toISOString() },
-        { id: 'm5', couple_id: 'mock', sender_id: 'mock-user-2', content: 'Súper! Te espero impaciente 💛', created_at: new Date(Date.now() - 3600000 * 1).toISOString() },
+        {
+          id: 'm1',
+          couple_id: 'mock',
+          sender_id: 'mock-user-2',
+          content: 'Hola amor! ❤️ No olvides tomar la foto de hoy para no perder la racha',
+          created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
+        },
+        {
+          id: 'm2',
+          couple_id: 'mock',
+          sender_id: 'mock-user-1',
+          content: 'Siii ya la tomé! Te ves hermosa en la tuya 💖',
+          created_at: new Date(Date.now() - 3600000 * 2.5).toISOString(),
+        },
+        {
+          id: 'm3',
+          couple_id: 'mock',
+          sender_id: 'mock-user-2',
+          content: 'Gracias mi vida 🥰 ¿Nos vemos hoy en la noche?',
+          created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+        },
+        {
+          id: 'm4',
+          couple_id: 'mock',
+          sender_id: 'mock-user-1',
+          content: 'Paso por ti a las 8pm y cenamos juntos!',
+          created_at: new Date(Date.now() - 3600000 * 1.5).toISOString(),
+        },
+        {
+          id: 'm5',
+          couple_id: 'mock',
+          sender_id: 'mock-user-2',
+          content: 'Súper! Te espero impaciente 💛',
+          created_at: new Date(Date.now() - 3600000 * 1).toISOString(),
+        },
       ];
       setMessages(mockMsgs);
       setTimeout(scrollToBottom, 100);
@@ -444,12 +547,12 @@ export default function Messages() {
         },
         (payload) => {
           const msg = payload.new as Message;
-          setMessages(prev => {
-            if (prev.some(m => m.id === msg.id)) return prev;
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === msg.id)) return prev;
             return [...prev, msg];
           });
           setTimeout(scrollToBottom, 100);
-        }
+        },
       )
       .on(
         'postgres_changes',
@@ -461,8 +564,8 @@ export default function Messages() {
         },
         (payload) => {
           const msg = payload.new as Message;
-          setMessages(prev => prev.map(m => m.id === msg.id ? msg : m));
-        }
+          setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
+        },
       )
       .subscribe();
 
@@ -470,7 +573,6 @@ export default function Messages() {
       supabase.removeChannel(channel);
     };
   }, [couple?.id, scrollToBottom, isMockMode]);
-
 
   const handleSend = async () => {
     if (!input.trim() || !couple || !profile || sending) return;
@@ -487,7 +589,7 @@ export default function Messages() {
         content,
         created_at: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, newMsg]);
+      setMessages((prev) => [...prev, newMsg]);
       setSending(false);
       setTimeout(scrollToBottom, 100);
       inputRef.current?.focus();
@@ -500,22 +602,18 @@ export default function Messages() {
         sender_id: profile.id,
         content,
       };
-      
+
       if (replyingTo) {
         payload.reply_to_id = replyingTo.id;
       }
 
-      const { data, error } = await supabase
-        .from('messages')
-        .insert(payload)
-        .select()
-        .single();
+      const { data, error } = await supabase.from('messages').insert(payload).select().single();
 
       if (error) throw error;
 
       if (data) {
-        setMessages(prev => {
-          if (prev.some(m => m.id === data.id)) return prev;
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === data.id)) return prev;
           return [...prev, data as Message];
         });
         setTimeout(scrollToBottom, 100);
@@ -536,9 +634,8 @@ export default function Messages() {
     }
   };
 
-  
   const handleToggleSelection = (id: string) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -554,13 +651,18 @@ export default function Messages() {
 
   const handleBatchDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!window.confirm(`¿Estás seguro de que quieres eliminar ${selectedIds.size} ${selectedIds.size === 1 ? 'mensaje' : 'mensajes'}?`)) return;
+    if (
+      !window.confirm(
+        `¿Estás seguro de que quieres eliminar ${selectedIds.size} ${selectedIds.size === 1 ? 'mensaje' : 'mensajes'}?`,
+      )
+    )
+      return;
 
     const ids = Array.from(selectedIds);
     setSelectionMode(false);
     setSelectedIds(new Set());
-    
-    setMessages(prev => prev.map(m => ids.includes(m.id) ? { ...m, is_deleted: true } : m));
+
+    setMessages((prev) => prev.map((m) => (ids.includes(m.id) ? { ...m, is_deleted: true } : m)));
 
     try {
       await supabase.from('messages').update({ is_deleted: true }).in('id', ids);
@@ -568,7 +670,6 @@ export default function Messages() {
       console.warn('Error deleting messages:', e);
     }
   };
-
 
   const handleSaveNickname = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -588,10 +689,7 @@ export default function Messages() {
           ? { user1_partner_nickname: val }
           : { user2_partner_nickname: val };
 
-        await supabase
-          .from('couples')
-          .update(updatePayload)
-          .eq('id', couple.id);
+        await supabase.from('couples').update(updatePayload).eq('id', couple.id);
 
         await refreshProfile();
       } catch (err) {
@@ -611,10 +709,10 @@ export default function Messages() {
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     const originalOverscroll = document.body.style.overscrollBehaviorY;
-    
+
     document.body.style.overflow = 'hidden';
     document.body.style.overscrollBehaviorY = 'none'; // Prevent pull-to-refresh bounce
-    
+
     return () => {
       document.body.style.overflow = originalOverflow;
       document.body.style.overscrollBehaviorY = originalOverscroll;
@@ -641,23 +739,26 @@ export default function Messages() {
   }
 
   // Filter out system activity notifications and deleted messages
-  const chatMessages = messages.filter(msg => {
+  const chatMessages = messages.filter((msg) => {
     if (msg.is_deleted) return false;
-    const isSystem = msg.content.startsWith('💌') || 
-                     msg.content.startsWith('📅') || 
-                     msg.content.startsWith('📸') || 
-                     msg.content.startsWith('🩹') ||
-                     msg.content.startsWith('🔥') ||
-                     msg.content.startsWith('📊');
+    const isSystem =
+      msg.content.startsWith('💌') ||
+      msg.content.startsWith('📅') ||
+      msg.content.startsWith('📸') ||
+      msg.content.startsWith('🩹') ||
+      msg.content.startsWith('🔥') ||
+      msg.content.startsWith('📊');
     return !isSystem;
   });
 
   // Group messages by date with strict chronological sorting
-  const sortedMessages = [...chatMessages].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  const sortedMessages = [...chatMessages].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+  );
   const groupedMessages: { date: string; messages: Message[] }[] = [];
   let currentDate = '';
-  
-  sortedMessages.forEach(msg => {
+
+  sortedMessages.forEach((msg) => {
     const msgDate = new Date(msg.created_at).toLocaleDateString('es-CL', {
       timeZone: 'America/Santiago',
       day: 'numeric',
@@ -672,35 +773,50 @@ export default function Messages() {
   });
 
   return (
-    <PageTransition style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100dvh',
-      maxWidth: '480px',
-      margin: '0 auto',
-      width: '100%',
-    }}>
+    <PageTransition
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100dvh',
+        maxWidth: '480px',
+        margin: '0 auto',
+        width: '100%',
+      }}
+    >
       {/* Header */}
-      <div style={{
-        padding: 'var(--space-md) var(--space-lg)',
-        paddingTop: 'calc(var(--safe-top) + var(--space-md))',
-        borderBottom: '1px solid var(--color-border)',
-        background: selectionMode ? 'var(--color-primary)' : 'var(--color-bg-card)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        transition: 'background 0.3s'
-      }}>
+      <div
+        style={{
+          padding: 'var(--space-md) var(--space-lg)',
+          paddingTop: 'calc(var(--safe-top) + var(--space-md))',
+          borderBottom: '1px solid var(--color-border)',
+          background: selectionMode ? 'var(--color-primary)' : 'var(--color-bg-card)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          transition: 'background 0.3s',
+        }}
+      >
         {selectionMode ? (
           <div className="row row--between">
             <div className="row row--gap-md">
-              <button className="btn btn--ghost btn--xs" onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); }} style={{ color: '#fff', padding: 0 }}>
+              <button
+                className="btn btn--ghost btn--xs"
+                onClick={() => {
+                  setSelectionMode(false);
+                  setSelectedIds(new Set());
+                }}
+                style={{ color: '#fff', padding: 0 }}
+              >
                 ✕ Cancelar
               </button>
               <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: '#fff' }}>
                 {selectedIds.size} {selectedIds.size === 1 ? 'seleccionado' : 'seleccionados'}
               </span>
             </div>
-            <button className="btn btn--ghost btn--xs" onClick={handleBatchDelete} style={{ color: '#fff', padding: 0 }}>
+            <button
+              className="btn btn--ghost btn--xs"
+              onClick={handleBatchDelete}
+              style={{ color: '#fff', padding: 0 }}
+            >
               <IconTrash />
             </button>
           </div>
@@ -708,7 +824,13 @@ export default function Messages() {
           <div className="row row--between">
             <div>
               <div className="row row--gap-xs">
-                <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-primary)' }}>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 'var(--font-size-base)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
                   {displayPartnerName}
                 </span>
                 {partnerNickname && (
@@ -737,60 +859,72 @@ export default function Messages() {
         )}
       </div>
 
-
-
       {/* Messages area */}
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: 'var(--space-md) var(--space-lg)',
-        paddingBottom: '160px', // space for fixed input bar (70px) + dock (90px)
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-sm)',
-      }}>
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: 'var(--space-md) var(--space-lg)',
+          paddingBottom: '160px', // space for fixed input bar (70px) + dock (90px)
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-sm)',
+        }}
+      >
         {messages.length === 0 && (
           <div className="empty-state" style={{ flex: 1 }}>
             <IconMessageLarge />
-            <div className="empty-state__title" style={{ marginTop: 'var(--space-sm)' }}>Sin mensajes aún</div>
-            <div className="empty-state__text">
-              Envía el primer mensaje a {displayPartnerName}
+            <div className="empty-state__title" style={{ marginTop: 'var(--space-sm)' }}>
+              Sin mensajes aún
             </div>
+            <div className="empty-state__text">Envía el primer mensaje a {displayPartnerName}</div>
           </div>
         )}
 
         {groupedMessages.map((group) => (
           <div key={group.date}>
             <div className="text-center" style={{ margin: 'var(--space-md) 0' }}>
-              <span className="text-secondary" style={{ fontSize: '10px', textTransform: 'capitalize', background: 'var(--color-bg-secondary)', padding: '2px 10px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
+              <span
+                className="text-secondary"
+                style={{
+                  fontSize: '10px',
+                  textTransform: 'capitalize',
+                  background: 'var(--color-bg-secondary)',
+                  padding: '2px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  border: '1px solid var(--color-border)',
+                }}
+              >
                 {group.date}
               </span>
             </div>
 
             <AnimatePresence initial={false}>
               {group.messages.map((msg) => {
-              const isMe = Boolean(
-                (profile?.id && msg.sender_id === profile.id) ||
-                (user?.id && msg.sender_id === user.id)
-              );
-              const repliedMsg = msg.reply_to_id ? messages.find(m => m.id === msg.reply_to_id) : null;
-              
-              return (
-                <MessageRow
-                  key={msg.id}
-                  msg={msg}
-                  isMe={isMe}
-                  displayPartnerName={displayPartnerName}
-                  profile={profile}
-                  repliedMsg={repliedMsg}
-                  selectionMode={selectionMode}
-                  isSelected={selectedIds.has(msg.id)}
-                  onToggleSelection={handleToggleSelection}
-                  onStartSelection={handleStartSelection}
-                  onReply={(m: Message) => setReplyingTo(m)}
-                />
-              );
-            })}
+                const isMe = Boolean(
+                  (profile?.id && msg.sender_id === profile.id) ||
+                  (user?.id && msg.sender_id === user.id),
+                );
+                const repliedMsg = msg.reply_to_id
+                  ? messages.find((m) => m.id === msg.reply_to_id)
+                  : null;
+
+                return (
+                  <MessageRow
+                    key={msg.id}
+                    msg={msg}
+                    isMe={isMe}
+                    displayPartnerName={displayPartnerName}
+                    profile={profile}
+                    repliedMsg={repliedMsg}
+                    selectionMode={selectionMode}
+                    isSelected={selectedIds.has(msg.id)}
+                    onToggleSelection={handleToggleSelection}
+                    onStartSelection={handleStartSelection}
+                    onReply={(m: Message) => setReplyingTo(m)}
+                  />
+                );
+              })}
             </AnimatePresence>
           </div>
         ))}
@@ -800,16 +934,38 @@ export default function Messages() {
       {/* Input bar */}
       <div className="chat-input-bar">
         {replyingTo && (
-          <div className="row row--between" style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-md) var(--radius-md) 0 0', marginBottom: '8px', borderLeft: '3px solid var(--color-primary)' }}>
+          <div
+            className="row row--between"
+            style={{
+              padding: '8px 12px',
+              background: 'rgba(255,255,255,0.05)',
+              borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
+              marginBottom: '8px',
+              borderLeft: '3px solid var(--color-primary)',
+            }}
+          >
             <div style={{ flex: 1, overflow: 'hidden' }}>
               <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-primary)' }}>
-                Respondiendo a {replyingTo.sender_id === profile?.id ? 'ti mismo' : displayPartnerName}
+                Respondiendo a{' '}
+                {replyingTo.sender_id === profile?.id ? 'ti mismo' : displayPartnerName}
               </div>
-              <div style={{ fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--color-text-secondary)' }}>
+              <div
+                style={{
+                  fontSize: '12px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  color: 'var(--color-text-secondary)',
+                }}
+              >
                 {replyingTo.content}
               </div>
             </div>
-            <button className="btn btn--ghost" style={{ padding: '4px', minWidth: 'auto' }} onClick={() => setReplyingTo(null)}>
+            <button
+              className="btn btn--ghost"
+              style={{ padding: '4px', minWidth: 'auto' }}
+              onClick={() => setReplyingTo(null)}
+            >
               ✕
             </button>
           </div>
@@ -823,7 +979,11 @@ export default function Messages() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            style={{ borderRadius: 'var(--radius-full)', padding: '10px 16px', fontSize: 'var(--font-size-sm)' }}
+            style={{
+              borderRadius: 'var(--radius-full)',
+              padding: '10px 16px',
+              fontSize: 'var(--font-size-sm)',
+            }}
           />
 
           <button
@@ -845,9 +1005,31 @@ export default function Messages() {
           </button>
         </div>
         {notifPermission === 'default' && !isMockMode && (
-          <div style={{ background: 'var(--color-primary)', padding: 'var(--space-xs) var(--space-md)', textAlign: 'center', cursor: 'pointer', borderTop: '1px solid var(--color-border)', marginTop: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }} onClick={requestNotificationPermission}>
-            <span style={{ fontSize: '11px', marginRight: '8px' }}>🔔 Activa las notificaciones push para saber cuándo te escribe</span>
-            <span style={{ fontSize: '11px', color: '#fff', textDecoration: 'underline', fontWeight: 'bold' }}>Activar</span>
+          <div
+            style={{
+              background: 'var(--color-primary)',
+              padding: 'var(--space-xs) var(--space-md)',
+              textAlign: 'center',
+              cursor: 'pointer',
+              borderTop: '1px solid var(--color-border)',
+              marginTop: 'var(--space-sm)',
+              borderRadius: 'var(--radius-md)',
+            }}
+            onClick={requestNotificationPermission}
+          >
+            <span style={{ fontSize: '11px', marginRight: '8px' }}>
+              🔔 Activa las notificaciones push para saber cuándo te escribe
+            </span>
+            <span
+              style={{
+                fontSize: '11px',
+                color: '#fff',
+                textDecoration: 'underline',
+                fontWeight: 'bold',
+              }}
+            >
+              Activar
+            </span>
           </div>
         )}
       </div>
@@ -860,7 +1042,10 @@ export default function Messages() {
             <form onSubmit={handleSaveNickname} className="stack stack--md">
               <div className="text-center">
                 <h3>Apodo para {partnerName}</h3>
-                <p className="text-secondary" style={{ fontSize: 'var(--font-size-xs)', marginTop: '4px' }}>
+                <p
+                  className="text-secondary"
+                  style={{ fontSize: 'var(--font-size-xs)', marginTop: '4px' }}
+                >
                   Elige un apodo cariñoso que aparecerá en tus mensajes y notificaciones.
                 </p>
               </div>

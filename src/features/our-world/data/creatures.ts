@@ -17,7 +17,17 @@ export const CREATURES: CreatureDef[] = [
     height: 4,
     activeTime: ['morning', 'day', 'evening'],
     speed: 1.5,
-    behaviors: { idle: 40, walking: 30, looking: 15, eating: 10, sleeping: 0, running: 3, hiding: 2, appearing: 0, disappearing: 0 },
+    behaviors: {
+      idle: 40,
+      walking: 30,
+      looking: 15,
+      eating: 10,
+      sleeping: 0,
+      running: 3,
+      hiding: 2,
+      appearing: 0,
+      disappearing: 0,
+    },
     biomes: ['forest', 'garden'],
   },
   {
@@ -32,7 +42,17 @@ export const CREATURES: CreatureDef[] = [
     height: 3,
     activeTime: ['morning', 'day'],
     speed: 2,
-    behaviors: { idle: 10, walking: 50, looking: 5, eating: 0, sleeping: 0, running: 0, hiding: 5, appearing: 15, disappearing: 15 },
+    behaviors: {
+      idle: 10,
+      walking: 50,
+      looking: 5,
+      eating: 0,
+      sleeping: 0,
+      running: 0,
+      hiding: 5,
+      appearing: 15,
+      disappearing: 15,
+    },
     biomes: ['forest', 'garden'],
   },
   {
@@ -47,7 +67,17 @@ export const CREATURES: CreatureDef[] = [
     height: 3,
     activeTime: ['morning', 'day', 'evening'],
     speed: 3,
-    behaviors: { idle: 25, walking: 35, looking: 15, eating: 10, sleeping: 0, running: 5, hiding: 5, appearing: 5, disappearing: 0 },
+    behaviors: {
+      idle: 25,
+      walking: 35,
+      looking: 15,
+      eating: 10,
+      sleeping: 0,
+      running: 5,
+      hiding: 5,
+      appearing: 5,
+      disappearing: 0,
+    },
     biomes: ['forest', 'garden', 'mountain'],
   },
   {
@@ -62,7 +92,17 @@ export const CREATURES: CreatureDef[] = [
     height: 5,
     activeTime: ['evening', 'night'],
     speed: 2,
-    behaviors: { idle: 30, walking: 30, looking: 20, eating: 5, sleeping: 5, running: 5, hiding: 5, appearing: 0, disappearing: 0 },
+    behaviors: {
+      idle: 30,
+      walking: 30,
+      looking: 20,
+      eating: 5,
+      sleeping: 5,
+      running: 5,
+      hiding: 5,
+      appearing: 0,
+      disappearing: 0,
+    },
     biomes: ['forest'],
   },
   {
@@ -77,7 +117,17 @@ export const CREATURES: CreatureDef[] = [
     height: 8,
     activeTime: ['morning', 'evening'],
     speed: 1,
-    behaviors: { idle: 35, walking: 25, looking: 25, eating: 10, sleeping: 0, running: 3, hiding: 2, appearing: 0, disappearing: 0 },
+    behaviors: {
+      idle: 35,
+      walking: 25,
+      looking: 25,
+      eating: 10,
+      sleeping: 0,
+      running: 3,
+      hiding: 2,
+      appearing: 0,
+      disappearing: 0,
+    },
     biomes: ['forest', 'magical'],
   },
   {
@@ -92,7 +142,17 @@ export const CREATURES: CreatureDef[] = [
     height: 5,
     activeTime: ['night'],
     speed: 0.5,
-    behaviors: { idle: 50, walking: 5, looking: 30, eating: 0, sleeping: 10, running: 0, hiding: 5, appearing: 0, disappearing: 0 },
+    behaviors: {
+      idle: 50,
+      walking: 5,
+      looking: 30,
+      eating: 0,
+      sleeping: 10,
+      running: 0,
+      hiding: 5,
+      appearing: 0,
+      disappearing: 0,
+    },
     biomes: ['forest'],
   },
   {
@@ -107,21 +167,36 @@ export const CREATURES: CreatureDef[] = [
     height: 3,
     activeTime: ['morning', 'day'],
     speed: 3,
-    behaviors: { idle: 15, walking: 25, looking: 10, eating: 15, sleeping: 0, running: 25, hiding: 10, appearing: 0, disappearing: 0 },
+    behaviors: {
+      idle: 15,
+      walking: 25,
+      looking: 10,
+      eating: 15,
+      sleeping: 0,
+      running: 25,
+      hiding: 10,
+      appearing: 0,
+      disappearing: 0,
+    },
     biomes: ['forest', 'garden'],
   },
 ];
 
 /** Look up creature by ID */
 export function getCreatureDef(id: string): CreatureDef | undefined {
-  return CREATURES.find(c => c.id === id);
+  return CREATURES.find((c) => c.id === id);
 }
 
 /** Get all creatures available at a given level for a biome and time of day */
-export function getActiveCreatures(biomeId: string, level: number, timeOfDay: string): CreatureDef[] {
-  return CREATURES.filter(c =>
-    c.requiredLevel <= level &&
-    c.biomes.includes(biomeId) &&
-    c.activeTime.includes(timeOfDay as any)
+export function getActiveCreatures(
+  biomeId: string,
+  level: number,
+  timeOfDay: string,
+): CreatureDef[] {
+  return CREATURES.filter(
+    (c) =>
+      c.requiredLevel <= level &&
+      c.biomes.includes(biomeId) &&
+      c.activeTime.includes(timeOfDay as any),
   );
 }

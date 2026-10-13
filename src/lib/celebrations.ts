@@ -56,7 +56,8 @@ interface HolidayDef {
 
 export const CHILEAN_HOLIDAYS: HolidayDef[] = [
   {
-    month: 1, day: 1,
+    month: 1,
+    day: 1,
     type: 'ano_nuevo',
     intensity: 'high',
     title: '¡Feliz Año Nuevo!',
@@ -67,7 +68,8 @@ export const CHILEAN_HOLIDAYS: HolidayDef[] = [
     particleShape: 'star',
   },
   {
-    month: 2, day: 14,
+    month: 2,
+    day: 14,
     type: 'san_valentin',
     intensity: 'medium',
     title: '¡Feliz San Valentín!',
@@ -78,7 +80,8 @@ export const CHILEAN_HOLIDAYS: HolidayDef[] = [
     particleShape: 'heart',
   },
   {
-    month: 9, day: 18,
+    month: 9,
+    day: 18,
     type: 'fiestas_patrias',
     intensity: 'high',
     title: '¡Felices Fiestas Patrias!',
@@ -89,7 +92,8 @@ export const CHILEAN_HOLIDAYS: HolidayDef[] = [
     particleShape: 'circle',
   },
   {
-    month: 10, day: 31,
+    month: 10,
+    day: 31,
     type: 'halloween',
     intensity: 'low',
     title: '¡Feliz Halloween!',
@@ -100,7 +104,8 @@ export const CHILEAN_HOLIDAYS: HolidayDef[] = [
     particleShape: 'emoji:🎃,👻,🦇',
   },
   {
-    month: 12, day: 24,
+    month: 12,
+    day: 24,
     type: 'navidad',
     intensity: 'medium',
     title: '¡Feliz Nochebuena!',
@@ -111,7 +116,8 @@ export const CHILEAN_HOLIDAYS: HolidayDef[] = [
     particleShape: 'emoji:❄️,🌟,🎁',
   },
   {
-    month: 12, day: 25,
+    month: 12,
+    day: 25,
     type: 'navidad',
     intensity: 'high',
     title: '¡Feliz Navidad!',
@@ -122,7 +128,8 @@ export const CHILEAN_HOLIDAYS: HolidayDef[] = [
     particleShape: 'emoji:🎄,❄️,⛄',
   },
   {
-    month: 12, day: 31,
+    month: 12,
+    day: 31,
     type: 'ano_nuevo',
     intensity: 'high',
     title: '¡Feliz Fin de Año!',
@@ -138,7 +145,15 @@ export const CHILEAN_HOLIDAYS: HolidayDef[] = [
 
 const COLORS_CUMPLEMES = ['#e5c573', '#edd693', '#f3e29f', '#FFD700', '#FFFFFF'];
 const COLORS_HITO = ['#e5c573', '#FF69B4', '#4ECDC4', '#FFD700', '#FFFFFF', '#FF6B6B'];
-const COLORS_ANIVERSARIO = ['#FFD700', '#FF69B4', '#FF6B6B', '#FFFFFF', '#e5c573', '#f472b6', '#4ECDC4'];
+const COLORS_ANIVERSARIO = [
+  '#FFD700',
+  '#FF69B4',
+  '#FF6B6B',
+  '#FFFFFF',
+  '#e5c573',
+  '#f472b6',
+  '#4ECDC4',
+];
 
 // --- Helpers: Date parsing in Santiago timezone ---
 
@@ -166,7 +181,7 @@ function getTodayLocal(): Date {
 export function getCelebration(
   relationshipStart: string,
   myBirthday?: string | null,
-  partnerBirthday?: string | null
+  partnerBirthday?: string | null,
 ): Celebration | null {
   const start = parseDateLocal(relationshipStart);
   if (!start) return null;
@@ -190,15 +205,19 @@ export function getCelebration(
   const daysTogether = Math.max(0, Math.floor(timeDiff / (1000 * 3600 * 24)));
 
   // Birthday checks
-  const isMyBirthday = myBirthday ? (() => {
-    const d = parseDateLocal(myBirthday);
-    return d && d.getDate() === day && (d.getMonth() + 1) === month;
-  })() : false;
+  const isMyBirthday = myBirthday
+    ? (() => {
+        const d = parseDateLocal(myBirthday);
+        return d && d.getDate() === day && d.getMonth() + 1 === month;
+      })()
+    : false;
 
-  const isPartnerBirthday = partnerBirthday ? (() => {
-    const d = parseDateLocal(partnerBirthday);
-    return d && d.getDate() === day && (d.getMonth() + 1) === month;
-  })() : false;
+  const isPartnerBirthday = partnerBirthday
+    ? (() => {
+        const d = parseDateLocal(partnerBirthday);
+        return d && d.getDate() === day && d.getMonth() + 1 === month;
+      })()
+    : false;
 
   // 1. ANIVERSARIO — Same month AND day as start, at least 1 year later
   if (month === startMonth && day === startDay && year > startYear) {
@@ -206,12 +225,8 @@ export function getCelebration(
     return {
       type: 'aniversario',
       intensity: 'high',
-      title: years === 1
-        ? '💛 ¡Feliz primer aniversario!'
-        : `💛 ¡Feliz aniversario #${years}!`,
-      subtitle: years === 1
-        ? '¡Un año increíble de amor!'
-        : `¡${years} años de amor juntos!`,
+      title: years === 1 ? '💛 ¡Feliz primer aniversario!' : `💛 ¡Feliz aniversario #${years}!`,
+      subtitle: years === 1 ? '¡Un año increíble de amor!' : `¡${years} años de amor juntos!`,
       emoji: '🎊',
       years,
       months: totalMonths,
@@ -229,7 +244,9 @@ export function getCelebration(
       type: isMine ? 'cumpleanos_mio' : 'cumpleanos_pareja',
       intensity: 'high',
       title: isMine ? '¡Feliz Cumpleaños a ti! 🎂' : '¡Feliz Cumpleaños mi amor! 🎂',
-      subtitle: isMine ? 'Hoy celebramos tu vida 🥳' : 'Hoy celebramos un año más de tu persona favorita 🥳',
+      subtitle: isMine
+        ? 'Hoy celebramos tu vida 🥳'
+        : 'Hoy celebramos un año más de tu persona favorita 🥳',
       emoji: '🎂',
       months: totalMonths,
       days: daysTogether,
@@ -256,7 +273,7 @@ export function getCelebration(
   }
 
   // 3. CHILEAN HOLIDAYS — Check if today matches any
-  const holiday = CHILEAN_HOLIDAYS.find(h => h.month === month && h.day === day);
+  const holiday = CHILEAN_HOLIDAYS.find((h) => h.month === month && h.day === day);
   if (holiday) {
     return {
       type: holiday.type,

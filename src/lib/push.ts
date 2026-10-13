@@ -7,7 +7,7 @@ import { supabase } from './supabase';
 export async function sendPushNotification(
   partnerId: string,
   title: string,
-  text: string
+  text: string,
 ): Promise<boolean> {
   if (!partnerId) {
     console.warn('Push: Missing partnerId');
@@ -16,7 +16,7 @@ export async function sendPushNotification(
 
   try {
     const { data, error } = await supabase.functions.invoke('send-push', {
-      body: { partnerId, title, text }
+      body: { partnerId, title, text },
     });
 
     if (error) {

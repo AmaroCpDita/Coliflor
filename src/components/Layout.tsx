@@ -12,7 +12,16 @@ import type { Message } from '../lib/types';
 
 function IconHome({ active }: { active: boolean }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={active ? '2.2' : '1.8'}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
@@ -21,7 +30,16 @@ function IconHome({ active }: { active: boolean }) {
 
 function IconStreak({ active }: { active: boolean }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={active ? '2.2' : '1.8'}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
     </svg>
   );
@@ -29,7 +47,16 @@ function IconStreak({ active }: { active: boolean }) {
 
 function IconQuiz({ active }: { active: boolean }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={active ? '2.2' : '1.8'}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M9 11l3 3L22 4" />
       <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
     </svg>
@@ -38,7 +65,16 @@ function IconQuiz({ active }: { active: boolean }) {
 
 function IconCalendar({ active }: { active: boolean }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={active ? '2.2' : '1.8'}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
       <line x1="16" y1="2" x2="16" y2="6" />
       <line x1="8" y1="2" x2="8" y2="6" />
@@ -49,7 +85,16 @@ function IconCalendar({ active }: { active: boolean }) {
 
 function IconMessages({ active }: { active: boolean }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={active ? '2.2' : '1.8'}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
     </svg>
   );
@@ -57,7 +102,16 @@ function IconMessages({ active }: { active: boolean }) {
 
 function IconBellHeader() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="var(--color-accent)"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
@@ -66,7 +120,16 @@ function IconBellHeader() {
 
 function IconMenu() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <line x1="3" y1="12" x2="21" y2="12"></line>
       <line x1="3" y1="6" x2="21" y2="6"></line>
       <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -76,7 +139,16 @@ function IconMenu() {
 
 function IconClose() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <line x1="18" y1="6" x2="6" y2="18"></line>
       <line x1="6" y1="6" x2="18" y2="18"></line>
     </svg>
@@ -85,7 +157,16 @@ function IconClose() {
 
 function IconMapNav({ active }: { active?: boolean }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={active ? '2.2' : '1.8'}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
       <line x1="8" y1="2" x2="8" y2="18" />
       <line x1="16" y1="6" x2="16" y2="22" />
@@ -95,7 +176,16 @@ function IconMapNav({ active }: { active?: boolean }) {
 
 function IconBucketList({ active }: { active?: boolean }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={active ? '2.2' : '1.8'}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <circle cx="12" cy="12" r="10" />
       <circle cx="12" cy="12" r="6" />
       <circle cx="12" cy="12" r="2" />
@@ -105,7 +195,17 @@ function IconBucketList({ active }: { active?: boolean }) {
 
 function IconSettings() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <polygon points="10.61,2.10 13.39,2.10 13.88,4.74 15.81,5.54 18.02,4.01 19.99,5.98 18.46,8.19 19.26,10.12 21.90,10.61 21.90,13.39 19.26,13.88 18.46,15.81 19.99,18.02 18.02,19.99 15.81,18.46 13.88,19.26 13.39,21.90 10.61,21.90 10.12,19.26 8.19,18.46 5.98,19.99 4.01,18.02 5.54,15.81 4.74,13.88 2.10,13.39 2.10,10.61 4.74,10.12 5.54,8.19 4.01,5.98 5.98,4.01 8.19,5.54 10.12,4.74" />
       <circle cx="12" cy="12" r="3"></circle>
     </svg>
@@ -114,14 +214,22 @@ function IconSettings() {
 
 function IconWorld({ active }: { active?: boolean }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.2" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={active ? '2.2' : '1.8'}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <circle cx="12" cy="12" r="10" />
       <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
       <path d="M2 12h20" />
     </svg>
   );
 }
-
 
 const NAV_ITEMS = [
   { path: '/', label: 'Inicio', icon: IconHome },
@@ -151,10 +259,11 @@ export default function Layout() {
   // 1. Center the active item whenever the route changes using a custom premium easing
   useEffect(() => {
     if (!dockRef.current) return;
-    
+
     const activeItem = dockRef.current.querySelector('.dock-item--active') as HTMLElement;
     if (activeItem) {
-      const targetLeft = activeItem.offsetLeft + (activeItem.offsetWidth / 2) - (dockRef.current.offsetWidth / 2);
+      const targetLeft =
+        activeItem.offsetLeft + activeItem.offsetWidth / 2 - dockRef.current.offsetWidth / 2;
       const startLeft = dockRef.current.scrollLeft;
       const distance = targetLeft - startLeft;
       let startTime: number | null = null;
@@ -164,10 +273,10 @@ export default function Layout() {
         if (startTime === null) startTime = currentTime;
         const timeElapsed = currentTime - startTime;
         const progress = Math.min(timeElapsed / duration, 1);
-        
+
         // easeOutQuart
         const ease = 1 - Math.pow(1 - progress, 4);
-        
+
         if (dockRef.current) {
           dockRef.current.scrollLeft = startLeft + distance * ease;
         }
@@ -202,14 +311,14 @@ export default function Layout() {
         setIsKeyboardOpen(true);
       }
     };
-    
+
     const handleBlur = () => {
       setIsKeyboardOpen(false);
     };
 
     window.addEventListener('focusin', handleFocus);
     window.addEventListener('focusout', handleBlur);
-    
+
     // Also use visualViewport as a fallback/enhancement for Android/iOS
     const handleResize = () => {
       if (!window.visualViewport) return;
@@ -250,7 +359,7 @@ export default function Layout() {
     if (profile?.id && typeof window !== 'undefined') {
       const win = window as any;
       if (win.OneSignalDeferred) {
-        win.OneSignalDeferred.push(async function(OneSignal: any) {
+        win.OneSignalDeferred.push(async function (OneSignal: any) {
           try {
             await OneSignal.login(profile.id);
             if (OneSignal.Notifications && !OneSignal.Notifications.permission) {
@@ -277,13 +386,14 @@ export default function Layout() {
         .limit(50);
 
       if (data) {
-        const systemNotifs = data.filter(m => 
-          m.content.startsWith('💌') || 
-          m.content.startsWith('📅') || 
-          m.content.startsWith('📸') || 
-          m.content.startsWith('🩹') ||
-          m.content.startsWith('🔥') ||
-          m.content.startsWith('📊')
+        const systemNotifs = data.filter(
+          (m) =>
+            m.content.startsWith('💌') ||
+            m.content.startsWith('📅') ||
+            m.content.startsWith('📸') ||
+            m.content.startsWith('🩹') ||
+            m.content.startsWith('🔥') ||
+            m.content.startsWith('📊'),
         );
         setActivityLogs(systemNotifs as Message[]);
       }
@@ -300,7 +410,11 @@ export default function Layout() {
     const c = coupleRef.current;
     const isUser1 = c ? c.user1_id === profileIdRef.current : true;
     const dbNickname = isUser1 ? c?.user1_partner_nickname : c?.user2_partner_nickname;
-    return dbNickname || localStorage.getItem('partner_nickname_' + (partnerRef.current?.id || 'default')) || partnerNameRef.current;
+    return (
+      dbNickname ||
+      localStorage.getItem('partner_nickname_' + (partnerRef.current?.id || 'default')) ||
+      partnerNameRef.current
+    );
   }, []);
 
   // Play distinctive romantic champagne arpeggio chime (C6 -> E6 -> G6)
@@ -313,7 +427,7 @@ export default function Layout() {
         if (!AudioCtx) return;
         const ctx = new AudioCtx();
 
-        const notes = [1046.50, 1318.51, 1567.98]; // C6, E6, G6
+        const notes = [1046.5, 1318.51, 1567.98]; // C6, E6, G6
         notes.forEach((freq, idx) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -337,73 +451,82 @@ export default function Layout() {
   }, []);
 
   // Global In-App Notification Trigger (Works when app is open or softly backgrounded)
-  const triggerGlobalNotification = useCallback((sender: string, text: string) => {
-    playNotificationChime();
+  const triggerGlobalNotification = useCallback(
+    (sender: string, text: string) => {
+      playNotificationChime();
 
-    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+      if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
 
-    // Cross-tab deduplication: prevent loop if multiple tabs are open
-    const notifKey = `coliflor_last_notif_${Date.now()}`;
-    const recentNotif = localStorage.getItem('coliflor_last_notif_time');
-    if (recentNotif && Date.now() - parseInt(recentNotif) < 2000) return; // Debounce 2 seconds across tabs
-    localStorage.setItem('coliflor_last_notif_time', Date.now().toString());
+      // Cross-tab deduplication: prevent loop if multiple tabs are open
+      const notifKey = `coliflor_last_notif_${Date.now()}`;
+      const recentNotif = localStorage.getItem('coliflor_last_notif_time');
+      if (recentNotif && Date.now() - parseInt(recentNotif) < 2000) return; // Debounce 2 seconds across tabs
+      localStorage.setItem('coliflor_last_notif_time', Date.now().toString());
 
-    const notifOptions = {
-      body: text,
-      icon: '/logo.png',
-      badge: '/logo.png',
-      vibrate: [200, 100, 200, 100, 200],
-      tag: 'coliflor-notif',
-      renotify: true,
-      data: { url: '/messages' },
-    };
+      const notifOptions = {
+        body: text,
+        icon: '/logo.png',
+        badge: '/logo.png',
+        vibrate: [200, 100, 200, 100, 200],
+        tag: 'coliflor-notif',
+        renotify: true,
+        data: { url: '/messages' },
+      };
 
-    try {
-      if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
-        navigator.serviceWorker.ready.then(reg => {
-          reg.showNotification(`💛 ${sender}`, notifOptions as any);
-        }).catch(() => {
+      try {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
+          navigator.serviceWorker.ready
+            .then((reg) => {
+              reg.showNotification(`💛 ${sender}`, notifOptions as any);
+            })
+            .catch(() => {
+              new Notification(`💛 ${sender}`, notifOptions);
+            });
+        } else {
           new Notification(`💛 ${sender}`, notifOptions);
-        });
-      } else {
-        new Notification(`💛 ${sender}`, notifOptions);
+        }
+      } catch (e) {
+        console.warn('Global notification error:', e);
       }
-    } catch (e) {
-      console.warn('Global notification error:', e);
-    }
-  }, [playNotificationChime]);
+    },
+    [playNotificationChime],
+  );
 
-  const processIncomingMessage = useCallback((msg: any) => {
-    try {
-      if (!msg || !msg.id || !profileIdRef.current) return;
-      
-      const isSystem = msg.content.startsWith('💌') || 
-                       msg.content.startsWith('📅') || 
-                       msg.content.startsWith('📸') || 
-                       msg.content.startsWith('🩹') ||
-                       msg.content.startsWith('🔥') ||
-                       msg.content.startsWith('📊');
+  const processIncomingMessage = useCallback(
+    (msg: any) => {
+      try {
+        if (!msg || !msg.id || !profileIdRef.current) return;
 
-      if (isSystem) {
-        setActivityLogs(prev => [msg, ...prev.filter(p => p.id !== msg.id)]);
+        const isSystem =
+          msg.content.startsWith('💌') ||
+          msg.content.startsWith('📅') ||
+          msg.content.startsWith('📸') ||
+          msg.content.startsWith('🩹') ||
+          msg.content.startsWith('🔥') ||
+          msg.content.startsWith('📊');
+
+        if (isSystem) {
+          setActivityLogs((prev) => [msg, ...prev.filter((p) => p.id !== msg.id)]);
+        }
+
+        if (msg.sender_id === profileIdRef.current) return;
+
+        if (isSystem) {
+          setHasUnread(true);
+        }
+
+        // STRICT DEDUPLICATION: If already notified once, return immediately
+        if (notifiedIdsSetRef.current.has(msg.id)) return;
+        notifiedIdsSetRef.current.add(msg.id);
+
+        const partnerNickname = getPartnerNickname();
+        triggerGlobalNotification(partnerNickname, msg.content);
+      } catch (err) {
+        console.warn('Error processing notification:', err);
       }
-
-      if (msg.sender_id === profileIdRef.current) return;
-
-      if (isSystem) {
-        setHasUnread(true);
-      }
-
-      // STRICT DEDUPLICATION: If already notified once, return immediately
-      if (notifiedIdsSetRef.current.has(msg.id)) return;
-      notifiedIdsSetRef.current.add(msg.id);
-
-      const partnerNickname = getPartnerNickname();
-      triggerGlobalNotification(partnerNickname, msg.content);
-    } catch (err) {
-      console.warn('Error processing notification:', err);
-    }
-  }, [getPartnerNickname, triggerGlobalNotification]);
+    },
+    [getPartnerNickname, triggerGlobalNotification],
+  );
 
   // Triple Realtime Listener for live incoming messages, calendar_events, and couples tables
   useEffect(() => {
@@ -414,10 +537,15 @@ export default function Layout() {
       .channel(`global-msg-notifs-${couple.id}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `couple_id=eq.${couple.id}` },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `couple_id=eq.${couple.id}`,
+        },
         (payload) => {
           processIncomingMessage(payload.new);
-        }
+        },
       )
       .subscribe();
 
@@ -426,7 +554,12 @@ export default function Layout() {
       .channel(`global-cal-notifs-${couple.id}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'calendar_events', filter: `couple_id=eq.${couple.id}` },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'calendar_events',
+          filter: `couple_id=eq.${couple.id}`,
+        },
         (payload) => {
           const evt = payload.new as any;
           if (evt && evt.created_by !== profileIdRef.current) {
@@ -434,10 +567,13 @@ export default function Layout() {
             if (!notifiedIdsSetRef.current.has(calNotifKey)) {
               notifiedIdsSetRef.current.add(calNotifKey);
               const partnerNickname = getPartnerNickname();
-              triggerGlobalNotification(partnerNickname, `📅 ¡Agregó un evento al calendario: "${evt.title || 'Nuevo evento'}"!`);
+              triggerGlobalNotification(
+                partnerNickname,
+                `📅 ¡Agregó un evento al calendario: "${evt.title || 'Nuevo evento'}"!`,
+              );
             }
           }
-        }
+        },
       )
       .subscribe();
 
@@ -449,15 +585,22 @@ export default function Layout() {
         { event: 'UPDATE', schema: 'public', table: 'couples', filter: `id=eq.${couple.id}` },
         (payload) => {
           const updatedCouple = payload.new as any;
-          if (updatedCouple && updatedCouple.daily_note_updated_by && updatedCouple.daily_note_updated_by !== profileIdRef.current) {
+          if (
+            updatedCouple &&
+            updatedCouple.daily_note_updated_by &&
+            updatedCouple.daily_note_updated_by !== profileIdRef.current
+          ) {
             const noteNotifKey = `note_upd_${updatedCouple.daily_note_updated_by}_${updatedCouple.daily_note}`;
             if (!notifiedIdsSetRef.current.has(noteNotifKey)) {
               notifiedIdsSetRef.current.add(noteNotifKey);
               const partnerNickname = getPartnerNickname();
-              triggerGlobalNotification(partnerNickname, `💌 ¡Te envió una notita nueva en el inicio!`);
+              triggerGlobalNotification(
+                partnerNickname,
+                `💌 ¡Te envió una notita nueva en el inicio!`,
+              );
             }
           }
-        }
+        },
       )
       .subscribe();
 
@@ -482,13 +625,14 @@ export default function Layout() {
           .limit(20);
 
         if (data && data.length > 0) {
-          const systemNotifs = data.filter(m => 
-            m.content.startsWith('💌') || 
-            m.content.startsWith('📅') || 
-            m.content.startsWith('📸') || 
-            m.content.startsWith('🩹') ||
-            m.content.startsWith('🔥') ||
-            m.content.startsWith('📊')
+          const systemNotifs = data.filter(
+            (m) =>
+              m.content.startsWith('💌') ||
+              m.content.startsWith('📅') ||
+              m.content.startsWith('📸') ||
+              m.content.startsWith('🩹') ||
+              m.content.startsWith('🔥') ||
+              m.content.startsWith('📊'),
           );
           setActivityLogs(systemNotifs as Message[]);
         }
@@ -509,39 +653,59 @@ export default function Layout() {
     <>
       {/* Top Header */}
       {location.pathname !== '/world' && (
-      <header className="top-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <NavLink to="/settings" className="hamburger-btn" style={{ textDecoration: 'none', color: 'inherit' }} title="Configuración" aria-label="Configuración">
-          <IconSettings />
-        </NavLink>
-        <h1 className="top-header__title">Coliflor</h1>
-        <button className="hamburger-btn" onClick={openNotifCenter} style={{ position: 'relative' }}>
-          <IconBellHeader />
-          {hasUnread && (
-            <span style={{ position: 'absolute', top: '10px', right: '10px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-error)' }} />
-          )}
-        </button>
-      </header>
+        <header className="top-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <NavLink
+            to="/settings"
+            className="hamburger-btn"
+            style={{ textDecoration: 'none', color: 'inherit' }}
+            title="Configuración"
+            aria-label="Configuración"
+          >
+            <IconSettings />
+          </NavLink>
+          <h1 className="top-header__title">Coliflor</h1>
+          <button
+            className="hamburger-btn"
+            onClick={openNotifCenter}
+            style={{ position: 'relative' }}
+          >
+            <IconBellHeader />
+            {hasUnread && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: 'var(--color-error)',
+                }}
+              />
+            )}
+          </button>
+        </header>
       )}
-
-
 
       <Outlet context={{ openNotifCenter, hasUnread }} />
 
       {/* Floating Dock Nav */}
-      {(!isKeyboardOpen) && (
+      {!isKeyboardOpen && (
         <nav className="floating-dock" ref={dockRef}>
           {NAV_ITEMS.map((item) => (
-            <NavLink 
-              key={item.path} 
-              to={item.path} 
-              end={item.path === '/'} 
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.path === '/'}
               className={({ isActive }) => `dock-item ${isActive ? 'dock-item--active' : ''}`}
             >
               {({ isActive }) => {
                 const Icon = item.icon;
                 return (
                   <>
-                    <div className="dock-item__icon"><Icon active={isActive} /></div>
+                    <div className="dock-item__icon">
+                      <Icon active={isActive} />
+                    </div>
                     <span>{item.label}</span>
                   </>
                 );
@@ -571,10 +735,18 @@ export default function Layout() {
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               style={{ animation: 'none' }} // override CSS animation
             >
-              <div className="row row--between" style={{ paddingBottom: 'var(--space-xs)', borderBottom: '1px solid var(--color-border)' }}>
+              <div
+                className="row row--between"
+                style={{
+                  paddingBottom: 'var(--space-xs)',
+                  borderBottom: '1px solid var(--color-border)',
+                }}
+              >
                 <div className="row row--gap-xs">
                   <IconBellHeader />
-                  <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 700 }}>Historial de Actividad</h3>
+                  <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 700 }}>
+                    Historial de Actividad
+                  </h3>
                 </div>
                 <button
                   className="btn btn--ghost btn--xs"
@@ -585,13 +757,24 @@ export default function Layout() {
                 </button>
               </div>
 
-              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'var(--space-sm)',
+                }}
+              >
                 {activityLogs.length === 0 ? (
                   <div className="empty-state" style={{ padding: 'var(--space-xl) 0' }}>
                     <IconBellHeader />
-                    <div className="empty-state__title" style={{ marginTop: 'var(--space-sm)' }}>Sin actividad reciente</div>
+                    <div className="empty-state__title" style={{ marginTop: 'var(--space-sm)' }}>
+                      Sin actividad reciente
+                    </div>
                     <div className="empty-state__text">
-                      Aquí aparecerán los avisos cuando tu pareja agregue notitas, eventos al calendario o fotos de la racha.
+                      Aquí aparecerán los avisos cuando tu pareja agregue notitas, eventos al
+                      calendario o fotos de la racha.
                     </div>
                   </div>
                 ) : (
@@ -609,10 +792,23 @@ export default function Layout() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', lineHeight: 1.4 }}>
+                      <div
+                        style={{
+                          fontSize: 'var(--font-size-sm)',
+                          color: 'var(--color-text-primary)',
+                          lineHeight: 1.4,
+                        }}
+                      >
                         {log.content}
                       </div>
-                      <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginTop: '4px', textAlign: 'right' }}>
+                      <div
+                        style={{
+                          fontSize: '10px',
+                          color: 'var(--color-text-tertiary)',
+                          marginTop: '4px',
+                          textAlign: 'right',
+                        }}
+                      >
                         {formatTime(log.created_at)}
                       </div>
                     </motion.div>
@@ -620,7 +816,13 @@ export default function Layout() {
                 )}
               </div>
 
-              <div style={{ marginTop: 'auto', paddingTop: 'var(--space-sm)', borderTop: '1px solid var(--color-border)' }}>
+              <div
+                style={{
+                  marginTop: 'auto',
+                  paddingTop: 'var(--space-sm)',
+                  borderTop: '1px solid var(--color-border)',
+                }}
+              >
                 <button
                   className="btn btn--secondary btn--full btn--sm"
                   onClick={() => setShowNotifCenter(false)}

@@ -9,12 +9,8 @@ import React from 'react';
 export interface RendererProps extends React.SVGProps<SVGSVGElement> {}
 
 // --- Shared Elements ---
-const DropShadow = () => (
-  <ellipse cx="50" cy="92" rx="30" ry="8" fill="rgba(0,0,0,0.25)" />
-);
-const SmallDropShadow = () => (
-  <ellipse cx="50" cy="92" rx="15" ry="5" fill="rgba(0,0,0,0.25)" />
-);
+const DropShadow = () => <ellipse cx="50" cy="92" rx="30" ry="8" fill="rgba(0,0,0,0.25)" />;
+const SmallDropShadow = () => <ellipse cx="50" cy="92" rx="15" ry="5" fill="rgba(0,0,0,0.25)" />;
 
 // ============================================================
 // TREES
@@ -24,7 +20,8 @@ export const OakTreeRenderer = (props: RendererProps) => (
     <DropShadow />
     {/* Trunk */}
     <path d="M45 90 C 45 70, 42 60, 48 40 L 52 40 C 58 60, 55 70, 55 90 Z" fill="#704A33" />
-    <path d="M48 90 C 48 70, 45 60, 50 40 L 52 40 C 58 60, 55 70, 55 90 Z" fill="#5A3A27" /> {/* Shading */}
+    <path d="M48 90 C 48 70, 45 60, 50 40 L 52 40 C 58 60, 55 70, 55 90 Z" fill="#5A3A27" />{' '}
+    {/* Shading */}
     {/* Canopy Layers */}
     <g className="crown">
       <circle cx="35" cy="45" r="20" fill="#3D8249" />
@@ -101,8 +98,16 @@ export const DaisyRenderer = (props: RendererProps) => (
     <ellipse cx="50" cy="95" rx="8" ry="2" fill="rgba(0,0,0,0.2)" />
     <path d="M50 95 Q 45 70 50 50" fill="none" stroke="#8FBC8F" strokeWidth="3" />
     <g className="flower-head" transform="translate(50, 45)">
-      {[0, 45, 90, 135, 180, 225, 270, 315].map(deg => (
-        <ellipse key={deg} cx="0" cy="-12" rx="4" ry="12" fill="#FFFFFF" transform={`rotate(${deg})`} />
+      {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+        <ellipse
+          key={deg}
+          cx="0"
+          cy="-12"
+          rx="4"
+          ry="12"
+          fill="#FFFFFF"
+          transform={`rotate(${deg})`}
+        />
       ))}
       <circle cx="0" cy="0" r="6" fill="#FFA500" />
     </g>
@@ -179,22 +184,37 @@ export const FountainRenderer = (props: RendererProps) => (
     <ellipse cx="50" cy="85" rx="35" ry="10" fill="#A9A9A9" />
     <ellipse cx="50" cy="82" rx="33" ry="8" fill="#4682B4" /> {/* Water */}
     <path d="M 15 85 Q 50 95 85 85 L 85 90 Q 50 100 15 90 Z" fill="#808080" />
-
     {/* Pillar */}
     <rect x="42" y="45" width="16" height="40" fill="#C0C0C0" />
     <rect x="50" y="45" width="8" height="40" fill="#A9A9A9" />
-
     {/* Top Basin */}
     <ellipse cx="50" cy="45" rx="20" ry="6" fill="#A9A9A9" />
     <ellipse cx="50" cy="43" rx="18" ry="4" fill="#4682B4" /> {/* Water */}
     <path d="M 30 45 Q 50 52 70 45 L 70 48 Q 50 55 30 48 Z" fill="#808080" />
-
     {/* Spout & Water Animation */}
     <path d="M 46 25 L 54 25 L 52 43 L 48 43 Z" fill="#C0C0C0" />
     <g className="water-spout">
-      <path d="M 50 25 Q 35 15 35 43" fill="none" stroke="#87CEFA" strokeWidth="2" strokeDasharray="4 2" />
-      <path d="M 50 25 Q 65 15 65 43" fill="none" stroke="#87CEFA" strokeWidth="2" strokeDasharray="4 2" />
-      <path d="M 50 25 Q 50 15 50 43" fill="none" stroke="#E0FFFF" strokeWidth="3" strokeDasharray="6 3" />
+      <path
+        d="M 50 25 Q 35 15 35 43"
+        fill="none"
+        stroke="#87CEFA"
+        strokeWidth="2"
+        strokeDasharray="4 2"
+      />
+      <path
+        d="M 50 25 Q 65 15 65 43"
+        fill="none"
+        stroke="#87CEFA"
+        strokeWidth="2"
+        strokeDasharray="4 2"
+      />
+      <path
+        d="M 50 25 Q 50 15 50 43"
+        fill="none"
+        stroke="#E0FFFF"
+        strokeWidth="3"
+        strokeDasharray="6 3"
+      />
     </g>
   </svg>
 );
@@ -227,21 +247,17 @@ export const RabbitRenderer = (props: RendererProps) => (
     {/* Body */}
     <ellipse cx="50" cy="70" rx="20" ry="15" fill="#FFFFFF" />
     <ellipse cx="50" cy="75" rx="20" ry="10" fill="#E6E6E6" /> {/* Belly shadow */}
-
     {/* Head */}
     <circle cx="35" cy="60" r="12" fill="#FFFFFF" />
     <circle cx="35" cy="65" r="12" fill="#E6E6E6" /> {/* Head shadow */}
-
     {/* Ears */}
     <ellipse cx="28" cy="40" rx="4" ry="15" fill="#FFFFFF" transform="rotate(-15 28 40)" />
     <ellipse cx="28" cy="40" rx="2" ry="10" fill="#FFC0CB" transform="rotate(-15 28 40)" />
     <ellipse cx="40" cy="38" rx="4" ry="15" fill="#FFFFFF" transform="rotate(15 40 38)" />
     <ellipse cx="40" cy="38" rx="2" ry="10" fill="#FFC0CB" transform="rotate(15 40 38)" />
-
     {/* Eye & Nose */}
     <circle cx="30" cy="58" r="2" fill="#000" />
     <circle cx="25" cy="62" r="1.5" fill="#FFC0CB" />
-
     {/* Tail */}
     <circle cx="70" cy="65" r="6" fill="#FFFFFF" />
   </svg>
@@ -304,20 +320,20 @@ export const ButterflyRenderer = (props: RendererProps) => (
 // REGISTRY
 // ============================================================
 const renderers: Record<string, React.FC<RendererProps>> = {
-  'oak_tree': OakTreeRenderer,
-  'pine_tree': PineTreeRenderer,
-  'birch_tree': BirchTreeRenderer,
-  'basic_flower': FlowerRenderer,
-  'daisy': DaisyRenderer,
-  'rare_orchid': RareOrchidRenderer,
-  'treehouse': TreehouseRenderer,
-  'fountain': FountainRenderer,
-  'lantern': LanternRenderer,
-  'rabbit': RabbitRenderer,
-  'bird': BirdRenderer,
-  'butterfly': ButterflyRenderer,
+  oak_tree: OakTreeRenderer,
+  pine_tree: PineTreeRenderer,
+  birch_tree: BirchTreeRenderer,
+  basic_flower: FlowerRenderer,
+  daisy: DaisyRenderer,
+  rare_orchid: RareOrchidRenderer,
+  treehouse: TreehouseRenderer,
+  fountain: FountainRenderer,
+  lantern: LanternRenderer,
+  rabbit: RabbitRenderer,
+  bird: BirdRenderer,
+  butterfly: ButterflyRenderer,
   // Add simple fallbacks for missing ones
-  'bush': (props) => (
+  bush: (props) => (
     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" {...props}>
       <DropShadow />
       <circle cx="50" cy="55" r="35" fill="#4ade80" />
@@ -326,14 +342,14 @@ const renderers: Record<string, React.FC<RendererProps>> = {
       <circle cx="65" cy="40" r="15" fill="#22c55e" />
     </svg>
   ),
-  'stone_small': (props) => (
+  stone_small: (props) => (
     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" {...props}>
       <DropShadow />
       <path d="M 20 80 Q 20 50 50 50 Q 80 50 80 80 Q 80 95 50 95 Q 20 95 20 80 Z" fill="#A9A9A9" />
       <path d="M 20 80 Q 20 60 50 60 Q 80 60 80 80 Q 80 95 50 95 Q 20 95 20 80 Z" fill="#808080" />
     </svg>
   ),
-  'stone_bench': (props) => (
+  stone_bench: (props) => (
     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" {...props}>
       <DropShadow />
       <rect x="20" y="60" width="10" height="30" fill="#808080" />
@@ -342,14 +358,30 @@ const renderers: Record<string, React.FC<RendererProps>> = {
       <rect x="15" y="50" width="70" height="5" rx="3" fill="#D3D3D3" />
     </svg>
   ),
-  'garden_arch': (props) => (
+  garden_arch: (props) => (
     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" {...props}>
       <ellipse cx="25" cy="92" rx="10" ry="4" fill="rgba(0,0,0,0.25)" />
       <ellipse cx="75" cy="92" rx="10" ry="4" fill="rgba(0,0,0,0.25)" />
-      <path d="M 25 90 L 25 40 Q 50 10 75 40 L 75 90" fill="none" stroke="#F5DEB3" strokeWidth="8" />
-      <path d="M 25 90 L 25 40 Q 50 10 75 40 L 75 90" fill="none" stroke="#DEB887" strokeWidth="4" />
+      <path
+        d="M 25 90 L 25 40 Q 50 10 75 40 L 75 90"
+        fill="none"
+        stroke="#F5DEB3"
+        strokeWidth="8"
+      />
+      <path
+        d="M 25 90 L 25 40 Q 50 10 75 40 L 75 90"
+        fill="none"
+        stroke="#DEB887"
+        strokeWidth="4"
+      />
       {/* Vines */}
-      <path d="M 20 80 Q 35 60 20 40 Q 30 20 50 15 Q 70 20 80 40 Q 65 60 80 80" fill="none" stroke="#228B22" strokeWidth="4" strokeDasharray="5 5" />
+      <path
+        d="M 20 80 Q 35 60 20 40 Q 30 20 50 15 Q 70 20 80 40 Q 65 60 80 80"
+        fill="none"
+        stroke="#228B22"
+        strokeWidth="4"
+        strokeDasharray="5 5"
+      />
     </svg>
   ),
 };
@@ -357,7 +389,9 @@ const renderers: Record<string, React.FC<RendererProps>> = {
 export const FallbackRenderer = (props: RendererProps) => (
   <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" {...props}>
     <circle cx="50" cy="50" r="40" fill="pink" />
-    <text x="50" y="55" fontSize="20" textAnchor="middle" fill="#fff">?</text>
+    <text x="50" y="55" fontSize="20" textAnchor="middle" fill="#fff">
+      ?
+    </text>
   </svg>
 );
 

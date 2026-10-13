@@ -9,14 +9,44 @@ export type TimeOfDay = 'morning' | 'day' | 'evening' | 'night';
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 // --- Object Categories ---
-export type WorldItemType = 'seed' | 'plant' | 'tree' | 'flower' | 'decoration' | 'rock' | 'building' | 'special' | 'material';
-export type CreatureType = 'rabbit' | 'bird' | 'butterfly' | 'fox' | 'deer' | 'owl' | 'firefly_swarm' | 'squirrel' | 'cat';
+export type WorldItemType =
+  | 'seed'
+  | 'plant'
+  | 'tree'
+  | 'flower'
+  | 'decoration'
+  | 'rock'
+  | 'building'
+  | 'special'
+  | 'material';
+export type CreatureType =
+  'rabbit' | 'bird' | 'butterfly' | 'fox' | 'deer' | 'owl' | 'firefly_swarm' | 'squirrel' | 'cat';
 
 // --- Creature States ---
-export type CreatureState = 'idle' | 'walking' | 'running' | 'sleeping' | 'looking' | 'eating' | 'hiding' | 'appearing' | 'disappearing';
+export type CreatureState =
+  | 'idle'
+  | 'walking'
+  | 'running'
+  | 'sleeping'
+  | 'looking'
+  | 'eating'
+  | 'hiding'
+  | 'appearing'
+  | 'disappearing';
 
 // --- Particle Types ---
-export type ParticleType = 'firefly' | 'leaf' | 'petal' | 'dust' | 'rain' | 'snow' | 'spark' | 'bubble' | 'smoke' | 'magic' | 'star';
+export type ParticleType =
+  | 'firefly'
+  | 'leaf'
+  | 'petal'
+  | 'dust'
+  | 'rain'
+  | 'snow'
+  | 'spark'
+  | 'bubble'
+  | 'smoke'
+  | 'magic'
+  | 'star';
 
 // --- World State (from DB) ---
 export interface WorldState {
@@ -238,7 +268,14 @@ export interface AchievementDef {
 }
 
 export interface AchievementCondition {
-  type: 'level_reached' | 'objects_placed' | 'biomes_unlocked' | 'streak_days' | 'goals_completed' | 'interactions' | 'daily_logins';
+  type:
+    | 'level_reached'
+    | 'objects_placed'
+    | 'biomes_unlocked'
+    | 'streak_days'
+    | 'goals_completed'
+    | 'interactions'
+    | 'daily_logins';
   target: number;
 }
 

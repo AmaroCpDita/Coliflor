@@ -12,7 +12,17 @@ import { useRef } from 'react';
 
 function IconUser() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-accent)' }}>
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ color: 'var(--color-accent)' }}
+    >
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
     </svg>
@@ -21,7 +31,15 @@ function IconUser() {
 
 function IconHeart() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--color-accent)' }}>
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth="2"
+      style={{ color: 'var(--color-accent)' }}
+    >
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   );
@@ -29,7 +47,16 @@ function IconHeart() {
 
 function IconCheck() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#4ade80"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <polyline points="20 6 9 17 4 12" />
     </svg>
   );
@@ -37,7 +64,17 @@ function IconCheck() {
 
 function IconCamera() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-accent)' }}>
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ color: 'var(--color-accent)' }}
+    >
       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
       <circle cx="12" cy="13" r="4" />
     </svg>
@@ -46,7 +83,16 @@ function IconCamera() {
 
 function IconLogOut() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
       <polyline points="16 17 21 12 16 7" />
       <line x1="21" y1="12" x2="9" y2="12" />
@@ -57,7 +103,7 @@ function IconLogOut() {
 export default function Settings() {
   const { user, profile, couple, partner, refreshProfile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  
+
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
   const [birthday, setBirthday] = useState(profile?.birthday || '');
   const [relationshipStart, setRelationshipStart] = useState(couple?.relationship_start || '');
@@ -66,7 +112,7 @@ export default function Settings() {
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [coupleSuccess, setCoupleSuccess] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [uploadingHero, setUploadingHero] = useState(false);
   const heroFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -81,9 +127,9 @@ export default function Settings() {
     try {
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ 
+        .update({
           display_name: displayName.trim(),
-          birthday: birthday || null
+          birthday: birthday || null,
         })
         .eq('id', user.id);
 
@@ -128,7 +174,7 @@ export default function Settings() {
   const handleUploadHeroImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !couple || !profile) return;
-    
+
     setUploadingHero(true);
     setError('');
 
@@ -136,12 +182,27 @@ export default function Settings() {
       const compressed = await compressImage(file, 1600, 0.8, false);
       const storagePath = `${couple.id}/hero_${Date.now()}.jpg`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('photos')
-        .upload(storagePath, compressed, {
-          contentType: 'image/jpeg',
-          upsert: true,
-        });
+      const uploadPromise = supabase.storage.from('photos').upload(storagePath, compressed, {
+        contentType: 'image/jpeg',
+        upsert: true,
+      });
+
+      const uploadTimeout = new Promise<never>((_, reject) =>
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                'La subida tardó demasiado tiempo. Verifica tu conexión a internet o intenta nuevamente.',
+              ),
+            ),
+          25000,
+        ),
+      );
+
+      const { error: uploadError } = (await Promise.race([uploadPromise, uploadTimeout])) as {
+        data: any;
+        error: any;
+      };
 
       if (uploadError) throw uploadError;
 
@@ -171,7 +232,10 @@ export default function Settings() {
         {/* Title */}
         <div>
           <h2>Configuración</h2>
-          <p className="text-secondary" style={{ marginTop: 'var(--space-xs)', fontSize: 'var(--font-size-sm)' }}>
+          <p
+            className="text-secondary"
+            style={{ marginTop: 'var(--space-xs)', fontSize: 'var(--font-size-sm)' }}
+          >
             Administra tu perfil, los datos de la pareja y la apariencia.
           </p>
         </div>
@@ -184,32 +248,48 @@ export default function Settings() {
               {theme === 'dark' ? 'Modo Oscuro activado' : 'Modo Claro activado'}
             </p>
           </div>
-          <button 
-            className="btn btn--secondary" 
+          <button
+            className="btn btn--secondary"
             onClick={toggleTheme}
             style={{ borderRadius: 'var(--radius-full)', padding: '10px' }}
           >
             {theme === 'dark' ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
               </svg>
             ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
               </svg>
             )}
           </button>
         </div>
-
-
 
         {/* Edit My Profile */}
         <div className="glass-card">
@@ -232,7 +312,10 @@ export default function Settings() {
               />
             </div>
 
-            <div className="row row--between" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
+            <div
+              className="row row--between"
+              style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}
+            >
               <span>Correo:</span>
               <span>{user?.email || 'Sin correo'}</span>
             </div>
@@ -255,14 +338,21 @@ export default function Settings() {
               <button
                 type="submit"
                 className="btn btn--primary btn--full"
-                disabled={savingProfile || !displayName.trim() || (displayName === profile.display_name && birthday === (profile.birthday || ''))}
+                disabled={
+                  savingProfile ||
+                  !displayName.trim() ||
+                  (displayName === profile.display_name && birthday === (profile.birthday || ''))
+                }
               >
                 {savingProfile ? 'Guardando...' : 'Guardar perfil'}
               </button>
             </div>
 
             {profileSuccess && (
-              <div className="row row--center row--gap-xs" style={{ color: 'var(--color-success)', fontSize: 'var(--font-size-xs)' }}>
+              <div
+                className="row row--center row--gap-xs"
+                style={{ color: 'var(--color-success)', fontSize: 'var(--font-size-xs)' }}
+              >
                 <IconCheck />
                 <span>Perfil actualizado con éxito</span>
               </div>
@@ -275,7 +365,9 @@ export default function Settings() {
           <div className="glass-card">
             <div className="row row--gap-sm" style={{ marginBottom: 'var(--space-md)' }}>
               <IconHeart />
-              <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 600 }}>Nuestra Relación</h3>
+              <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 600 }}>
+                Nuestra Relación
+              </h3>
             </div>
 
             <form onSubmit={handleSaveRelationshipDate} className="stack stack--md">
@@ -292,7 +384,10 @@ export default function Settings() {
               </div>
 
               {relationshipStart && (
-                <p className="text-secondary" style={{ fontSize: 'var(--font-size-xs)', textTransform: 'capitalize' }}>
+                <p
+                  className="text-secondary"
+                  style={{ fontSize: 'var(--font-size-xs)', textTransform: 'capitalize' }}
+                >
                   Aniversario: {formatDate(relationshipStart, 'long')}
                 </p>
               )}
@@ -306,25 +401,39 @@ export default function Settings() {
               </button>
 
               {coupleSuccess && (
-                <div className="row row--center row--gap-xs" style={{ color: 'var(--color-success)', fontSize: 'var(--font-size-xs)' }}>
+                <div
+                  className="row row--center row--gap-xs"
+                  style={{ color: 'var(--color-success)', fontSize: 'var(--font-size-xs)' }}
+                >
                   <IconCheck />
                   <span>Fecha de aniversario actualizada</span>
                 </div>
               )}
             </form>
 
-            <div style={{ marginTop: 'var(--space-xl)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--color-border)' }}>
+            <div
+              style={{
+                marginTop: 'var(--space-xl)',
+                paddingTop: 'var(--space-md)',
+                borderTop: '1px solid var(--color-border)',
+              }}
+            >
               <div className="row row--gap-sm" style={{ marginBottom: 'var(--space-sm)' }}>
                 <IconCamera />
-                <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>Foto de Fondo (Inicio)</h3>
+                <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
+                  Foto de Fondo (Inicio)
+                </h3>
               </div>
-              <p className="text-secondary" style={{ fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-md)' }}>
+              <p
+                className="text-secondary"
+                style={{ fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-md)' }}
+              >
                 Personaliza la foto de la pantalla principal de la aplicación.
               </p>
-              
+
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/*"
                 ref={heroFileInputRef}
                 style={{ display: 'none' }}
                 onChange={handleUploadHeroImage}
@@ -342,25 +451,38 @@ export default function Settings() {
 
         {/* Couple Status Card */}
         <div className="glass-card">
-          <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 600, marginBottom: 'var(--space-sm)' }}>
+          <h3
+            style={{
+              fontSize: 'var(--font-size-base)',
+              fontWeight: 600,
+              marginBottom: 'var(--space-sm)',
+            }}
+          >
             Estado de la Pareja
           </h3>
           <div className="stack stack--sm" style={{ fontSize: 'var(--font-size-xs)' }}>
             <div className="row row--between">
               <span className="text-secondary">Pareja:</span>
-              <span style={{ fontWeight: 600 }}>{partner ? partner.display_name : 'Esperando vinculación'}</span>
+              <span style={{ fontWeight: 600 }}>
+                {partner ? partner.display_name : 'Esperando vinculación'}
+              </span>
             </div>
             {couple && (
               <div className="row row--between">
                 <span className="text-secondary">Racha actual:</span>
-                <span style={{ fontWeight: 600, color: 'var(--color-accent-light)' }}>{couple.current_streak} días</span>
+                <span style={{ fontWeight: 600, color: 'var(--color-accent-light)' }}>
+                  {couple.current_streak} días
+                </span>
               </div>
             )}
           </div>
         </div>
 
         {error && (
-          <div className="toast toast--error" style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}>
+          <div
+            className="toast toast--error"
+            style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}
+          >
             {error}
           </div>
         )}

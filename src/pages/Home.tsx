@@ -17,7 +17,16 @@ import CelebrationModal from '../components/CelebrationModal';
 
 function IconFlame() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
     </svg>
   );
@@ -25,7 +34,16 @@ function IconFlame() {
 
 function IconCamera() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
       <circle cx="12" cy="13" r="4" />
     </svg>
@@ -34,7 +52,16 @@ function IconCamera() {
 
 function IconCalendar() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
       <line x1="16" y1="2" x2="16" y2="6" />
       <line x1="8" y1="2" x2="8" y2="6" />
@@ -45,7 +72,16 @@ function IconCalendar() {
 
 function IconHeartCard() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   );
@@ -53,7 +89,16 @@ function IconHeartCard() {
 
 function IconQuizCard() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M9 11l3 3L22 4" />
       <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
     </svg>
@@ -62,7 +107,16 @@ function IconQuizCard() {
 
 function IconEdit() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
     </svg>
@@ -71,7 +125,15 @@ function IconEdit() {
 
 function IconGoldHeart({ size = 20 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--color-accent)' }}>
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth="2"
+      style={{ color: 'var(--color-accent)' }}
+    >
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   );
@@ -79,17 +141,18 @@ function IconGoldHeart({ size = 20 }: { size?: number }) {
 
 const DEFAULT_DEDICATION = '¡Escribe aquí tu primera notita! Ámame mucho y dime cosas bonitas 💛';
 
-
-
 export default function Home() {
   const { user, profile, couple, partner, refreshProfile, isMockMode } = useAuth();
   const { theme } = useTheme();
-  const { openNotifCenter, hasUnread } = useOutletContext<{ openNotifCenter?: () => void; hasUnread?: boolean }>() || {};
+  const { openNotifCenter, hasUnread } =
+    useOutletContext<{ openNotifCenter?: () => void; hasUnread?: boolean }>() || {};
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showEditNoteForm, setShowEditNoteForm] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [joinCode, setJoinCode] = useState('');
-  const [debugCelebrationType, setDebugCelebrationType] = useState<CelebrationType | 'none' | null>(null);
+  const [debugCelebrationType, setDebugCelebrationType] = useState<CelebrationType | 'none' | null>(
+    null,
+  );
 
   const daysCount = couple ? daysSince(couple.relationship_start) : 0;
 
@@ -192,7 +255,7 @@ export default function Home() {
       }
       return mock;
     }
-    
+
     if (!couple?.relationship_start) return null;
     return getCelebration(couple.relationship_start, profile?.birthday, partner?.birthday);
   }, [couple?.relationship_start, debugCelebrationType, profile?.birthday, partner?.birthday]);
@@ -207,39 +270,50 @@ export default function Home() {
 
   // Partner note written FOR ME
   const partnerNoteInDb = isUser1 ? couple?.user2_note : couple?.user1_note;
-  const partnerNoteUpdatedAt = isUser1 ? couple?.user2_note_updated_at : couple?.user1_note_updated_at;
-  const isDailyNoteFromPartner = Boolean(couple?.daily_note_updated_by && couple.daily_note_updated_by !== profile?.id);
+  const partnerNoteUpdatedAt = isUser1
+    ? couple?.user2_note_updated_at
+    : couple?.user1_note_updated_at;
+  const isDailyNoteFromPartner = Boolean(
+    couple?.daily_note_updated_by && couple.daily_note_updated_by !== profile?.id,
+  );
   const legacyNoteInDb = isDailyNoteFromPartner ? couple?.daily_note : null;
   const rawReceivedNote = partnerNoteInDb || legacyNoteInDb;
 
-  const receivedNoteDisplay = (rawReceivedNote && rawReceivedNote.trim())
-    ? rawReceivedNote.trim()
-    : `${partnerName} aún no ha escrito su notita para ti.`;
+  const receivedNoteDisplay =
+    rawReceivedNote && rawReceivedNote.trim()
+      ? rawReceivedNote.trim()
+      : `${partnerName} aún no ha escrito su notita para ti.`;
 
   // Helper for absolute time
   const getAbsoluteTime = (isoString?: string) => {
     if (!isoString) return '';
     const d = new Date(isoString);
-    const dateStr = d.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const dateStr = d.toLocaleDateString('es-CL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
     const timeStr = d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
     return `el ${dateStr} a las ${timeStr}`;
   };
 
   // My Note FOR MY PARTNER
   const myNoteInDb = isUser1 ? couple?.user1_note : couple?.user2_note;
-  const isDailyNoteFromMe = Boolean(couple?.daily_note_updated_by && couple.daily_note_updated_by === profile?.id);
+  const isDailyNoteFromMe = Boolean(
+    couple?.daily_note_updated_by && couple.daily_note_updated_by === profile?.id,
+  );
   const legacyMyNote = isDailyNoteFromMe ? couple?.daily_note : null;
   const rawMySentNote = myNoteInDb || legacyMyNote;
 
   const [mySentNote, setMySentNote] = useState<string>(
-    rawMySentNote && rawMySentNote.trim() ? rawMySentNote.trim() : DEFAULT_DEDICATION
+    rawMySentNote && rawMySentNote.trim() ? rawMySentNote.trim() : DEFAULT_DEDICATION,
   );
 
   const [noteInput, setNoteInput] = useState('');
   const [savingNote, setSavingNote] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   // Realtime updates state for quick actions
   const [quizStatus, setQuizStatus] = useState('Nuevo');
 
@@ -248,9 +322,12 @@ export default function Home() {
 
   useEffect(() => {
     if (couple?.hero_image_path && !isMockMode) {
-      supabase.storage.from('photos').createSignedUrl(couple.hero_image_path, 3600).then(({ data }) => {
-        if (data?.signedUrl) setHeroImageUrl(data.signedUrl);
-      });
+      supabase.storage
+        .from('photos')
+        .createSignedUrl(couple.hero_image_path, 3600)
+        .then(({ data }) => {
+          if (data?.signedUrl) setHeroImageUrl(data.signedUrl);
+        });
     } else {
       setHeroImageUrl('/hero-bg.jpg');
     }
@@ -280,7 +357,10 @@ export default function Home() {
 
     try {
       const code = generateInviteCode();
-      const { data: returnedCode, error: rpcError } = await supabase.rpc('generate_my_invite_code', { p_code: code });
+      const { data: returnedCode, error: rpcError } = await supabase.rpc(
+        'generate_my_invite_code',
+        { p_code: code },
+      );
       if (rpcError) throw rpcError;
 
       setGeneratedCode(returnedCode || code);
@@ -300,7 +380,9 @@ export default function Home() {
 
     try {
       const normalized = joinCode.trim().toUpperCase();
-      const { error: rpcError } = await supabase.rpc('create_couple', { p_invite_code: normalized });
+      const { error: rpcError } = await supabase.rpc('create_couple', {
+        p_invite_code: normalized,
+      });
       if (rpcError) throw rpcError;
       setShowJoinModal(false);
       await refreshProfile();
@@ -368,7 +450,11 @@ export default function Home() {
           }
 
           if (partner?.id) {
-            sendPushNotification(partner.id, myName, `💌 ¡${myName} te envió una notita nueva en el inicio!`);
+            sendPushNotification(
+              partner.id,
+              myName,
+              `💌 ¡${myName} te envió una notita nueva en el inicio!`,
+            );
           }
         }
 
@@ -382,30 +468,37 @@ export default function Home() {
 
   return (
     <PageTransition className="page" style={{ paddingBottom: '150px', position: 'relative' }}>
-      
       {/* Spectacular Dynamic Backgrounds */}
       {celebration?.type === 'aniversario' && (
-        <div 
-          className="heart-pulse" 
+        <div
+          className="heart-pulse"
           style={{
             position: 'fixed',
-            top: 0, left: 0, right: 0, bottom: 0,
-            background: 'radial-gradient(circle at 50% 30%, rgba(255,215,0,0.15) 0%, rgba(255,107,107,0.05) 50%, transparent 100%)',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background:
+              'radial-gradient(circle at 50% 30%, rgba(255,215,0,0.15) 0%, rgba(255,107,107,0.05) 50%, transparent 100%)',
             zIndex: -1,
             pointerEvents: 'none',
-          }} 
+          }}
         />
       )}
       {celebration?.type === 'san_valentin' && (
-        <div 
-          className="heart-pulse" 
+        <div
+          className="heart-pulse"
           style={{
             position: 'fixed',
-            top: 0, left: 0, right: 0, bottom: 0,
-            background: 'radial-gradient(circle at 50% 30%, rgba(255,105,180,0.15) 0%, rgba(255,20,147,0.05) 50%, transparent 100%)',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background:
+              'radial-gradient(circle at 50% 30%, rgba(255,105,180,0.15) 0%, rgba(255,20,147,0.05) 50%, transparent 100%)',
             zIndex: -1,
             pointerEvents: 'none',
-          }} 
+          }}
         />
       )}
 
@@ -414,25 +507,58 @@ export default function Home() {
         {!partner && (
           <div className="glass-card text-center animate-fade-in">
             <h3 style={{ fontSize: 'var(--font-size-base)', fontWeight: 600 }}>Vincular Pareja</h3>
-            <p className="text-secondary" style={{ fontSize: 'var(--font-size-xs)', margin: 'var(--space-xs) 0 var(--space-md)' }}>
+            <p
+              className="text-secondary"
+              style={{
+                fontSize: 'var(--font-size-xs)',
+                margin: 'var(--space-xs) 0 var(--space-md)',
+              }}
+            >
               Conéctate con tu pareja para compartir el espacio.
             </p>
             {currentCode ? (
               <div className="stack stack--sm">
-                <div className="invite-code-display" style={{ fontSize: 'var(--font-size-xl)', padding: 'var(--space-sm) var(--space-md)' }}>
+                <div
+                  className="invite-code-display"
+                  style={{
+                    fontSize: 'var(--font-size-xl)',
+                    padding: 'var(--space-sm) var(--space-md)',
+                  }}
+                >
                   {currentCode}
                 </div>
                 <div className="row row--gap-sm">
-                  <button className="btn btn--primary btn--sm" style={{ flex: 1 }} onClick={handleCopyCode}>Copiar código</button>
-                  <button className="btn btn--secondary btn--sm" style={{ flex: 1 }} onClick={() => setShowJoinModal(true)}>Tengo código</button>
+                  <button
+                    className="btn btn--primary btn--sm"
+                    style={{ flex: 1 }}
+                    onClick={handleCopyCode}
+                  >
+                    Copiar código
+                  </button>
+                  <button
+                    className="btn btn--secondary btn--sm"
+                    style={{ flex: 1 }}
+                    onClick={() => setShowJoinModal(true)}
+                  >
+                    Tengo código
+                  </button>
                 </div>
               </div>
             ) : (
               <div className="row row--gap-sm">
-                <button className="btn btn--primary btn--sm" style={{ flex: 1 }} onClick={handleGenerateCode} disabled={loading}>
+                <button
+                  className="btn btn--primary btn--sm"
+                  style={{ flex: 1 }}
+                  onClick={handleGenerateCode}
+                  disabled={loading}
+                >
                   Generar código
                 </button>
-                <button className="btn btn--secondary btn--sm" style={{ flex: 1 }} onClick={() => setShowJoinModal(true)}>
+                <button
+                  className="btn btn--secondary btn--sm"
+                  style={{ flex: 1 }}
+                  onClick={() => setShowJoinModal(true)}
+                >
                   Tengo un código
                 </button>
               </div>
@@ -442,9 +568,9 @@ export default function Home() {
 
         {/* Celebration Effects Overlay */}
         {isCelebrating && celebration && (
-          <Fireworks 
-            intensity={celebration.intensity} 
-            colors={celebration.colors} 
+          <Fireworks
+            intensity={celebration.intensity}
+            colors={celebration.colors}
             confetti={showConfetti}
             effect={celebration.effect}
             particleShape={celebration.particleShape}
@@ -453,80 +579,149 @@ export default function Home() {
         )}
 
         {/* Celebration Banner */}
-        {celebration && (
-          <CelebrationBanner celebration={celebration} />
-        )}
+        {celebration && <CelebrationBanner celebration={celebration} />}
 
         {/* Celebration Full Screen Modal */}
-        {celebration && (
-          <CelebrationModal celebration={celebration} partnerName={partnerName} />
-        )}
+        {celebration && <CelebrationModal celebration={celebration} partnerName={partnerName} />}
 
         {/* Hero Card with Custom Background Image */}
-        <div className={`glass-card text-center animate-fade-in ${isCelebrating ? 'hero-card--celebrating' : ''}`} style={{
-          padding: 'var(--space-2xl) var(--space-md)',
-          background: `
+        <div
+          className={`glass-card text-center animate-fade-in ${isCelebrating ? 'hero-card--celebrating' : ''}`}
+          style={{
+            padding: 'var(--space-2xl) var(--space-md)',
+            background: `
             linear-gradient(to bottom, rgba(13, 14, 18, 0.2) 0%, rgba(13, 14, 18, 0.9) 100%),
             url('${heroImageUrl}') center/cover no-repeat
           `,
-          borderRadius: '32px',
-          boxShadow: celebration?.type === 'aniversario' 
-            ? '0 0 40px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.1)' 
-            : (isCelebrating ? undefined : '0 12px 40px rgba(0,0,0,0.3)'),
-          border: celebration?.type === 'aniversario' 
-            ? '2px solid rgba(255, 215, 0, 0.4)' 
-            : (isCelebrating ? 'none' : 'none'),
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
+            borderRadius: '32px',
+            boxShadow:
+              celebration?.type === 'aniversario'
+                ? '0 0 40px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.1)'
+                : isCelebrating
+                  ? undefined
+                  : '0 12px 40px rgba(0,0,0,0.3)',
+            border:
+              celebration?.type === 'aniversario'
+                ? '2px solid rgba(255, 215, 0, 0.4)'
+                : isCelebrating
+                  ? 'none'
+                  : 'none',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
           {/* Avatar Row */}
           <div className="row row--center" style={{ gap: '12px', marginBottom: '16px' }}>
-            <div style={{
-              width: '48px', height: '48px', borderRadius: '50%',
-              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
-              backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 600, fontSize: '18px', color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.3)'
-            }}>
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 600,
+                fontSize: '18px',
+                color: '#ffffff',
+                textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+              }}
+            >
               {myName.charAt(0)}
             </div>
             <IconGoldHeart size={24} />
-            <div style={{
-              width: '48px', height: '48px', borderRadius: '50%',
-              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
-              backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 600, fontSize: '18px', color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.3)'
-            }}>
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 600,
+                fontSize: '18px',
+                color: '#ffffff',
+                textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+              }}
+            >
               {partnerName.charAt(0)}
             </div>
           </div>
 
-          <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '24px', color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+          <h2
+            style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              marginBottom: '24px',
+              color: '#ffffff',
+              textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+            }}
+          >
             {myName} & {partnerName}
           </h2>
 
-          <div style={{ textTransform: 'uppercase', fontSize: '12px', letterSpacing: '2px', fontWeight: 600, color: 'rgba(255,255,255,0.8)', marginBottom: '8px', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+          <div
+            style={{
+              textTransform: 'uppercase',
+              fontSize: '12px',
+              letterSpacing: '2px',
+              fontWeight: 600,
+              color: 'rgba(255,255,255,0.8)',
+              marginBottom: '8px',
+              textShadow: '0 1px 4px rgba(0,0,0,0.5)',
+            }}
+          >
             Llevan juntos
           </div>
-          
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '24px' }}>
+
+          <div
+            style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '24px' }}
+          >
             <span
               className={isCelebrating ? 'days-counter--celebrating' : ''}
-              style={{ fontSize: '64px', fontWeight: 700, color: '#ffffff', textShadow: isCelebrating ? 'none' : '0 4px 16px rgba(0,0,0,0.6)', lineHeight: 1 }}
+              style={{
+                fontSize: '64px',
+                fontWeight: 700,
+                color: '#ffffff',
+                textShadow: isCelebrating ? 'none' : '0 4px 16px rgba(0,0,0,0.6)',
+                lineHeight: 1,
+              }}
             >
               {daysCount}
             </span>
-            <span style={{ fontSize: '20px', fontWeight: 600, color: 'rgba(255,255,255,0.9)', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+            <span
+              style={{
+                fontSize: '20px',
+                fontWeight: 600,
+                color: 'rgba(255,255,255,0.9)',
+                textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+              }}
+            >
               días
             </span>
           </div>
 
           {couple && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '12px', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                color: 'rgba(255,255,255,0.7)',
+                fontSize: '12px',
+                textShadow: '0 1px 4px rgba(0,0,0,0.5)',
+              }}
+            >
               <IconCalendar />
               <span>Desde el {formatDate(couple.relationship_start, 'long')}</span>
             </div>
@@ -536,48 +731,117 @@ export default function Home() {
         {/* Section: HOY */}
         <div className="stack stack--sm" style={{ marginTop: '16px' }}>
           <div className="row row--between">
-            <h4 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-secondary)', paddingLeft: '8px' }}>
+            <h4
+              style={{
+                fontSize: '13px',
+                fontWeight: 700,
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+                color: 'var(--color-text-secondary)',
+                paddingLeft: '8px',
+              }}
+            >
               HOY
             </h4>
-            <button className="btn btn--ghost" style={{ padding: '4px', height: 'auto', minHeight: 0 }} onClick={handleOpenEditNote} title="Editar mi notita">
+            <button
+              className="btn btn--ghost"
+              style={{ padding: '4px', height: 'auto', minHeight: 0 }}
+              onClick={handleOpenEditNote}
+              title="Editar mi notita"
+            >
               <IconEdit />
             </button>
           </div>
-          
-          <div className="glass-card" style={{
-            padding: '16px 20px',
-            background: 'var(--gradient-accent-soft)',
-            borderColor: 'var(--color-border-accent)',
-            borderRadius: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
+
+          <div
+            className="glass-card"
+            style={{
+              padding: '16px 20px',
+              background: 'var(--gradient-accent-soft)',
+              borderColor: 'var(--color-border-accent)',
+              borderRadius: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
             <div className="row row--gap-md" style={{ flex: 1, alignItems: 'center' }}>
-              <div style={{ background: '#fff', borderRadius: '12px', width: '48px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', position: 'relative' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div
+                style={{
+                  background: '#fff',
+                  borderRadius: '12px',
+                  width: '48px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  position: 'relative',
+                }}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--color-accent)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                   <polyline points="22,6 12,13 2,6"></polyline>
                 </svg>
                 <div style={{ position: 'absolute', bottom: '-4px', right: '-4px' }}>
-                   <IconGoldHeart size={14} />
+                  <IconGoldHeart size={14} />
                 </div>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                <div
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    color: 'var(--color-text-secondary)',
+                    marginBottom: '4px',
+                  }}
+                >
                   Notita de {partnerName} para ti
                 </div>
-                <div style={{ fontSize: '20px', fontStyle: 'italic', fontWeight: 700, color: 'var(--color-accent)' }}>
+                <div
+                  style={{
+                    fontSize: '20px',
+                    fontStyle: 'italic',
+                    fontWeight: 700,
+                    color: 'var(--color-accent)',
+                  }}
+                >
                   "{receivedNoteDisplay}"
                 </div>
                 {partnerNoteUpdatedAt && rawReceivedNote && rawReceivedNote.trim() && (
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '6px', fontWeight: 500 }}>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      color: 'var(--color-text-tertiary)',
+                      marginTop: '6px',
+                      fontWeight: 500,
+                    }}
+                  >
                     Subido {getAbsoluteTime(partnerNoteUpdatedAt)}
                   </div>
                 )}
               </div>
             </div>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-text-tertiary)' }}>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ color: 'var(--color-text-tertiary)' }}
+            >
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </div>
@@ -585,35 +849,77 @@ export default function Home() {
 
         {/* Section: PARA USTEDES */}
         <div className="stack stack--sm" style={{ marginTop: '8px' }}>
-          <h4 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-secondary)', paddingLeft: '8px' }}>
+          <h4
+            style={{
+              fontSize: '13px',
+              fontWeight: 700,
+              letterSpacing: '1px',
+              textTransform: 'uppercase',
+              color: 'var(--color-text-secondary)',
+              paddingLeft: '8px',
+            }}
+          >
             PARA USTEDES
           </h4>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            
             {/* Action Card 1: Racha */}
             <Link to="/streak" className="activity-action-card">
               <div>
                 <div className="row row--between" style={{ alignItems: 'flex-start' }}>
-                  <span className="activity-action-card__badge" style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' }}>
+                  <span
+                    className="activity-action-card__badge"
+                    style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' }}
+                  >
                     🔥 Racha
                   </span>
-                  <div className="activity-action-card__icon-box" style={{ background: 'rgba(229, 197, 115, 0.15)', color: 'var(--color-accent)' }}>
+                  <div
+                    className="activity-action-card__icon-box"
+                    style={{
+                      background: 'rgba(229, 197, 115, 0.15)',
+                      color: 'var(--color-accent)',
+                    }}
+                  >
                     <IconCamera />
                   </div>
                 </div>
 
-                <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '12px', lineHeight: 1.25 }}>
+                <div
+                  style={{
+                    fontSize: '15px',
+                    fontWeight: 700,
+                    color: 'var(--color-text-primary)',
+                    marginTop: '12px',
+                    lineHeight: 1.25,
+                  }}
+                >
                   Racha de Fotos
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                  {couple?.current_streak ? `${couple.current_streak} ${couple.current_streak === 1 ? 'día' : 'días'} juntos` : '¡Sube tu foto de hoy!'}
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--color-text-secondary)',
+                    marginTop: '4px',
+                  }}
+                >
+                  {couple?.current_streak
+                    ? `${couple.current_streak} ${couple.current_streak === 1 ? 'día' : 'días'} juntos`
+                    : '¡Sube tu foto de hoy!'}
                 </div>
               </div>
 
               <div className="activity-action-card__btn">
                 <span>Ir a la Racha</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
               </div>
@@ -623,33 +929,63 @@ export default function Home() {
             <Link to="/quiz" className="activity-action-card">
               <div>
                 <div className="row row--between" style={{ alignItems: 'flex-start' }}>
-                  <span className="activity-action-card__badge" style={{ background: 'rgba(236, 72, 153, 0.12)', color: '#ec4899' }}>
+                  <span
+                    className="activity-action-card__badge"
+                    style={{ background: 'rgba(236, 72, 153, 0.12)', color: '#ec4899' }}
+                  >
                     💖 Quiz
                   </span>
-                  <div className="activity-action-card__icon-box" style={{ background: 'rgba(212, 135, 143, 0.15)', color: 'var(--color-accent)' }}>
+                  <div
+                    className="activity-action-card__icon-box"
+                    style={{
+                      background: 'rgba(212, 135, 143, 0.15)',
+                      color: 'var(--color-accent)',
+                    }}
+                  >
                     <IconHeartCard />
                   </div>
                 </div>
 
-                <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '12px', lineHeight: 1.25 }}>
+                <div
+                  style={{
+                    fontSize: '15px',
+                    fontWeight: 700,
+                    color: 'var(--color-text-primary)',
+                    marginTop: '12px',
+                    lineHeight: 1.25,
+                  }}
+                >
                   Quiz Sintonía
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--color-text-secondary)',
+                    marginTop: '4px',
+                  }}
+                >
                   {quizStatus === 'Pendiente' ? 'Pregunta de hoy lista' : '¿Qué tanto coinciden?'}
                 </div>
               </div>
 
               <div className="activity-action-card__btn">
                 <span>Jugar Quiz</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
               </div>
             </Link>
-
           </div>
         </div>
-
       </div>
 
       {/* Edit Note Modal */}
@@ -660,7 +996,10 @@ export default function Home() {
             <div className="stack stack--lg">
               <div className="text-center">
                 <h3>Editar notita para {partnerName}</h3>
-                <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}>
+                <p
+                  className="text-secondary"
+                  style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}
+                >
                   Esta notita aparecerá en su página de inicio.
                 </p>
               </div>
@@ -676,13 +1015,28 @@ export default function Home() {
                   autoFocus
                   required
                 />
-                
-                {error && <div className="toast toast--error" style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}>{error}</div>}
 
-                <button type="submit" className="btn btn--primary btn--full btn--lg" disabled={savingNote || !noteInput.trim()}>
+                {error && (
+                  <div
+                    className="toast toast--error"
+                    style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}
+                  >
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="btn btn--primary btn--full btn--lg"
+                  disabled={savingNote || !noteInput.trim()}
+                >
                   {savingNote ? 'Guardando...' : 'Guardar y enviar'}
                 </button>
-                <button type="button" className="btn btn--ghost btn--full" onClick={() => setShowEditNoteForm(false)}>
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--full"
+                  onClick={() => setShowEditNoteForm(false)}
+                >
                   Cancelar
                 </button>
               </form>
@@ -699,7 +1053,10 @@ export default function Home() {
             <div className="stack stack--lg">
               <div className="text-center">
                 <h3>Vincular con Código</h3>
-                <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}>
+                <p
+                  className="text-secondary"
+                  style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}
+                >
                   Ingresa el código que te envió tu pareja
                 </p>
               </div>
@@ -719,12 +1076,29 @@ export default function Home() {
                 />
               </div>
 
-              {error && <div className="toast toast--error" style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}>{error}</div>}
+              {error && (
+                <div
+                  className="toast toast--error"
+                  style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}
+                >
+                  {error}
+                </div>
+              )}
 
-              <button className="btn btn--primary btn--full btn--lg" onClick={handleJoinCouple} disabled={loading || joinCode.length < 9}>
+              <button
+                className="btn btn--primary btn--full btn--lg"
+                onClick={handleJoinCouple}
+                disabled={loading || joinCode.length < 9}
+              >
                 {loading ? 'Vinculando...' : 'Vincular pareja'}
               </button>
-              <button className="btn btn--ghost btn--full" onClick={() => { setShowJoinModal(false); setError(''); }}>
+              <button
+                className="btn btn--ghost btn--full"
+                onClick={() => {
+                  setShowJoinModal(false);
+                  setError('');
+                }}
+              >
                 Cancelar
               </button>
             </div>
@@ -734,33 +1108,44 @@ export default function Home() {
 
       {/* Dev Only: Debug Celebrations Panel */}
       {import.meta.env.DEV && (
-        <div style={{
-          position: 'fixed',
-          bottom: '80px',
-          right: '20px',
-          background: 'rgba(0,0,0,0.8)',
-          padding: '12px',
-          borderRadius: '12px',
-          zIndex: 9999,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          color: '#fff',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-          maxWidth: '200px'
-        }}>
-          <div style={{ fontSize: '12px', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '4px' }}>
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '80px',
+            right: '20px',
+            background: 'rgba(0,0,0,0.8)',
+            padding: '12px',
+            borderRadius: '12px',
+            zIndex: 9999,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            color: '#fff',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+            maxWidth: '200px',
+          }}
+        >
+          <div
+            style={{
+              fontSize: '12px',
+              fontWeight: 'bold',
+              borderBottom: '1px solid rgba(255,255,255,0.2)',
+              paddingBottom: '4px',
+            }}
+          >
             🧪 Simular Celebración
           </div>
-          <select 
-            value={debugCelebrationType || ''} 
-            onChange={(e) => setDebugCelebrationType(e.target.value ? (e.target.value as any) : null)}
+          <select
+            value={debugCelebrationType || ''}
+            onChange={(e) =>
+              setDebugCelebrationType(e.target.value ? (e.target.value as any) : null)
+            }
             style={{
               background: '#333',
               color: '#fff',
               border: '1px solid #555',
               borderRadius: '6px',
-              padding: '6px'
+              padding: '6px',
             }}
           >
             <option value="">(Normal - Real)</option>

@@ -25,7 +25,16 @@ import WorldLighting from './WorldLighting';
 import { clampObjectScale, clampWorldPosition } from '../engine/placement';
 import type { WorldPosition } from '../engine/placement';
 import { isObjectFlipped } from '../engine/orientation';
-import type { PlacedObject, InventoryItem, ParticleType, DayNightState, WorldState, WorldAchievement, RewardResult, WorldActionResult } from '../types';
+import type {
+  PlacedObject,
+  InventoryItem,
+  ParticleType,
+  DayNightState,
+  WorldState,
+  WorldAchievement,
+  RewardResult,
+  WorldActionResult,
+} from '../types';
 import { WORLD_FRAME, fitWorldFrame, getNightLandscapeOpacity } from '../data/dioramas';
 import ForestJournal from './ForestJournal';
 import type { ForestProgress } from '../data/forest';
@@ -43,7 +52,13 @@ interface WorldSceneProps {
   rewardLevels?: number[];
   claimingRewards?: boolean;
   xpBoostActive?: boolean;
-  onPlaceItem: (biomeId: string, itemType: string, itemId: string, x: number, y: number) => Promise<WorldActionResult | null>;
+  onPlaceItem: (
+    biomeId: string,
+    itemType: string,
+    itemId: string,
+    x: number,
+    y: number,
+  ) => Promise<WorldActionResult | null>;
   onRemoveItem: (objId: string) => Promise<WorldActionResult | null>;
   onMoveItem: (objId: string, x: number, y: number) => Promise<WorldActionResult | null>;
   onFlipItem: (objId: string, flipped: boolean) => Promise<WorldActionResult | null>;
@@ -64,9 +79,33 @@ interface WorldSceneProps {
 
 export default function WorldScene({
   isWelcomePreview = false,
-  worldState, inventory, placedObjects, achievements, dayNight,
-  pendingReward, onClaimLevelRewards, rewardLevels = [], claimingRewards = false, xpBoostActive, onPlaceItem, onRemoveItem, onMoveItem, onFlipItem, onResizeItem, onInteractXP, onDismissReward, rewardsError, catalogUnavailable, onRetryRewards,
-  forestProgress = null, forestUnavailable, forestLoading, onRetryForest, onClaimForestGoal, onCompleteForest, onSwitchBiome,
+  worldState,
+  inventory,
+  placedObjects,
+  achievements,
+  dayNight,
+  pendingReward,
+  onClaimLevelRewards,
+  rewardLevels = [],
+  claimingRewards = false,
+  xpBoostActive,
+  onPlaceItem,
+  onRemoveItem,
+  onMoveItem,
+  onFlipItem,
+  onResizeItem,
+  onInteractXP,
+  onDismissReward,
+  rewardsError,
+  catalogUnavailable,
+  onRetryRewards,
+  forestProgress = null,
+  forestUnavailable,
+  forestLoading,
+  onRetryForest,
+  onClaimForestGoal,
+  onCompleteForest,
+  onSwitchBiome,
 }: WorldSceneProps) {
   const [showInventory, setShowInventory] = useState(false);
   const [showWorldHelp, setShowWorldHelp] = useState(false);
@@ -87,7 +126,11 @@ export default function WorldScene({
   const sceneRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setSelectedItem(selected => selected ? getInventoryObjects(inventory).find(item => item.item_id === selected.item_id) || null : null);
+    setSelectedItem((selected) =>
+      selected
+        ? getInventoryObjects(inventory).find((item) => item.item_id === selected.item_id) || null
+        : null,
+    );
   }, [inventory]);
 
   const isDraggingCamera = useRef(false);
@@ -114,7 +157,9 @@ export default function WorldScene({
     return () => observer.disconnect();
   }, []);
 
-  const burstRef = useRef<((x: number, y: number, type: ParticleType, count: number, colors: string[]) => void) | null>(null);
+  const burstRef = useRef<
+    ((x: number, y: number, type: ParticleType, count: number, colors: string[]) => void) | null
+  >(null);
 
   const biomeId = isWelcomePreview ? 'forest' : worldState?.current_biome || 'forest';
   const biome = useMemo(() => getBiomeDef(biomeId), [biomeId]);
@@ -132,22 +177,39 @@ export default function WorldScene({
 
   // Filter placed objects for current biome
   const currentPlacedObjects = useMemo(() => {
-    return placedObjects.filter(o => o.biome_id === biomeId).map(object => {
-      const position = clampWorldPosition(object.item_id, object.position_x, object.position_y, object.scale || 1, isObjectFlipped(object));
-      return position.x === object.position_x && position.y === object.position_y ? object : { ...object, position_x: position.x, position_y: position.y };
-    });
+    return placedObjects
+      .filter((o) => o.biome_id === biomeId)
+      .map((object) => {
+        const position = clampWorldPosition(
+          object.item_id,
+          object.position_x,
+          object.position_y,
+          object.scale || 1,
+          isObjectFlipped(object),
+        );
+        return position.x === object.position_x && position.y === object.position_y
+          ? object
+          : { ...object, position_x: position.x, position_y: position.y };
+      });
   }, [placedObjects, biomeId]);
 
   // Only persisted placements are visible. Rewards stay in inventory until placed.
-  const displayedObjects = isWelcomePreview ? [] : currentPlacedObjects.map(obj => movePreview?.id === obj.id ? movePreview : obj);
-  const activeObject = displayedObjects.find(obj => obj.id === selectedPlacedObject?.id) || null;
+  const displayedObjects = isWelcomePreview
+    ? []
+    : currentPlacedObjects.map((obj) => (movePreview?.id === obj.id ? movePreview : obj));
+  const activeObject = displayedObjects.find((obj) => obj.id === selectedPlacedObject?.id) || null;
   const handleSelectPlacedObject = useCallback((object: PlacedObject) => {
     if (savingRef.current) return;
     setSelectedItem(null);
     setMovePreview(null);
     setSelectedPlacedObject(object);
   }, []);
-  const cameraView = { ...sceneSize, scale: cameraScale, offsetX: cameraOffset.x, offsetY: cameraOffset.y };
+  const cameraView = {
+    ...sceneSize,
+    scale: cameraScale,
+    offsetX: cameraOffset.x,
+    offsetY: cameraOffset.y,
+  };
 
   const messageTimerRef = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(messageTimerRef.current), []);
@@ -157,11 +219,16 @@ export default function WorldScene({
     messageTimerRef.current = window.setTimeout(() => setInteractMessage(null), 2800);
   }, []);
 
-  const previewMove = useCallback((position: WorldPosition | null) => {
-    if (savingRef.current) return;
-    const object = currentPlacedObjects.find(obj => obj.id === selectedPlacedObject?.id);
-    setMovePreview(position && object ? { ...object, position_x: position.x, position_y: position.y } : null);
-  }, [currentPlacedObjects, selectedPlacedObject?.id]);
+  const previewMove = useCallback(
+    (position: WorldPosition | null) => {
+      if (savingRef.current) return;
+      const object = currentPlacedObjects.find((obj) => obj.id === selectedPlacedObject?.id);
+      setMovePreview(
+        position && object ? { ...object, position_x: position.x, position_y: position.y } : null,
+      );
+    },
+    [currentPlacedObjects, selectedPlacedObject?.id],
+  );
 
   const commitMove = async (position: WorldPosition) => {
     if (!activeObject || savingRef.current) return;
@@ -169,7 +236,8 @@ export default function WorldScene({
     setIsSaving(true);
     try {
       const result = await onMoveItem(activeObject.id, position.x, position.y);
-      if (!result?.success) showMessage(result?.error || 'No se pudo guardar la posición. Inténtalo de nuevo.');
+      if (!result?.success)
+        showMessage(result?.error || 'No se pudo guardar la posición. Inténtalo de nuevo.');
     } catch {
       showMessage('No se pudo guardar la posición. Inténtalo de nuevo.');
     } finally {
@@ -182,14 +250,24 @@ export default function WorldScene({
   const resizeSelected = async (requestedScale: number, original = activeObject) => {
     if (!original || !onResizeItem || savingRef.current) return;
     const scale = clampObjectScale(requestedScale);
-    if (scale === original.scale) { setMovePreview(null); return; }
-    const position = clampWorldPosition(original.item_id, original.position_x, original.position_y, scale, isObjectFlipped(original));
+    if (scale === original.scale) {
+      setMovePreview(null);
+      return;
+    }
+    const position = clampWorldPosition(
+      original.item_id,
+      original.position_x,
+      original.position_y,
+      scale,
+      isObjectFlipped(original),
+    );
     savingRef.current = true;
     setIsSaving(true);
     setMovePreview({ ...original, scale, position_x: position.x, position_y: position.y });
     try {
       const result = await onResizeItem(original.id, scale);
-      if (!result?.success) showMessage(result?.error || 'No se pudo guardar el tamaño. Inténtalo de nuevo.');
+      if (!result?.success)
+        showMessage(result?.error || 'No se pudo guardar el tamaño. Inténtalo de nuevo.');
     } catch {
       showMessage('No se pudo guardar el tamaño. Inténtalo de nuevo.');
     } finally {
@@ -199,19 +277,37 @@ export default function WorldScene({
     }
   };
 
-  const pinchHandlers = useObjectPinch(currentPlacedObjects.find(obj => obj.id === selectedPlacedObject?.id) || null,
-    buildMode && !isSaving && !!onResizeItem, setMovePreview, resizeSelected, cameraScale, commitMove);
+  const pinchHandlers = useObjectPinch(
+    currentPlacedObjects.find((obj) => obj.id === selectedPlacedObject?.id) || null,
+    buildMode && !isSaving && !!onResizeItem,
+    setMovePreview,
+    resizeSelected,
+    cameraScale,
+    commitMove,
+  );
 
   const flipSelected = async () => {
     if (!activeObject || savingRef.current) return;
     const flipped = !isObjectFlipped(activeObject);
-    const position = clampWorldPosition(activeObject.item_id, activeObject.position_x, activeObject.position_y, activeObject.scale, flipped);
+    const position = clampWorldPosition(
+      activeObject.item_id,
+      activeObject.position_x,
+      activeObject.position_y,
+      activeObject.scale,
+      flipped,
+    );
     savingRef.current = true;
     setIsSaving(true);
-    setMovePreview({ ...activeObject, position_x: position.x, position_y: position.y, state: { ...activeObject.state, flipped } });
+    setMovePreview({
+      ...activeObject,
+      position_x: position.x,
+      position_y: position.y,
+      state: { ...activeObject.state, flipped },
+    });
     try {
       const result = await onFlipItem(activeObject.id, flipped);
-      if (!result?.success) showMessage(result?.error || 'No se pudo guardar la orientación. Inténtalo de nuevo.');
+      if (!result?.success)
+        showMessage(result?.error || 'No se pudo guardar la orientación. Inténtalo de nuevo.');
     } catch {
       showMessage('No se pudo guardar la orientación. Inténtalo de nuevo.');
     } finally {
@@ -242,8 +338,11 @@ export default function WorldScene({
 
   // Sky gradient
   const skyGradient = useMemo(() => {
-    if (!dayNight.skyColors || dayNight.skyColors.length === 0) return 'linear-gradient(180deg, #87CEEB, #E0F0FF)';
-    const stops = dayNight.skyColors.map((c, i) => `${c} ${(i / (dayNight.skyColors.length - 1)) * 100}%`).join(', ');
+    if (!dayNight.skyColors || dayNight.skyColors.length === 0)
+      return 'linear-gradient(180deg, #87CEEB, #E0F0FF)';
+    const stops = dayNight.skyColors
+      .map((c, i) => `${c} ${(i / (dayNight.skyColors.length - 1)) * 100}%`)
+      .join(', ');
     return `linear-gradient(180deg, ${stops})`;
   }, [dayNight.skyColors]);
 
@@ -251,11 +350,22 @@ export default function WorldScene({
   const particleConfigs = useMemo(() => {
     if (!biome) return [];
     // Flowers belong to player placements; omit decorative petals drifting in the sky.
-    return (biome.particles[dayNight.phase] || []).filter(config => config.type !== 'petal').map(config =>
-      config.type === 'firefly' ? { ...config, count: dayNight.phase === 'night' ? 12 : 7,
-        area: [15, 85, 50, 88] as [number, number, number, number], size: [1.5, 3] as [number, number],
-        glow: 5, opacity: [.25, .7] as [number, number] }
-        : config.type === 'star' ? { ...config, count: 10, glow: 1 } : config);
+    return (biome.particles[dayNight.phase] || [])
+      .filter((config) => config.type !== 'petal')
+      .map((config) =>
+        config.type === 'firefly'
+          ? {
+              ...config,
+              count: dayNight.phase === 'night' ? 12 : 7,
+              area: [15, 85, 50, 88] as [number, number, number, number],
+              size: [1.5, 3] as [number, number],
+              glow: 5,
+              opacity: [0.25, 0.7] as [number, number],
+            }
+          : config.type === 'star'
+            ? { ...config, count: 10, glow: 1 }
+            : config,
+      );
   }, [biome, dayNight.phase]);
 
   // Performance factor (reduce on mobile)
@@ -268,7 +378,12 @@ export default function WorldScene({
   // Handle scene click (place object in build mode)
   const handleSceneClick = async (e: React.MouseEvent) => {
     if (!buildMode || !sceneRef.current || savingRef.current || hasDragged.current) return;
-    if ((e.target as HTMLElement).closest('button, .world-hud, .world-build-controls, .world-inventory-backdrop, .world-map-backdrop, .world-reward-backdrop, .world-scene__build-indicator')) return;
+    if (
+      (e.target as HTMLElement).closest(
+        'button, .world-hud, .world-build-controls, .world-inventory-backdrop, .world-map-backdrop, .world-reward-backdrop, .world-scene__build-indicator',
+      )
+    )
+      return;
 
     // If clicking empty space while having an object selected on the map, deselect it
     if (selectedPlacedObject) {
@@ -292,8 +407,15 @@ export default function WorldScene({
     savingRef.current = true;
     setIsSaving(true);
     try {
-      const result = await onPlaceItem(biomeId, selectedItem.item_type, selectedItem.item_id, position.x, position.y);
-      if (!result?.success) showMessage(result?.error || 'No se pudo colocar el objeto. Inténtalo de nuevo.');
+      const result = await onPlaceItem(
+        biomeId,
+        selectedItem.item_type,
+        selectedItem.item_id,
+        position.x,
+        position.y,
+      );
+      if (!result?.success)
+        showMessage(result?.error || 'No se pudo colocar el objeto. Inténtalo de nuevo.');
     } catch {
       showMessage('No se pudo colocar el objeto. Inténtalo de nuevo.');
     } finally {
@@ -305,7 +427,12 @@ export default function WorldScene({
   // Camera panning
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     hasDragged.current = false;
-    if ((e.target as HTMLElement).closest('button, .world-hud, .world-build-controls, .world-scene__build-indicator, .world-scene__build-menu, .world-inventory-backdrop, .world-map-backdrop, .world-reward-backdrop')) return;
+    if (
+      (e.target as HTMLElement).closest(
+        'button, .world-hud, .world-build-controls, .world-scene__build-indicator, .world-scene__build-menu, .world-inventory-backdrop, .world-map-backdrop, .world-reward-backdrop',
+      )
+    )
+      return;
 
     isDraggingCamera.current = true;
     hasDragged.current = false;
@@ -316,26 +443,30 @@ export default function WorldScene({
     } catch (err) {}
   }, []);
 
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDraggingCamera.current) return;
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isDraggingCamera.current) return;
 
-    const dist = Math.abs(e.clientX - dragStartPos.current.x) + Math.abs(e.clientY - dragStartPos.current.y);
-    if (dist > 10) {
-      hasDragged.current = true;
-    }
+      const dist =
+        Math.abs(e.clientX - dragStartPos.current.x) + Math.abs(e.clientY - dragStartPos.current.y);
+      if (dist > 10) {
+        hasDragged.current = true;
+      }
 
-    const dx = e.clientX - lastPanPosition.current.x;
-    const dy = e.clientY - lastPanPosition.current.y;
-    lastPanPosition.current = { x: e.clientX, y: e.clientY };
+      const dx = e.clientX - lastPanPosition.current.x;
+      const dy = e.clientY - lastPanPosition.current.y;
+      lastPanPosition.current = { x: e.clientX, y: e.clientY };
 
-    setCameraOffset(prev => {
-      // Clamp panning strictly to the Diorama bounds
-      return {
-        x: Math.max(-panBounds.x, Math.min(panBounds.x, prev.x + dx)),
-        y: Math.max(-panBounds.y, Math.min(panBounds.y, prev.y + dy)),
-      };
-    });
-  }, [panBounds]);
+      setCameraOffset((prev) => {
+        // Clamp panning strictly to the Diorama bounds
+        return {
+          x: Math.max(-panBounds.x, Math.min(panBounds.x, prev.x + dx)),
+          y: Math.max(-panBounds.y, Math.min(panBounds.y, prev.y + dy)),
+        };
+      });
+    },
+    [panBounds],
+  );
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     isDraggingCamera.current = false;
@@ -345,65 +476,104 @@ export default function WorldScene({
   }, []);
 
   // Handle object interaction
-  const handleObjectInteract = useCallback((obj: PlacedObject, screenX: number, screenY: number) => {
-    if (hasDragged.current) return; // If the user was swiping/panning, do NOT interact
+  const handleObjectInteract = useCallback(
+    (obj: PlacedObject, screenX: number, screenY: number) => {
+      if (hasDragged.current) return; // If the user was swiping/panning, do NOT interact
 
-    const def = getPlacementDef(obj.item_id);
-    if (!def?.interaction) return;
+      const def = getPlacementDef(obj.item_id);
+      if (!def?.interaction) return;
 
-    // Particle burst
-    if (def.interaction.particleType && burstRef.current && sceneRef.current) {
-      const rect = sceneRef.current.getBoundingClientRect();
-      const canvasX = screenX - rect.left;
-      const canvasY = screenY - rect.top;
-      const colors = def.interaction.particleType === 'petal' ? ['#FFB6C1', '#FF69B4', '#FFC0CB', '#FFFFFF'] :
-                     def.interaction.particleType === 'leaf' ? ['#228B22', '#32CD32', '#90EE90'] :
-                     def.interaction.particleType === 'magic' ? ['#DA70D6', '#FFD700', '#7FFF00'] :
-                     def.interaction.particleType === 'spark' ? ['#FFD700', '#FFA500', '#FFFFFF'] :
-                     def.interaction.particleType === 'bubble' ? ['#87CEEB', '#B0E0E6', '#FFFFFF'] :
-                     ['#FFD700', '#FFFFFF'];
-      burstRef.current(canvasX, canvasY, def.interaction.particleType, def.interaction.particleCount || 5, colors);
-    }
+      // Particle burst
+      if (def.interaction.particleType && burstRef.current && sceneRef.current) {
+        const rect = sceneRef.current.getBoundingClientRect();
+        const canvasX = screenX - rect.left;
+        const canvasY = screenY - rect.top;
+        const colors =
+          def.interaction.particleType === 'petal'
+            ? ['#FFB6C1', '#FF69B4', '#FFC0CB', '#FFFFFF']
+            : def.interaction.particleType === 'leaf'
+              ? ['#228B22', '#32CD32', '#90EE90']
+              : def.interaction.particleType === 'magic'
+                ? ['#DA70D6', '#FFD700', '#7FFF00']
+                : def.interaction.particleType === 'spark'
+                  ? ['#FFD700', '#FFA500', '#FFFFFF']
+                  : def.interaction.particleType === 'bubble'
+                    ? ['#87CEEB', '#B0E0E6', '#FFFFFF']
+                    : ['#FFD700', '#FFFFFF'];
+        burstRef.current(
+          canvasX,
+          canvasY,
+          def.interaction.particleType,
+          def.interaction.particleCount || 5,
+          colors,
+        );
+      }
 
-    // Message
-    if (def.interaction.message) {
-      showMessage(def.interaction.message);
-    }
+      // Message
+      if (def.interaction.message) {
+        showMessage(def.interaction.message);
+      }
 
-    // XP
-    if (def.interaction.dailyXP) {
-      onInteractXP(obj.id, def.interaction.dailyXP);
-    }
-  }, [onInteractXP, showMessage]);
+      // XP
+      if (def.interaction.dailyXP) {
+        onInteractXP(obj.id, def.interaction.dailyXP);
+      }
+    },
+    [onInteractXP, showMessage],
+  );
 
   // Handle creature interaction
-  const handleCreatureInteract = useCallback((creature: any, x: number, y: number) => {
-    if (burstRef.current && sceneRef.current) {
-      const rect = sceneRef.current.getBoundingClientRect();
-      burstRef.current(x - rect.left, y - rect.top, 'spark', 8, ['#FFD700', '#FFA500', '#FFFFFF']);
-    }
-    showMessage(`${creature.emoji} ¡${creature.name}!`);
-  }, [showMessage]);
+  const handleCreatureInteract = useCallback(
+    (creature: any, x: number, y: number) => {
+      if (burstRef.current && sceneRef.current) {
+        const rect = sceneRef.current.getBoundingClientRect();
+        burstRef.current(x - rect.left, y - rect.top, 'spark', 8, [
+          '#FFD700',
+          '#FFA500',
+          '#FFFFFF',
+        ]);
+      }
+      showMessage(`${creature.emoji} ¡${creature.name}!`);
+    },
+    [showMessage],
+  );
 
   // Personal companion greeting, independent of progression rewards.
-  const handleCompanionInteract = useCallback((pet: WorldCompanionDef, x: number, y: number) => {
-    if (burstRef.current && sceneRef.current) {
-      const rect = sceneRef.current.getBoundingClientRect();
-      burstRef.current(x - rect.left, y - rect.top, 'spark', 4, ['#e7b8bd', '#f6e2c0', '#ffffff']);
-    }
-    showMessage(pet.name);
-  }, [showMessage]);
+  const handleCompanionInteract = useCallback(
+    (pet: WorldCompanionDef, x: number, y: number) => {
+      if (burstRef.current && sceneRef.current) {
+        const rect = sceneRef.current.getBoundingClientRect();
+        burstRef.current(x - rect.left, y - rect.top, 'spark', 4, [
+          '#e7b8bd',
+          '#f6e2c0',
+          '#ffffff',
+        ]);
+      }
+      showMessage(pet.name);
+    },
+    [showMessage],
+  );
 
   // Handle biome switch
   const handleSelectBiome = async (newBiomeId: string) => {
     if (savingRef.current) return;
-    savingRef.current = true; setIsSaving(true);
+    savingRef.current = true;
+    setIsSaving(true);
     try {
       const result = await onSwitchBiome?.(newBiomeId);
-      if (result?.success) { setShowMap(false); setBuildMode(false); setSelectedItem(null); setSelectedPlacedObject(null); setMovePreview(null); }
-      else showMessage(result?.error || 'No se pudo abrir este bioma.');
-    } catch { showMessage('No se pudo cambiar de bioma. Inténtalo de nuevo.'); }
-    finally { savingRef.current = false; setIsSaving(false); }
+      if (result?.success) {
+        setShowMap(false);
+        setBuildMode(false);
+        setSelectedItem(null);
+        setSelectedPlacedObject(null);
+        setMovePreview(null);
+      } else showMessage(result?.error || 'No se pudo abrir este bioma.');
+    } catch {
+      showMessage('No se pudo cambiar de bioma. Inténtalo de nuevo.');
+    } finally {
+      savingRef.current = false;
+      setIsSaving(false);
+    }
   };
 
   // Handle item selection from inventory
@@ -414,28 +584,41 @@ export default function WorldScene({
     setIsSaving(true);
     try {
       const result = await onSwitchBiome?.(destination);
-      if (!result?.success) { setInventorySelectionError(result?.error || 'No se pudo abrir este bioma.'); return; }
+      if (!result?.success) {
+        setInventorySelectionError(result?.error || 'No se pudo abrir este bioma.');
+        return;
+      }
       setSelectedItem(item);
       setSelectedPlacedObject(null);
       setMovePreview(null);
       setShowInventory(false);
       setBuildMode(true);
-    } catch { setInventorySelectionError('No se pudo abrir este bioma. Inténtalo de nuevo.'); }
-    finally { savingRef.current = false; setIsSaving(false); }
+    } catch {
+      setInventorySelectionError('No se pudo abrir este bioma. Inténtalo de nuevo.');
+    } finally {
+      savingRef.current = false;
+      setIsSaving(false);
+    }
   };
 
-  const handleSelectItem = useCallback((item: InventoryItem) => {
-    if (savingRef.current) return;
-    const def = getPlacementDef(item.item_id);
-    if (def?.biomes && !def.biomes.includes(biomeId)) { showMessage('Este objeto pertenece a otro bioma.'); return; }
-    if (def?.placeable && item.quantity > 0) {
-      setSelectedItem(item);
-      setSelectedPlacedObject(null);
-      setMovePreview(null);
-      setShowInventory(false);
-      setBuildMode(true);
-    }
-  }, [biomeId, showMessage]);
+  const handleSelectItem = useCallback(
+    (item: InventoryItem) => {
+      if (savingRef.current) return;
+      const def = getPlacementDef(item.item_id);
+      if (def?.biomes && !def.biomes.includes(biomeId)) {
+        showMessage('Este objeto pertenece a otro bioma.');
+        return;
+      }
+      if (def?.placeable && item.quantity > 0) {
+        setSelectedItem(item);
+        setSelectedPlacedObject(null);
+        setMovePreview(null);
+        setShowInventory(false);
+        setBuildMode(true);
+      }
+    },
+    [biomeId, showMessage],
+  );
 
   if (!biome) return null;
 
@@ -459,9 +642,7 @@ export default function WorldScene({
     >
       {/* Moon */}
       <div className="world-scene__celestial" style={{ zIndex: 11 }}>
-        {dayNight.phase === 'night' && (
-          <div className="world-scene__moon">🌙</div>
-        )}
+        {dayNight.phase === 'night' && <div className="world-scene__moon">🌙</div>}
       </div>
 
       {/* Fog/Ambient lighting overlay */}
@@ -492,8 +673,15 @@ export default function WorldScene({
         {/* One continuous landscape, registered to the same coordinates as objects. */}
         {biomeId === 'garden' || biomeId === 'forest' ? (
           <div className="world-scene__terrain" aria-hidden="true">
-            {nightLandscapeOpacity < 1 && <div className="world-scene__landscape world-scene__landscape--day" />}
-            {nightLandscapeOpacity > 0 && <div className="world-scene__landscape world-scene__landscape--night" style={{ opacity: nightLandscapeOpacity }} />}
+            {nightLandscapeOpacity < 1 && (
+              <div className="world-scene__landscape world-scene__landscape--day" />
+            )}
+            {nightLandscapeOpacity > 0 && (
+              <div
+                className="world-scene__landscape world-scene__landscape--night"
+                style={{ opacity: nightLandscapeOpacity }}
+              />
+            )}
           </div>
         ) : (
           <div
@@ -505,7 +693,7 @@ export default function WorldScene({
         )}
 
         {/* Placed Objects */}
-        {displayedObjects.map(obj => (
+        {displayedObjects.map((obj) => (
           <WorldObject
             key={obj.id}
             placedObject={obj}
@@ -518,9 +706,15 @@ export default function WorldScene({
         ))}
 
         {/* Creatures */}
-        <WorldCompanions key={biomeId} companions={companions} timeOfDay={dayNight.phase}
-          lightIntensity={dayNight.lightIntensity} isEditing={buildMode} onInteract={handleCompanionInteract} />
-        {creatures.map(creature => (
+        <WorldCompanions
+          key={biomeId}
+          companions={companions}
+          timeOfDay={dayNight.phase}
+          lightIntensity={dayNight.lightIntensity}
+          isEditing={buildMode}
+          onInteract={handleCompanionInteract}
+        />
+        {creatures.map((creature) => (
           <Creature
             key={creature.id}
             def={creature}
@@ -528,18 +722,36 @@ export default function WorldScene({
             areaWidth={100}
             lightIntensity={dayNight.lightIntensity}
             onInteract={handleCreatureInteract}
-            habitat={biomeId === 'forest' || biomeId === 'garden' ? { x: [30, 59], y: [32, 39] } : undefined}
+            habitat={
+              biomeId === 'forest' || biomeId === 'garden'
+                ? { x: [30, 59], y: [32, 39] }
+                : undefined
+            }
           />
         ))}
-
       </div>
 
-      <WorldLighting objects={displayedObjects} camera={cameraView} lightIntensity={dayNight.lightIntensity} />
+      <WorldLighting
+        objects={displayedObjects}
+        camera={cameraView}
+        lightIntensity={dayNight.lightIntensity}
+      />
 
       {buildMode && activeObject && (
-        <WorldBuildControls key={activeObject.id} object={activeObject} camera={cameraView} isSaving={isSaving}
-          onPreview={previewMove} onMove={commitMove} onRemove={removeSelected} onFlip={flipSelected}
-          onClose={() => { setSelectedPlacedObject(null); setMovePreview(null); }} />
+        <WorldBuildControls
+          key={activeObject.id}
+          object={activeObject}
+          camera={cameraView}
+          isSaving={isSaving}
+          onPreview={previewMove}
+          onMove={commitMove}
+          onRemove={removeSelected}
+          onFlip={flipSelected}
+          onClose={() => {
+            setSelectedPlacedObject(null);
+            setMovePreview(null);
+          }}
+        />
       )}
 
       {/* Screen coordinates keep interaction bursts aligned after camera scaling. */}
@@ -547,7 +759,10 @@ export default function WorldScene({
 
       {/* Interaction message */}
       {interactMessage && (
-        <div className={`world-scene__message${buildMode ? ' world-scene__message--editing' : ''}`} role="status">
+        <div
+          className={`world-scene__message${buildMode ? ' world-scene__message--editing' : ''}`}
+          role="status"
+        >
           {interactMessage}
         </div>
       )}
@@ -555,37 +770,94 @@ export default function WorldScene({
       {/* Build mode indicator */}
       {buildMode && !activeObject && (
         <div className="world-scene__build-indicator" role="status">
-          <span>🔨 {isSaving ? 'Guardando…' : selectedItem ? 'Toca el suelo para colocar' : 'Toca un objeto para editar'}</span>
-          <button disabled={isSaving} onClick={() => { setBuildMode(false); setSelectedItem(null); setSelectedPlacedObject(null); setMovePreview(null); }}>Salir</button>
+          <span>
+            🔨{' '}
+            {isSaving
+              ? 'Guardando…'
+              : selectedItem
+                ? 'Toca el suelo para colocar'
+                : 'Toca un objeto para editar'}
+          </span>
+          <button
+            disabled={isSaving}
+            onClick={() => {
+              setBuildMode(false);
+              setSelectedItem(null);
+              setSelectedPlacedObject(null);
+              setMovePreview(null);
+            }}
+          >
+            Salir
+          </button>
         </div>
       )}
 
       {/* HUD */}
-      {!isWelcomePreview && <WorldHUD
-        worldState={worldState}
-        dayNight={dayNight}
-        xpBoostActive={xpBoostActive}
-        onOpenHelp={() => setShowWorldHelp(true)}
-        onOpenForest={biomeId === 'forest' && !buildMode ? () => { if (!savingRef.current) { onRetryForest?.(); setShowForest(true); } } : undefined}
-        onOpenInventory={() => { if (!savingRef.current) { setInventorySelectionError(null); setShowInventory(true); } }}
-        onOpenMap={() => { if (!savingRef.current) setShowMap(true); }}
-        onToggleBuild={() => { if (!savingRef.current) { setBuildMode(!buildMode); setSelectedItem(null); setSelectedPlacedObject(null); setMovePreview(null); } }}
-        onClaimLevelRewards={async () => {
-          if (!canClaimLevelRewards || claimingRewards) return;
-          try {
-            const result = await onClaimLevelRewards();
-            if (result === null) showMessage('No pudimos abrir el regalo. Intenta de nuevo.');
-            else if (result?.already_claimed) showMessage('Este regalo ya fue recibido.');
-          } catch { showMessage('No pudimos abrir el regalo. Intenta de nuevo.'); }
-        }}
-        claimingRewards={claimingRewards}
-        buildMode={buildMode}
-        canClaimLevelRewards={canClaimLevelRewards}
-        canClaimForestRewards={forestProgress?.goals.some((goal) => !goal.claimed && goal.current >= goal.target) ?? false}
-      />}
+      {!isWelcomePreview && (
+        <WorldHUD
+          worldState={worldState}
+          dayNight={dayNight}
+          xpBoostActive={xpBoostActive}
+          onOpenHelp={() => setShowWorldHelp(true)}
+          onOpenForest={
+            biomeId === 'forest' && !buildMode
+              ? () => {
+                  if (!savingRef.current) {
+                    onRetryForest?.();
+                    setShowForest(true);
+                  }
+                }
+              : undefined
+          }
+          onOpenInventory={() => {
+            if (!savingRef.current) {
+              setInventorySelectionError(null);
+              setShowInventory(true);
+            }
+          }}
+          onOpenMap={() => {
+            if (!savingRef.current) setShowMap(true);
+          }}
+          onToggleBuild={() => {
+            if (!savingRef.current) {
+              setBuildMode(!buildMode);
+              setSelectedItem(null);
+              setSelectedPlacedObject(null);
+              setMovePreview(null);
+            }
+          }}
+          onClaimLevelRewards={async () => {
+            if (!canClaimLevelRewards || claimingRewards) return;
+            try {
+              const result = await onClaimLevelRewards();
+              if (result === null) showMessage('No pudimos abrir el regalo. Intenta de nuevo.');
+              else if (result?.already_claimed) showMessage('Este regalo ya fue recibido.');
+            } catch {
+              showMessage('No pudimos abrir el regalo. Intenta de nuevo.');
+            }
+          }}
+          claimingRewards={claimingRewards}
+          buildMode={buildMode}
+          canClaimLevelRewards={canClaimLevelRewards}
+          canClaimForestRewards={
+            forestProgress?.goals.some((goal) => !goal.claimed && goal.current >= goal.target) ??
+            false
+          }
+        />
+      )}
 
       {/* Panels */}
-      {showWorldHelp && <WorldWelcome checking={false} failed={false} onRetry={() => {}} onEnter={async () => { setShowWorldHelp(false); return true; }} />}
+      {showWorldHelp && (
+        <WorldWelcome
+          checking={false}
+          failed={false}
+          onRetry={() => {}}
+          onEnter={async () => {
+            setShowWorldHelp(false);
+            return true;
+          }}
+        />
+      )}
       <Inventory
         isOpen={showInventory}
         onClose={() => setShowInventory(false)}
@@ -604,7 +876,9 @@ export default function WorldScene({
             const result = await onClaimLevelRewards();
             if (result?.success) setShowInventory(false);
             else setInventorySelectionError('No pudimos abrir el regalo. Intenta de nuevo.');
-          } catch { setInventorySelectionError('No pudimos abrir el regalo. Intenta de nuevo.'); }
+          } catch {
+            setInventorySelectionError('No pudimos abrir el regalo. Intenta de nuevo.');
+          }
         }}
         biomeId={biomeId}
         unlockedBiomes={worldState?.unlocked_biomes || []}
@@ -612,17 +886,45 @@ export default function WorldScene({
         isSaving={isSaving}
         selectionError={inventorySelectionError}
         forestCompleted={forestProgress?.completed || !!worldState?.forest_completed_at}
-        forestChapterRequired={(worldState?.progression_version || 1) >= 3 && !worldState?.forest_completed_at && !worldState?.unlocked_biomes.includes('garden')}
+        forestChapterRequired={
+          (worldState?.progression_version || 1) >= 3 &&
+          !worldState?.forest_completed_at &&
+          !worldState?.unlocked_biomes.includes('garden')
+        }
       />
 
-      <ForestJournal isOpen={showForest} onClose={() => setShowForest(false)} progress={forestProgress} unavailable={forestUnavailable} loading={forestLoading}
-        onRetry={() => onRetryForest?.()} onClaim={id => onClaimForestGoal ? onClaimForestGoal(id) : Promise.resolve({ success: false, error: 'El diario todavía no está disponible.' })}
-        onComplete={() => onCompleteForest ? onCompleteForest() : Promise.resolve({ success: false, error: 'El diario todavía no está disponible.' })}
+      <ForestJournal
+        isOpen={showForest}
+        onClose={() => setShowForest(false)}
+        progress={forestProgress}
+        unavailable={forestUnavailable}
+        loading={forestLoading}
+        onRetry={() => onRetryForest?.()}
+        onClaim={(id) =>
+          onClaimForestGoal
+            ? onClaimForestGoal(id)
+            : Promise.resolve({ success: false, error: 'El diario todavía no está disponible.' })
+        }
+        onComplete={() =>
+          onCompleteForest
+            ? onCompleteForest()
+            : Promise.resolve({ success: false, error: 'El diario todavía no está disponible.' })
+        }
         onExplore={async () => {
-          const result = await onSwitchBiome?.('garden') || { success: false, error: 'No se pudo abrir el jardín.' };
-          if (result.success) { setShowForest(false); setBuildMode(false); setSelectedItem(null); setSelectedPlacedObject(null); setMovePreview(null); }
+          const result = (await onSwitchBiome?.('garden')) || {
+            success: false,
+            error: 'No se pudo abrir el jardín.',
+          };
+          if (result.success) {
+            setShowForest(false);
+            setBuildMode(false);
+            setSelectedItem(null);
+            setSelectedPlacedObject(null);
+            setMovePreview(null);
+          }
           return result;
-        }} />
+        }}
+      />
 
       <WorldMap
         isOpen={showMap}

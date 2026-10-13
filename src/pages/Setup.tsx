@@ -43,13 +43,11 @@ export default function Setup() {
       if (rpcError) {
         // Fallback: direct upsert
         const displayName = profile?.display_name || user.user_metadata?.display_name || 'Usuario';
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: user.id,
-            display_name: displayName,
-            invite_code: code,
-          });
+        const { error: updateError } = await supabase.from('profiles').upsert({
+          id: user.id,
+          display_name: displayName,
+          invite_code: code,
+        });
         if (updateError) throw updateError;
       }
 
@@ -57,7 +55,8 @@ export default function Setup() {
       await refreshProfile();
     } catch (err: any) {
       console.error('Error creating couple code:', err);
-      const msg = err?.message || err?.details || (typeof err === 'string' ? err : 'Error al crear código');
+      const msg =
+        err?.message || err?.details || (typeof err === 'string' ? err : 'Error al crear código');
       setError(msg);
     } finally {
       setLoading(false);
@@ -71,7 +70,7 @@ export default function Setup() {
 
     try {
       const normalizedCode = inputCode.trim().toUpperCase();
-      
+
       const { error: rpcError } = await supabase.rpc('create_couple', {
         p_invite_code: normalizedCode,
         p_relationship_start: relationshipDate || null,
@@ -199,7 +198,10 @@ export default function Setup() {
             </div>
 
             {error && (
-              <div className="toast toast--error" style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}>
+              <div
+                className="toast toast--error"
+                style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}
+              >
                 {error}
               </div>
             )}
@@ -209,10 +211,23 @@ export default function Setup() {
               onClick={handleCreateCouple}
               disabled={loading}
             >
-              {loading ? <div className="spinner" style={{ width: '20px', height: '20px', borderWidth: '2px' }} /> : 'Generar código'}
+              {loading ? (
+                <div
+                  className="spinner"
+                  style={{ width: '20px', height: '20px', borderWidth: '2px' }}
+                />
+              ) : (
+                'Generar código'
+              )}
             </button>
 
-            <button className="btn btn--ghost btn--full" onClick={() => { setStep('choose'); setError(''); }}>
+            <button
+              className="btn btn--ghost btn--full"
+              onClick={() => {
+                setStep('choose');
+                setError('');
+              }}
+            >
               ← Volver
             </button>
           </div>
@@ -220,13 +235,9 @@ export default function Setup() {
 
         {step === 'create' && inviteCode && (
           <div className="stack stack--lg animate-scale-in">
-            <p className="text-secondary">
-              Envía este código a tu pareja:
-            </p>
+            <p className="text-secondary">Envía este código a tu pareja:</p>
 
-            <div className="invite-code-display">
-              {inviteCode}
-            </div>
+            <div className="invite-code-display">{inviteCode}</div>
 
             <button className="btn btn--primary btn--full" onClick={handleCopyCode}>
               📋 Copiar código
@@ -241,7 +252,8 @@ export default function Setup() {
 
             <div className="glass-card" style={{ textAlign: 'left' }}>
               <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)' }}>
-                💡 Puedes entrar y explorar la app desde ya. Cuando tu pareja ingrese tu código en su teléfono, sus cuentas se vincularán automáticamente en tiempo real.
+                💡 Puedes entrar y explorar la app desde ya. Cuando tu pareja ingrese tu código en
+                su teléfono, sus cuentas se vincularán automáticamente en tiempo real.
               </p>
             </div>
           </div>
@@ -301,7 +313,10 @@ export default function Setup() {
             </div>
 
             {error && (
-              <div className="toast toast--error" style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}>
+              <div
+                className="toast toast--error"
+                style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}
+              >
                 {error}
               </div>
             )}
@@ -311,10 +326,23 @@ export default function Setup() {
               onClick={handleJoinCouple}
               disabled={loading || inputCode.length < 9}
             >
-              {loading ? <div className="spinner" style={{ width: '20px', height: '20px', borderWidth: '2px' }} /> : 'Vincular pareja'}
+              {loading ? (
+                <div
+                  className="spinner"
+                  style={{ width: '20px', height: '20px', borderWidth: '2px' }}
+                />
+              ) : (
+                'Vincular pareja'
+              )}
             </button>
 
-            <button className="btn btn--ghost btn--full" onClick={() => { setStep('choose'); setError(''); }}>
+            <button
+              className="btn btn--ghost btn--full"
+              onClick={() => {
+                setStep('choose');
+                setError('');
+              }}
+            >
               ← Volver
             </button>
           </div>

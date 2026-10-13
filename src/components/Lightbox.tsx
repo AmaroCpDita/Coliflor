@@ -22,7 +22,7 @@ export default function Lightbox({ url, downloadName, onClose }: LightboxProps) 
   if (!url) return null;
 
   return createPortal(
-    <div 
+    <div
       style={{
         position: 'fixed',
         top: 0,
@@ -37,13 +37,13 @@ export default function Lightbox({ url, downloadName, onClose }: LightboxProps) 
         alignItems: 'center',
         justifyContent: 'center',
         opacity: 0,
-        animation: 'fadeIn 0.2s forwards'
+        animation: 'fadeIn 0.2s forwards',
       }}
       onClick={onClose}
     >
-      <img 
-        src={url} 
-        alt="Enlarged" 
+      <img
+        src={url}
+        alt="Enlarged"
         style={{
           maxWidth: '95%',
           maxHeight: '90%',
@@ -51,35 +51,58 @@ export default function Lightbox({ url, downloadName, onClose }: LightboxProps) 
           borderRadius: '12px',
           boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
           transform: 'scale(0.95)',
-          animation: 'scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
+          animation: 'scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
         }}
         onClick={(e) => e.stopPropagation()}
       />
-      
-      <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '8px' }}>
-        <a 
+
+      <div
+        style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '8px' }}
+      >
+        <a
           href={url}
           download={downloadName || 'imagen.jpg'}
           target="_blank"
           rel="noreferrer"
-          className="btn btn--ghost" 
+          className="btn btn--ghost"
           style={{ color: '#fff', padding: '8px' }}
           onClick={(e) => e.stopPropagation()}
           title="Descargar imagen"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
           </svg>
         </a>
-        <button 
-          className="btn btn--ghost" 
+        <button
+          className="btn btn--ghost"
           style={{ color: '#fff', padding: '8px' }}
-          onClick={(e) => { e.stopPropagation(); onClose(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           title="Cerrar"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
@@ -95,6 +118,6 @@ export default function Lightbox({ url, downloadName, onClose }: LightboxProps) 
         }
       `}</style>
     </div>,
-    document.body
+    document.body,
   );
 }

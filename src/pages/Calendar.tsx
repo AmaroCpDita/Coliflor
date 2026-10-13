@@ -6,7 +6,14 @@ import PageTransition from '../components/PageTransition';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { getCalendarDays, getMonthName, getTodayInTimezone, formatDate, getNowInTimezone, compressImage } from '../lib/utils';
+import {
+  getCalendarDays,
+  getMonthName,
+  getTodayInTimezone,
+  formatDate,
+  getNowInTimezone,
+  compressImage,
+} from '../lib/utils';
 import type { CalendarEvent, EventCategory, StreakPhoto } from '../lib/types';
 import Lightbox from '../components/Lightbox';
 import { CHILEAN_HOLIDAYS } from '../lib/celebrations';
@@ -42,7 +49,16 @@ const PLACEHOLDERS: Record<EventCategory, string> = {
 
 function IconPlus() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <line x1="12" y1="5" x2="12" y2="19" />
       <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
@@ -51,7 +67,16 @@ function IconPlus() {
 
 function IconTrash() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#f87171"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <polyline points="3 6 5 6 21 6" />
       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
     </svg>
@@ -60,7 +85,16 @@ function IconTrash() {
 
 function IconEdit() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
     </svg>
@@ -69,7 +103,16 @@ function IconEdit() {
 
 function IconCamera() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="var(--color-accent)"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
       <circle cx="12" cy="13" r="4" />
     </svg>
@@ -96,20 +139,20 @@ export default function Calendar() {
   const now = getNowInTimezone();
   const [year, setYear] = useState(now.year);
   const [month, setMonth] = useState(now.month);
-  
+
   // Events and photos maps for visible month
   const [eventsMap, setEventsMap] = useState<Map<string, CalendarEvent[]>>(calendarCache.eventsMap);
   const [photosMap, setPhotosMap] = useState<Map<string, DayPhotos>>(calendarCache.photosMap);
-  
+
   // Selected date modal state
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedDayPhotos, setSelectedDayPhotos] = useState<DayPhotos | null>(null);
-  const [lightboxData, setLightboxData] = useState<{ url: string, name: string } | null>(null);
+  const [lightboxData, setLightboxData] = useState<{ url: string; name: string } | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [swipeDir, setSwipeDir] = useState<'next' | 'prev' | null>(null);
-  
+
   // Form state inside modal
   const [category, setCategory] = useState<EventCategory>('nos_vimos');
   const [title, setTitle] = useState('');
@@ -140,7 +183,7 @@ export default function Calendar() {
   const handleTempUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !couple || !profile) return;
-    
+
     setUploadingPast(true);
     setError('');
 
@@ -148,18 +191,34 @@ export default function Calendar() {
       const compressed = await compressImage(file, 1200, 0.7, false);
       const storagePath = `${couple.id}/${selectedDate}/${profile.id}.jpg`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('photos')
-        .upload(storagePath, compressed, {
-          contentType: 'image/jpeg',
-          upsert: true,
-        });
+      const uploadPromise = supabase.storage.from('photos').upload(storagePath, compressed, {
+        contentType: 'image/jpeg',
+        upsert: true,
+      });
+
+      const uploadTimeout = new Promise<never>((_, reject) =>
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                'La subida tardó demasiado tiempo. Verifica tu conexión a internet o intenta nuevamente.',
+              ),
+            ),
+          25000,
+        ),
+      );
+
+      const { error: uploadError } = (await Promise.race([uploadPromise, uploadTimeout])) as {
+        data: any;
+        error: any;
+      };
 
       if (uploadError) throw uploadError;
 
       // Update the DB record to point to the real photo instead of recovery
       const targetUserId = profile.id;
-      await supabase.from('streak_photos')
+      await supabase
+        .from('streak_photos')
         .update({ storage_path: storagePath })
         .eq('couple_id', couple.id)
         .eq('photo_date', selectedDate)
@@ -180,14 +239,50 @@ export default function Calendar() {
 
     if (isMockMode) {
       const mockEvts: CalendarEvent[] = [
-        { id: 'e1', couple_id: 'mock', event_date: `${year}-${String(month).padStart(2, '0')}-03`, category: 'nos_vimos', title: 'Nos vimos', note: 'Regaloneo en casa', created_by: profile.id, created_at: `${year}-${String(month).padStart(2, '0')}-03T18:30:00Z` },
-        { id: 'e2', couple_id: 'mock', event_date: `${year}-${String(month).padStart(2, '0')}-07`, category: 'cita', title: 'Noche de cine', note: 'Vimos la película nueva', created_by: 'partner', created_at: `${year}-${String(month).padStart(2, '0')}-07T20:15:00Z` },
-        { id: 'e3', couple_id: 'mock', event_date: `${year}-${String(month).padStart(2, '0')}-12`, category: 'aniversario', title: 'Cumple mes', note: 'Cena romántica', created_by: profile.id, created_at: `${year}-${String(month).padStart(2, '0')}-12T19:00:00Z` },
-        { id: 'e6', couple_id: 'mock', event_date: today, category: 'nos_vimos', title: 'Nos vimos hoy', note: 'Noche de películas', created_by: profile.id, created_at: new Date().toISOString() },
+        {
+          id: 'e1',
+          couple_id: 'mock',
+          event_date: `${year}-${String(month).padStart(2, '0')}-03`,
+          category: 'nos_vimos',
+          title: 'Nos vimos',
+          note: 'Regaloneo en casa',
+          created_by: profile.id,
+          created_at: `${year}-${String(month).padStart(2, '0')}-03T18:30:00Z`,
+        },
+        {
+          id: 'e2',
+          couple_id: 'mock',
+          event_date: `${year}-${String(month).padStart(2, '0')}-07`,
+          category: 'cita',
+          title: 'Noche de cine',
+          note: 'Vimos la película nueva',
+          created_by: 'partner',
+          created_at: `${year}-${String(month).padStart(2, '0')}-07T20:15:00Z`,
+        },
+        {
+          id: 'e3',
+          couple_id: 'mock',
+          event_date: `${year}-${String(month).padStart(2, '0')}-12`,
+          category: 'aniversario',
+          title: 'Cumple mes',
+          note: 'Cena romántica',
+          created_by: profile.id,
+          created_at: `${year}-${String(month).padStart(2, '0')}-12T19:00:00Z`,
+        },
+        {
+          id: 'e6',
+          couple_id: 'mock',
+          event_date: today,
+          category: 'nos_vimos',
+          title: 'Nos vimos hoy',
+          note: 'Noche de películas',
+          created_by: profile.id,
+          created_at: new Date().toISOString(),
+        },
       ];
 
       const map = new Map<string, CalendarEvent[]>();
-      mockEvts.forEach(evt => {
+      mockEvts.forEach((evt) => {
         const list = map.get(evt.event_date) || [];
         list.push(evt);
         map.set(evt.event_date, list);
@@ -198,8 +293,10 @@ export default function Calendar() {
       // Mock photos
       const pMap = new Map<string, DayPhotos>();
       pMap.set(today, {
-        myPhotoUrl: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=600&auto=format&fit=crop&q=80',
-        partnerPhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
+        myPhotoUrl:
+          'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=600&auto=format&fit=crop&q=80',
+        partnerPhotoUrl:
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
       });
       calendarCache.photosMap = pMap;
       setPhotosMap(pMap);
@@ -248,42 +345,46 @@ export default function Calendar() {
 
       if (photosData) {
         const pMap = new Map<string, DayPhotos>();
-        
+
         // 1. Inmediatamente marcar que hay fotos para mostrar la racha al instante
         for (const p of photosData as StreakPhoto[]) {
           const existing = pMap.get(p.photo_date) || {};
           existing.hasPhoto = true;
           pMap.set(p.photo_date, existing);
         }
-        
+
         calendarCache.photosMap = new Map(pMap);
         setPhotosMap(new Map(pMap));
         localStorage.setItem('calendar_cache_photos', JSON.stringify(Array.from(pMap.entries())));
 
         // 2. Cargar las URLs de las fotos en paralelo (asíncrono) para no bloquear la interfaz
-        await Promise.all((photosData as StreakPhoto[]).map(async (p) => {
-          const existing = pMap.get(p.photo_date)!;
-          try {
-            const isRecovery = p.storage_path.includes('_recovery');
-            let urlToUse: string | undefined = undefined;
+        await Promise.all(
+          (photosData as StreakPhoto[]).map(async (p) => {
+            const existing = pMap.get(p.photo_date)!;
+            try {
+              const isRecovery = p.storage_path.includes('_recovery');
+              let urlToUse: string | undefined = undefined;
 
-            if (isRecovery) {
-              urlToUse = 'recovery';
-            } else {
-              const { data } = await supabase.storage.from('photos').createSignedUrl(p.storage_path, 3600);
-              urlToUse = data?.signedUrl || undefined;
-            }
+              if (isRecovery) {
+                urlToUse = 'recovery';
+              } else {
+                const { data } = await supabase.storage
+                  .from('photos')
+                  .createSignedUrl(p.storage_path, 3600);
+                urlToUse = data?.signedUrl || undefined;
+              }
 
-            if (p.user_id === profile.id) {
-              existing.myPhotoUrl = urlToUse;
-            } else {
-              existing.partnerPhotoUrl = urlToUse;
+              if (p.user_id === profile.id) {
+                existing.myPhotoUrl = urlToUse;
+              } else {
+                existing.partnerPhotoUrl = urlToUse;
+              }
+            } catch (e) {
+              console.error('Error fetching photo url', e);
             }
-          } catch (e) {
-            console.error('Error fetching photo url', e);
-          }
-        }));
-        
+          }),
+        );
+
         calendarCache.photosMap = new Map(pMap);
         setPhotosMap(new Map(pMap));
         localStorage.setItem('calendar_cache_photos', JSON.stringify(Array.from(pMap.entries())));
@@ -307,13 +408,23 @@ export default function Calendar() {
       .channel('calendar-realtime-all')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'calendar_events', filter: `couple_id=eq.${couple.id}` },
-        () => fetchEventsAndPhotos()
+        {
+          event: '*',
+          schema: 'public',
+          table: 'calendar_events',
+          filter: `couple_id=eq.${couple.id}`,
+        },
+        () => fetchEventsAndPhotos(),
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'streak_photos', filter: `couple_id=eq.${couple.id}` },
-        () => fetchEventsAndPhotos()
+        {
+          event: '*',
+          schema: 'public',
+          table: 'streak_photos',
+          filter: `couple_id=eq.${couple.id}`,
+        },
+        () => fetchEventsAndPhotos(),
       )
       .subscribe();
 
@@ -323,13 +434,17 @@ export default function Calendar() {
   }, [couple?.id, fetchEventsAndPhotos, isMockMode, tableMissing]);
 
   const handlePrevMonth = () => {
-    if (month === 1) { setMonth(12); setYear(y => y - 1); }
-    else setMonth(m => m - 1);
+    if (month === 1) {
+      setMonth(12);
+      setYear((y) => y - 1);
+    } else setMonth((m) => m - 1);
   };
 
   const handleNextMonth = () => {
-    if (month === 12) { setMonth(1); setYear(y => y + 1); }
-    else setMonth(m => m + 1);
+    if (month === 12) {
+      setMonth(1);
+      setYear((y) => y + 1);
+    } else setMonth((m) => m + 1);
   };
 
   const handleDayClick = (dateStr: string) => {
@@ -349,11 +464,10 @@ export default function Calendar() {
     setSaving(true);
     setError('');
 
-    const catConfig = CATEGORIES.find(c => c.id === category);
+    const catConfig = CATEGORIES.find((c) => c.id === category);
     const isFuture = selectedDate > today;
-    const defaultTitle = category === 'nos_vimos'
-      ? (isFuture ? 'Nos veremos' : 'Nos vimos')
-      : catConfig?.label;
+    const defaultTitle =
+      category === 'nos_vimos' ? (isFuture ? 'Nos veremos' : 'Nos vimos') : catConfig?.label;
     const eventTitle = title.trim() || defaultTitle;
     const eventNote = note.trim() || undefined;
 
@@ -369,7 +483,7 @@ export default function Calendar() {
         created_at: new Date().toISOString(),
       };
 
-      setEventsMap(prev => {
+      setEventsMap((prev) => {
         const map = new Map(prev);
         const list = map.get(selectedDate) || [];
         map.set(selectedDate, [...list, newEvt]);
@@ -384,16 +498,14 @@ export default function Calendar() {
     }
 
     try {
-      const { error: insErr } = await supabase
-        .from('calendar_events')
-        .insert({
-          couple_id: couple.id,
-          event_date: selectedDate,
-          category,
-          title: eventTitle,
-          note: eventNote || null,
-          created_by: profile.id,
-        });
+      const { error: insErr } = await supabase.from('calendar_events').insert({
+        couple_id: couple.id,
+        event_date: selectedDate,
+        category,
+        title: eventTitle,
+        note: eventNote || null,
+        created_by: profile.id,
+      });
 
       if (insErr) {
         console.warn('Calendar event insert warning:', insErr);
@@ -405,7 +517,20 @@ export default function Calendar() {
         const dateParts = selectedDate.split('-');
         const dayNum = parseInt(dateParts[2] || '1', 10);
         const monthNum = parseInt(dateParts[1] || '1', 10);
-        const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        const monthNames = [
+          'ene',
+          'feb',
+          'mar',
+          'abr',
+          'may',
+          'jun',
+          'jul',
+          'ago',
+          'sep',
+          'oct',
+          'nov',
+          'dic',
+        ];
         const formattedDate = `${dayNum} ${monthNames[monthNum - 1] || ''}`;
 
         await supabase.from('messages').insert({
@@ -430,18 +555,18 @@ export default function Calendar() {
 
   const handleDeleteEvent = async (eventId: string) => {
     if (!couple || saving) return;
-    
+
     if (!window.confirm('¿Estás seguro de que deseas eliminar este recuerdo?')) {
       return;
     }
-    
+
     setSaving(true);
 
     if (isMockMode || tableMissing) {
-      setEventsMap(prev => {
+      setEventsMap((prev) => {
         const map = new Map(prev);
         if (selectedDate) {
-          const list = (map.get(selectedDate) || []).filter(e => e.id !== eventId);
+          const list = (map.get(selectedDate) || []).filter((e) => e.id !== eventId);
           if (list.length > 0) map.set(selectedDate, list);
           else map.delete(selectedDate);
         }
@@ -452,10 +577,7 @@ export default function Calendar() {
     }
 
     try {
-      const { error: delErr } = await supabase
-        .from('calendar_events')
-        .delete()
-        .eq('id', eventId);
+      const { error: delErr } = await supabase.from('calendar_events').delete().eq('id', eventId);
 
       if (delErr) throw delErr;
       await fetchEventsAndPhotos();
@@ -489,16 +611,23 @@ export default function Calendar() {
     setSaving(true);
     setError('');
 
-    const catConfig = CATEGORIES.find(c => c.id === editCategory);
+    const catConfig = CATEGORIES.find((c) => c.id === editCategory);
     const updatedTitle = editTitle.trim() || catConfig?.label || '';
     const updatedNote = editNote.trim() || null;
 
     if (isMockMode || tableMissing) {
-      setEventsMap(prev => {
+      setEventsMap((prev) => {
         const map = new Map(prev);
         if (selectedDate) {
-          const list = (map.get(selectedDate) || []).map(e =>
-            e.id === eventId ? { ...e, title: updatedTitle, note: updatedNote || undefined, category: editCategory } : e
+          const list = (map.get(selectedDate) || []).map((e) =>
+            e.id === eventId
+              ? {
+                  ...e,
+                  title: updatedTitle,
+                  note: updatedNote || undefined,
+                  category: editCategory,
+                }
+              : e,
           );
           map.set(selectedDate, list);
         }
@@ -554,7 +683,10 @@ export default function Calendar() {
         {/* Header */}
         <div>
           <h2>Calendario</h2>
-          <p className="text-secondary" style={{ marginTop: 'var(--space-xs)', fontSize: 'var(--font-size-sm)' }}>
+          <p
+            className="text-secondary"
+            style={{ marginTop: 'var(--space-xs)', fontSize: 'var(--font-size-sm)' }}
+          >
             Nuestros días, fotos y momentos
           </p>
         </div>
@@ -563,15 +695,21 @@ export default function Calendar() {
         <div className="glass-card" style={{ padding: 'var(--space-md)' }}>
           {/* Month Switcher Header */}
           <div className="calendar__header">
-            <button className="calendar__nav-btn" onClick={handlePrevMonth}>‹</button>
+            <button className="calendar__nav-btn" onClick={handlePrevMonth}>
+              ‹
+            </button>
             <span className="calendar__month">{monthName}</span>
-            <button className="calendar__nav-btn" onClick={handleNextMonth}>›</button>
+            <button className="calendar__nav-btn" onClick={handleNextMonth}>
+              ›
+            </button>
           </div>
 
           {/* Weekday Labels */}
           <div className="calendar__weekdays">
-            {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
-              <div key={d} className="calendar__weekday">{d}</div>
+            {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => (
+              <div key={d} className="calendar__weekday">
+                {d}
+              </div>
             ))}
           </div>
 
@@ -582,28 +720,42 @@ export default function Calendar() {
               const isToday = dateStr === today;
               const dayEvents = eventsMap.get(dateStr) || [];
               const dayPhotos = photosMap.get(dateStr);
-              const hasPhotos = Boolean(dayPhotos?.hasPhoto || dayPhotos?.myPhotoUrl || dayPhotos?.partnerPhotoUrl);
-              
+              const hasPhotos = Boolean(
+                dayPhotos?.hasPhoto || dayPhotos?.myPhotoUrl || dayPhotos?.partnerPhotoUrl,
+              );
+
               // Get primary category for day background tinting
               const primaryCategory = dayEvents[0]?.category;
-              const catConf = primaryCategory ? CATEGORIES.find(c => c.id === primaryCategory) : null;
+              const catConf = primaryCategory
+                ? CATEGORIES.find((c) => c.id === primaryCategory)
+                : null;
 
               // Check if it's a general holiday
               const [yStr, mStr, dStr] = dateStr.split('-');
               const dayMonth = parseInt(mStr, 10);
               const dayDay = parseInt(dStr, 10);
-              const holiday = CHILEAN_HOLIDAYS.find(h => h.month === dayMonth && h.day === dayDay);
+              const holiday = CHILEAN_HOLIDAYS.find(
+                (h) => h.month === dayMonth && h.day === dayDay,
+              );
 
-              const isAnniversaryMonth = couple?.relationship_start && parseInt(couple.relationship_start.split('-')[1], 10) === dayMonth;
-              const isAnniversaryDay = couple?.relationship_start && parseInt(couple.relationship_start.split('-')[2], 10) === dayDay;
+              const isAnniversaryMonth =
+                couple?.relationship_start &&
+                parseInt(couple.relationship_start.split('-')[1], 10) === dayMonth;
+              const isAnniversaryDay =
+                couple?.relationship_start &&
+                parseInt(couple.relationship_start.split('-')[2], 10) === dayDay;
               const isAnniversary = isAnniversaryMonth && isAnniversaryDay;
 
-              const isMyBirthdayMonth = profile?.birthday && parseInt(profile.birthday.split('-')[1], 10) === dayMonth;
-              const isMyBirthdayDay = profile?.birthday && parseInt(profile.birthday.split('-')[2], 10) === dayDay;
+              const isMyBirthdayMonth =
+                profile?.birthday && parseInt(profile.birthday.split('-')[1], 10) === dayMonth;
+              const isMyBirthdayDay =
+                profile?.birthday && parseInt(profile.birthday.split('-')[2], 10) === dayDay;
               const isMyBirthday = isMyBirthdayMonth && isMyBirthdayDay;
 
-              const isPartnerBirthdayMonth = partner?.birthday && parseInt(partner.birthday.split('-')[1], 10) === dayMonth;
-              const isPartnerBirthdayDay = partner?.birthday && parseInt(partner.birthday.split('-')[2], 10) === dayDay;
+              const isPartnerBirthdayMonth =
+                partner?.birthday && parseInt(partner.birthday.split('-')[1], 10) === dayMonth;
+              const isPartnerBirthdayDay =
+                partner?.birthday && parseInt(partner.birthday.split('-')[2], 10) === dayDay;
               const isPartnerBirthday = isPartnerBirthdayMonth && isPartnerBirthdayDay;
 
               let specialEmoji = holiday?.emoji;
@@ -617,76 +769,95 @@ export default function Calendar() {
                     'calendar__day',
                     !dayObj.isCurrentMonth && 'calendar__day--other-month',
                     isToday && 'calendar__day--today',
-                  ].filter(Boolean).join(' ')}
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
                   style={{
                     backgroundColor: catConf ? `${catConf.color}22` : undefined,
-                    borderColor: isToday ? 'var(--color-accent)' : catConf ? `${catConf.color}66` : undefined,
+                    borderColor: isToday
+                      ? 'var(--color-accent)'
+                      : catConf
+                        ? `${catConf.color}66`
+                        : undefined,
                     animation: `fadeIn 0.4s ease-out forwards`,
                     animationDelay: `${i * 0.015}s`,
-                    opacity: 0
+                    opacity: 0,
                   }}
                   onClick={() => handleDayClick(dateStr)}
                   disabled={loading}
                 >
-                  <span style={{ fontWeight: catConf ? 700 : 500, color: catConf ? catConf.color : undefined }}>
+                  <span
+                    style={{
+                      fontWeight: catConf ? 700 : 500,
+                      color: catConf ? catConf.color : undefined,
+                    }}
+                  >
                     {dayObj.day}
                   </span>
 
                   {/* Holiday Emoji Indicator */}
                   {specialEmoji && (
-                    <span style={{
-                      position: 'absolute',
-                      top: '2px',
-                      right: '2px',
-                      fontSize: '14px',
-                      lineHeight: '1',
-                      opacity: 0.95,
-                      filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.4))'
-                    }}>
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: '2px',
+                        right: '2px',
+                        fontSize: '14px',
+                        lineHeight: '1',
+                        opacity: 0.95,
+                        filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.4))',
+                      }}
+                    >
                       {specialEmoji}
                     </span>
                   )}
 
                   {/* Top indicator dots (Notes/Events) */}
                   {dayEvents.length > 0 && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '4px',
-                      display: 'flex',
-                      gap: '2px',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '100%',
-                    }}>
-                      {Array.from(new Set(dayEvents.map(e => e.category))).slice(0, 3).map((category, idx) => {
-                        const eventCatConf = CATEGORIES.find(c => c.id === category);
-                        return (
-                          <span
-                            key={idx}
-                            style={{
-                              width: '4px',
-                              height: '4px',
-                              borderRadius: '50%',
-                              backgroundColor: eventCatConf?.color || '#c9956c',
-                            }}
-                          />
-                        );
-                      })}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '4px',
+                        display: 'flex',
+                        gap: '2px',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '100%',
+                      }}
+                    >
+                      {Array.from(new Set(dayEvents.map((e) => e.category)))
+                        .slice(0, 3)
+                        .map((category, idx) => {
+                          const eventCatConf = CATEGORIES.find((c) => c.id === category);
+                          return (
+                            <span
+                              key={idx}
+                              style={{
+                                width: '4px',
+                                height: '4px',
+                                borderRadius: '50%',
+                                backgroundColor: eventCatConf?.color || '#c9956c',
+                              }}
+                            />
+                          );
+                        })}
                     </div>
                   )}
 
                   {/* Bottom-right corner indicator (Streak photo) */}
                   {hasPhotos && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      right: 0,
-                      width: 0,
-                      height: 0,
-                      borderBottom: '8px solid var(--color-accent-light)',
-                      borderLeft: '8px solid transparent',
-                      opacity: 0.5,
-                    }} />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        right: 0,
+                        width: 0,
+                        height: 0,
+                        borderBottom: '8px solid var(--color-accent-light)',
+                        borderLeft: '8px solid transparent',
+                        opacity: 0.5,
+                      }}
+                    />
                   )}
                 </button>
               );
@@ -696,33 +867,40 @@ export default function Calendar() {
 
         {/* Simbología / Legend Card */}
         <div className="glass-card" style={{ padding: 'var(--space-md)' }}>
-          <div className="text-secondary" style={{
-            fontSize: 'var(--font-size-xs)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            fontWeight: 700,
-            marginBottom: 'var(--space-sm)',
-          }}>
+          <div
+            className="text-secondary"
+            style={{
+              fontSize: 'var(--font-size-xs)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              fontWeight: 700,
+              marginBottom: 'var(--space-sm)',
+            }}
+          >
             Simbología
           </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 'var(--space-xs) var(--space-md)',
-          }}>
-            {CATEGORIES.map(cat => (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 'var(--space-xs) var(--space-md)',
+            }}
+          >
+            {CATEGORIES.map((cat) => (
               <div key={cat.id} className="row row--gap-xs" style={{ padding: '4px 0' }}>
-                <span style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  backgroundColor: cat.color,
-                  boxShadow: `0 0 6px ${cat.color}66`,
-                  flexShrink: 0,
-                  alignSelf: 'flex-start',
-                  marginTop: 5,
-                }} />
+                <span
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    backgroundColor: cat.color,
+                    boxShadow: `0 0 6px ${cat.color}66`,
+                    flexShrink: 0,
+                    alignSelf: 'flex-start',
+                    marginTop: 5,
+                  }}
+                />
                 <div className="calendar-legend__text">
                   <span>{cat.label}</span>
                   <small>{cat.points}pts.</small>
@@ -730,16 +908,18 @@ export default function Calendar() {
               </div>
             ))}
             <div className="row row--gap-xs" style={{ padding: '4px 0' }}>
-              <span style={{
-                width: 0,
-                height: 0,
-                borderBottom: '6px solid var(--color-accent-light)',
-                borderLeft: '6px solid transparent',
-                opacity: 0.5,
-                flexShrink: 0,
-                alignSelf: 'flex-start',
-                marginTop: 5,
-              }} />
+              <span
+                style={{
+                  width: 0,
+                  height: 0,
+                  borderBottom: '6px solid var(--color-accent-light)',
+                  borderLeft: '6px solid transparent',
+                  opacity: 0.5,
+                  flexShrink: 0,
+                  alignSelf: 'flex-start',
+                  marginTop: 5,
+                }}
+              />
               <div className="calendar-legend__text">
                 <span>Racha</span>
                 <small>15pts.</small>
@@ -751,37 +931,119 @@ export default function Calendar() {
 
       {/* Interactive Day Click Modal (Shows Day Photos + Notes) */}
       {showModal && selectedDate && (
-        <div className="modal-backdrop" onClick={() => { setShowModal(false); setSwipeDir(null); }}>
-          <div className="modal animate-scale-in" onClick={e => e.stopPropagation()} onTouchStart={handleModalTouchStart} onTouchEnd={handleModalTouchEnd} style={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div
+          className="modal-backdrop"
+          onClick={() => {
+            setShowModal(false);
+            setSwipeDir(null);
+          }}
+        >
+          <div
+            className="modal animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={handleModalTouchStart}
+            onTouchEnd={handleModalTouchEnd}
+            style={{
+              maxHeight: '85vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
             <div className="modal__handle" />
 
             {/* Sticky header with close button */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '0 0 var(--space-md) 0',
-              borderBottom: '1px solid var(--color-border)',
-              marginBottom: 'var(--space-md)',
-              flexShrink: 0,
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '0 0 var(--space-md) 0',
+                borderBottom: '1px solid var(--color-border)',
+                marginBottom: 'var(--space-md)',
+                flexShrink: 0,
+              }}
+            >
               <div>
-                <h3 style={{ textTransform: 'capitalize', margin: 0, fontSize: 'var(--font-size-base)' }}>
+                <h3
+                  style={{
+                    textTransform: 'capitalize',
+                    margin: 0,
+                    fontSize: 'var(--font-size-base)',
+                  }}
+                >
                   {formatDate(selectedDate, 'long')}
                 </h3>
                 {(() => {
                   const [yStr, mStr, dStr] = selectedDate.split('-');
                   const sm = parseInt(mStr, 10);
                   const sd = parseInt(dStr, 10);
-                  const isAnn = couple?.relationship_start && parseInt(couple.relationship_start.split('-')[1], 10) === sm && parseInt(couple.relationship_start.split('-')[2], 10) === sd;
-                  const isMyB = profile?.birthday && parseInt(profile.birthday.split('-')[1], 10) === sm && parseInt(profile.birthday.split('-')[2], 10) === sd;
-                  const isPB = partner?.birthday && parseInt(partner.birthday.split('-')[1], 10) === sm && parseInt(partner.birthday.split('-')[2], 10) === sd;
-                  const h = CHILEAN_HOLIDAYS.find(h => h.month === sm && h.day === sd);
-                  
-                  if (isAnn) return <div style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 700, marginTop: '2px' }}>💍 Nuestro Aniversario</div>;
-                  if (isMyB) return <div style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 700, marginTop: '2px' }}>🎂 Tu Cumpleaños</div>;
-                  if (isPB) return <div style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 700, marginTop: '2px' }}>🎂 Cumpleaños de {partnerName}</div>;
-                  if (h) return <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: 600, marginTop: '2px' }}>{h.emoji} {h.title}</div>;
+                  const isAnn =
+                    couple?.relationship_start &&
+                    parseInt(couple.relationship_start.split('-')[1], 10) === sm &&
+                    parseInt(couple.relationship_start.split('-')[2], 10) === sd;
+                  const isMyB =
+                    profile?.birthday &&
+                    parseInt(profile.birthday.split('-')[1], 10) === sm &&
+                    parseInt(profile.birthday.split('-')[2], 10) === sd;
+                  const isPB =
+                    partner?.birthday &&
+                    parseInt(partner.birthday.split('-')[1], 10) === sm &&
+                    parseInt(partner.birthday.split('-')[2], 10) === sd;
+                  const h = CHILEAN_HOLIDAYS.find((h) => h.month === sm && h.day === sd);
+
+                  if (isAnn)
+                    return (
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          color: 'var(--color-accent)',
+                          fontWeight: 700,
+                          marginTop: '2px',
+                        }}
+                      >
+                        💍 Nuestro Aniversario
+                      </div>
+                    );
+                  if (isMyB)
+                    return (
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          color: 'var(--color-accent)',
+                          fontWeight: 700,
+                          marginTop: '2px',
+                        }}
+                      >
+                        🎂 Tu Cumpleaños
+                      </div>
+                    );
+                  if (isPB)
+                    return (
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          color: 'var(--color-accent)',
+                          fontWeight: 700,
+                          marginTop: '2px',
+                        }}
+                      >
+                        🎂 Cumpleaños de {partnerName}
+                      </div>
+                    );
+                  if (h)
+                    return (
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          color: 'var(--color-text-secondary)',
+                          fontWeight: 600,
+                          marginTop: '2px',
+                        }}
+                      >
+                        {h.emoji} {h.title}
+                      </div>
+                    );
                   return null;
                 })()}
               </div>
@@ -810,18 +1072,27 @@ export default function Calendar() {
             </div>
 
             {/* Scrollable content area */}
-            <div key={selectedDate} className={swipeDir ? `animate-slide-${swipeDir}` : 'animate-fade-in'} style={{ overflowY: 'auto', flex: 1, paddingBottom: 'var(--space-md)', overflowX: 'hidden' }}>
+            <div
+              key={selectedDate}
+              className={swipeDir ? `animate-slide-${swipeDir}` : 'animate-fade-in'}
+              style={{
+                overflowY: 'auto',
+                flex: 1,
+                paddingBottom: 'var(--space-md)',
+                overflowX: 'hidden',
+              }}
+            >
               <div className="stack stack--lg">
                 {/* List of existing events/notes for this selected date */}
                 {selectedDateEvents.length > 0 && (
                   <div className="stack stack--sm">
                     {selectedDateEvents.map((evt) => {
-                      const eventCatConf = CATEGORIES.find(c => c.id === evt.category);
+                      const eventCatConf = CATEGORIES.find((c) => c.id === evt.category);
                       const isEditing = editingEventId === evt.id;
 
                       if (isEditing) {
                         // Inline edit form
-                        const editCatConf = CATEGORIES.find(c => c.id === editCategory);
+                        const editCatConf = CATEGORIES.find((c) => c.id === editCategory);
                         return (
                           <div
                             key={evt.id}
@@ -832,22 +1103,44 @@ export default function Calendar() {
                               background: 'var(--color-bg-secondary)',
                             }}
                           >
-                            <div style={{ fontWeight: 600, fontSize: 'var(--font-size-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-sm)' }}>
+                            <div
+                              style={{
+                                fontWeight: 600,
+                                fontSize: 'var(--font-size-xs)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em',
+                                marginBottom: 'var(--space-sm)',
+                              }}
+                            >
                               Editar recuerdo
                             </div>
 
                             {/* Category pills */}
-                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: 'var(--space-sm)' }}>
-                              {CATEGORIES.map(cat => (
+                            <div
+                              style={{
+                                display: 'flex',
+                                gap: '6px',
+                                flexWrap: 'wrap',
+                                marginBottom: 'var(--space-sm)',
+                              }}
+                            >
+                              {CATEGORIES.map((cat) => (
                                 <button
                                   key={cat.id}
                                   type="button"
                                   className="btn btn--sm"
                                   onClick={() => setEditCategory(cat.id)}
                                   style={{
-                                    background: editCategory === cat.id ? `${cat.color}22` : 'var(--color-bg-secondary)',
-                                    borderColor: editCategory === cat.id ? cat.color : 'var(--color-border)',
-                                    color: editCategory === cat.id ? cat.color : 'var(--color-text-secondary)',
+                                    background:
+                                      editCategory === cat.id
+                                        ? `${cat.color}22`
+                                        : 'var(--color-bg-secondary)',
+                                    borderColor:
+                                      editCategory === cat.id ? cat.color : 'var(--color-border)',
+                                    color:
+                                      editCategory === cat.id
+                                        ? cat.color
+                                        : 'var(--color-text-secondary)',
                                     fontSize: 'var(--font-size-xs)',
                                     fontWeight: editCategory === cat.id ? 700 : 500,
                                   }}
@@ -857,10 +1150,17 @@ export default function Calendar() {
                               ))}
                             </div>
 
-
                             {/* Note textarea */}
-                            <div className="input-group" style={{ marginBottom: 'var(--space-sm)' }}>
-                              <label htmlFor={`editNote-${evt.id}`} style={{ fontSize: 'var(--font-size-xs)' }}>Notita</label>
+                            <div
+                              className="input-group"
+                              style={{ marginBottom: 'var(--space-sm)' }}
+                            >
+                              <label
+                                htmlFor={`editNote-${evt.id}`}
+                                style={{ fontSize: 'var(--font-size-xs)' }}
+                              >
+                                Notita
+                              </label>
                               <textarea
                                 id={`editNote-${evt.id}`}
                                 className="input"
@@ -908,7 +1208,13 @@ export default function Calendar() {
                         >
                           <div className="row row--between">
                             <div className="row row--gap-xs">
-                              <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: eventCatConf?.color }}>
+                              <span
+                                style={{
+                                  fontWeight: 700,
+                                  fontSize: 'var(--font-size-sm)',
+                                  color: eventCatConf?.color,
+                                }}
+                              >
                                 {evt.title || eventCatConf?.label}
                               </span>
                             </div>
@@ -934,21 +1240,35 @@ export default function Calendar() {
                           </div>
 
                           {evt.note && (
-                            <div style={{
-                              margin: 'var(--space-sm) 0',
-                              padding: 'var(--space-sm) var(--space-md)',
-                              background: 'rgba(0,0,0,0.25)',
-                              borderRadius: 'var(--radius-md)',
-                              border: '1px solid var(--color-border)',
-                            }}>
-                              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontStyle: 'italic', lineHeight: 1.4 }}>
+                            <div
+                              style={{
+                                margin: 'var(--space-sm) 0',
+                                padding: 'var(--space-sm) var(--space-md)',
+                                background: 'rgba(0,0,0,0.25)',
+                                borderRadius: 'var(--radius-md)',
+                                border: '1px solid var(--color-border)',
+                              }}
+                            >
+                              <p
+                                style={{
+                                  fontSize: 'var(--font-size-sm)',
+                                  color: 'var(--color-text-primary)',
+                                  fontStyle: 'italic',
+                                  lineHeight: 1.4,
+                                }}
+                              >
                                 "{evt.note}"
                               </p>
                             </div>
                           )}
 
-                          <div className="row row--between text-secondary" style={{ fontSize: '11px', marginTop: 'var(--space-xs)', opacity: 0.8 }}>
-                            <span>Registrado por <strong>{getAuthorName(evt.created_by)}</strong></span>
+                          <div
+                            className="row row--between text-secondary"
+                            style={{ fontSize: '11px', marginTop: 'var(--space-xs)', opacity: 0.8 }}
+                          >
+                            <span>
+                              Registrado por <strong>{getAuthorName(evt.created_by)}</strong>
+                            </span>
                           </div>
                         </div>
                       );
@@ -957,39 +1277,101 @@ export default function Calendar() {
                 )}
 
                 {/* Photos of the Day Section */}
-                {selectedDayPhotos && (selectedDayPhotos.myPhotoUrl || selectedDayPhotos.partnerPhotoUrl) ? (
-                  <div className="glass-card stack stack--sm" style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)' }}>
+                {selectedDayPhotos &&
+                (selectedDayPhotos.myPhotoUrl || selectedDayPhotos.partnerPhotoUrl) ? (
+                  <div
+                    className="glass-card stack stack--sm"
+                    style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)' }}
+                  >
                     <div className="row row--gap-xs" style={{ marginBottom: 'var(--space-xs)' }}>
-                      <span style={{ fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-accent-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 'var(--font-size-xs)',
+                          color: 'var(--color-accent-light)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                        }}
+                      >
                         Fotografías de Racha del Día
                       </span>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: 'var(--space-md)',
+                      }}
+                    >
                       <div>
-                        <div className="text-secondary text-center" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}>
+                        <div
+                          className="text-secondary text-center"
+                          style={{ fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}
+                        >
                           {myName}
                         </div>
-                        <div className="photo-card" style={{ padding: '4px 4px 24px 4px', transform: 'rotate(-2deg)' }}>
+                        <div
+                          className="photo-card"
+                          style={{ padding: '4px 4px 24px 4px', transform: 'rotate(-2deg)' }}
+                        >
                           {selectedDayPhotos.myPhotoUrl === 'recovery' ? (
-                            <div className="photo-card__placeholder" style={{ background: 'rgba(59, 130, 246, 0.1)', color: 'var(--color-info)', zIndex: 2 }}>
+                            <div
+                              className="photo-card__placeholder"
+                              style={{
+                                background: 'rgba(59, 130, 246, 0.1)',
+                                color: 'var(--color-info)',
+                                zIndex: 2,
+                              }}
+                            >
                               <span style={{ fontSize: '20px' }}>🛡️</span>
-                              <span style={{ fontWeight: 700, padding: '0 4px', textAlign: 'center', fontSize: '10px', marginTop: '4px' }}>Racha recuperada</span>
+                              <span
+                                style={{
+                                  fontWeight: 700,
+                                  padding: '0 4px',
+                                  textAlign: 'center',
+                                  fontSize: '10px',
+                                  marginTop: '4px',
+                                }}
+                              >
+                                Racha recuperada
+                              </span>
                               {selectedDate === '2026-09-07' && (
-                                <button className="btn btn--primary btn--sm" style={{ marginTop: '8px', padding: '4px 8px', fontSize: '10px' }} onClick={() => tempFileInputRef.current?.click()} disabled={uploadingPast}>
+                                <button
+                                  className="btn btn--primary btn--sm"
+                                  style={{ marginTop: '8px', padding: '4px 8px', fontSize: '10px' }}
+                                  onClick={() => tempFileInputRef.current?.click()}
+                                  disabled={uploadingPast}
+                                >
                                   {uploadingPast ? 'Subiendo...' : 'Subir'}
                                 </button>
                               )}
                             </div>
                           ) : selectedDayPhotos.myPhotoUrl ? (
                             <>
-                              <img src={selectedDayPhotos.myPhotoUrl} alt="Foto" className="photo-card__image" onClick={() => setLightboxData({ url: selectedDayPhotos.myPhotoUrl!, name: `coliflor-${selectedDate}-${myName}.jpg` })} style={{ cursor: 'pointer', borderRadius: '4px' }} />
+                              <img
+                                src={selectedDayPhotos.myPhotoUrl}
+                                alt="Foto"
+                                className="photo-card__image"
+                                onClick={() =>
+                                  setLightboxData({
+                                    url: selectedDayPhotos.myPhotoUrl!,
+                                    name: `coliflor-${selectedDate}-${myName}.jpg`,
+                                  })
+                                }
+                                style={{ cursor: 'pointer', borderRadius: '4px' }}
+                              />
                             </>
                           ) : (
                             <div className="photo-card__placeholder" style={{ zIndex: 2 }}>
                               <span style={{ opacity: 0.5, fontSize: '10px' }}>Sin foto</span>
                               {selectedDate === '2026-09-07' && (
-                                <button className="btn btn--primary btn--sm" style={{ marginTop: '8px', padding: '4px 8px', fontSize: '10px' }} onClick={() => tempFileInputRef.current?.click()} disabled={uploadingPast}>
+                                <button
+                                  className="btn btn--primary btn--sm"
+                                  style={{ marginTop: '8px', padding: '4px 8px', fontSize: '10px' }}
+                                  onClick={() => tempFileInputRef.current?.click()}
+                                  disabled={uploadingPast}
+                                >
                                   {uploadingPast ? 'Subiendo...' : 'Subir'}
                                 </button>
                               )}
@@ -999,47 +1381,105 @@ export default function Calendar() {
                       </div>
 
                       <div>
-                        <div className="text-secondary text-center" style={{ fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}>
+                        <div
+                          className="text-secondary text-center"
+                          style={{ fontSize: '11px', marginBottom: '4px', fontWeight: 600 }}
+                        >
                           {partnerName}
                         </div>
-                        <div className="photo-card" style={{ padding: '4px 4px 24px 4px', transform: 'rotate(2deg)' }}>
+                        <div
+                          className="photo-card"
+                          style={{ padding: '4px 4px 24px 4px', transform: 'rotate(2deg)' }}
+                        >
                           {selectedDayPhotos.partnerPhotoUrl === 'recovery' ? (
-                            <div className="photo-card__placeholder" style={{ background: 'rgba(59, 130, 246, 0.1)', color: 'var(--color-info)', zIndex: 2 }}>
+                            <div
+                              className="photo-card__placeholder"
+                              style={{
+                                background: 'rgba(59, 130, 246, 0.1)',
+                                color: 'var(--color-info)',
+                                zIndex: 2,
+                              }}
+                            >
                               <span style={{ fontSize: '20px' }}>🛡️</span>
-                              <span style={{ fontWeight: 700, padding: '0 4px', textAlign: 'center', fontSize: '10px', marginTop: '4px' }}>Racha recuperada</span>
+                              <span
+                                style={{
+                                  fontWeight: 700,
+                                  padding: '0 4px',
+                                  textAlign: 'center',
+                                  fontSize: '10px',
+                                  marginTop: '4px',
+                                }}
+                              >
+                                Racha recuperada
+                              </span>
                               {selectedDate === '2026-09-07' && (
-                                <button className="btn btn--primary btn--sm" style={{ marginTop: '8px', padding: '4px 8px', fontSize: '10px' }} onClick={() => tempFileInputRef.current?.click()} disabled={uploadingPast}>
+                                <button
+                                  className="btn btn--primary btn--sm"
+                                  style={{ marginTop: '8px', padding: '4px 8px', fontSize: '10px' }}
+                                  onClick={() => tempFileInputRef.current?.click()}
+                                  disabled={uploadingPast}
+                                >
                                   {uploadingPast ? 'Subiendo...' : 'Subir'}
                                 </button>
                               )}
                             </div>
                           ) : selectedDayPhotos.partnerPhotoUrl ? (
                             <>
-                              <img src={selectedDayPhotos.partnerPhotoUrl} alt="Foto" className="photo-card__image" onClick={() => setLightboxData({ url: selectedDayPhotos.partnerPhotoUrl!, name: `coliflor-${selectedDate}-${partnerName}.jpg` })} style={{ cursor: 'pointer', borderRadius: '4px' }} />
+                              <img
+                                src={selectedDayPhotos.partnerPhotoUrl}
+                                alt="Foto"
+                                className="photo-card__image"
+                                onClick={() =>
+                                  setLightboxData({
+                                    url: selectedDayPhotos.partnerPhotoUrl!,
+                                    name: `coliflor-${selectedDate}-${partnerName}.jpg`,
+                                  })
+                                }
+                                style={{ cursor: 'pointer', borderRadius: '4px' }}
+                              />
                             </>
                           ) : (
                             <div className="photo-card__placeholder" style={{ zIndex: 2 }}>
                               <span style={{ opacity: 0.5, fontSize: '10px' }}>Sin foto</span>
                               {selectedDate === '2026-09-07' && (
-                                <button className="btn btn--primary btn--sm" style={{ marginTop: '8px', padding: '4px 8px', fontSize: '10px' }} onClick={() => tempFileInputRef.current?.click()} disabled={uploadingPast}>
+                                <button
+                                  className="btn btn--primary btn--sm"
+                                  style={{ marginTop: '8px', padding: '4px 8px', fontSize: '10px' }}
+                                  onClick={() => tempFileInputRef.current?.click()}
+                                  disabled={uploadingPast}
+                                >
                                   {uploadingPast ? 'Subiendo...' : 'Subir'}
                                 </button>
                               )}
                             </div>
                           )}
                         </div>
-                        <input type="file" accept="image/*" ref={tempFileInputRef} style={{ display: 'none' }} onChange={handleTempUpload} />
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/*"
+                          ref={tempFileInputRef}
+                          style={{ display: 'none' }}
+                          onChange={handleTempUpload}
+                        />
                       </div>
                     </div>
                   </div>
                 ) : null}
 
                 {/* Empty state when no events and no photos */}
-                {selectedDateEvents.length === 0 && !showAddForm && !(selectedDayPhotos && (selectedDayPhotos.myPhotoUrl || selectedDayPhotos.partnerPhotoUrl)) && (
-                  <div className="text-center text-secondary" style={{ padding: 'var(--space-lg) 0', fontSize: 'var(--font-size-sm)' }}>
-                    No hay recuerdos para este día aún.
-                  </div>
-                )}
+                {selectedDateEvents.length === 0 &&
+                  !showAddForm &&
+                  !(
+                    selectedDayPhotos &&
+                    (selectedDayPhotos.myPhotoUrl || selectedDayPhotos.partnerPhotoUrl)
+                  ) && (
+                    <div
+                      className="text-center text-secondary"
+                      style={{ padding: 'var(--space-lg) 0', fontSize: 'var(--font-size-sm)' }}
+                    >
+                      No hay recuerdos para este día aún.
+                    </div>
+                  )}
 
                 {/* Add Note/Memory Button — always visible, user must explicitly tap */}
                 {!showAddForm && (
@@ -1051,23 +1491,38 @@ export default function Calendar() {
                     }}
                   >
                     <IconPlus />
-                    <span>{selectedDateEvents.length > 0 ? 'Añadir otra notita a este día' : 'Añadir recuerdo o notita'}</span>
+                    <span>
+                      {selectedDateEvents.length > 0
+                        ? 'Añadir otra notita a este día'
+                        : 'Añadir recuerdo o notita'}
+                    </span>
                   </button>
                 )}
 
                 {/* Form to add a new event or note — only visible after explicit tap */}
                 {showAddForm && (
-                  <form onSubmit={handleAddEvent} className="stack stack--md" style={{
-                    borderTop: '1px solid var(--color-border)',
-                    paddingTop: 'var(--space-md)',
-                  }}>
-                    <div style={{ fontWeight: 600, fontSize: 'var(--font-size-xs)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <form
+                    onSubmit={handleAddEvent}
+                    className="stack stack--md"
+                    style={{
+                      borderTop: '1px solid var(--color-border)',
+                      paddingTop: 'var(--space-md)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 'var(--font-size-xs)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                      }}
+                    >
                       Añadir recuerdo o notita
                     </div>
 
                     {/* Category selector pills */}
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      {CATEGORIES.map(cat => {
+                      {CATEGORIES.map((cat) => {
                         const isFuture = selectedDate > today;
                         let label = cat.label;
                         if (cat.id === 'nos_vimos' && isFuture) {
@@ -1081,9 +1536,13 @@ export default function Calendar() {
                             className="btn btn--sm"
                             onClick={() => setCategory(cat.id)}
                             style={{
-                              background: category === cat.id ? `${cat.color}22` : 'var(--color-bg-secondary)',
+                              background:
+                                category === cat.id
+                                  ? `${cat.color}22`
+                                  : 'var(--color-bg-secondary)',
                               borderColor: category === cat.id ? cat.color : 'var(--color-border)',
-                              color: category === cat.id ? cat.color : 'var(--color-text-secondary)',
+                              color:
+                                category === cat.id ? cat.color : 'var(--color-text-secondary)',
                               fontSize: 'var(--font-size-xs)',
                               fontWeight: category === cat.id ? 700 : 500,
                             }}
@@ -1110,7 +1569,10 @@ export default function Calendar() {
                     </div>
 
                     {error && (
-                      <div className="toast toast--error" style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}>
+                      <div
+                        className="toast toast--error"
+                        style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}
+                      >
                         {error}
                       </div>
                     )}
@@ -1146,7 +1608,11 @@ export default function Calendar() {
         </div>
       )}
 
-      <Lightbox url={lightboxData?.url || null} downloadName={lightboxData?.name} onClose={() => setLightboxData(null)} />
+      <Lightbox
+        url={lightboxData?.url || null}
+        downloadName={lightboxData?.name}
+        onClose={() => setLightboxData(null)}
+      />
     </PageTransition>
   );
 }

@@ -20,8 +20,6 @@ export interface AuthContextType {
   refreshProfile: () => Promise<void>;
 }
 
-
-
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function useAuth(): AuthContextType {
@@ -50,11 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     try {
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', u.id)
-        .maybeSingle();
+      const { data } = await supabase.from('profiles').select('*').eq('id', u.id).maybeSingle();
 
       if (data) return data as Profile;
 
@@ -72,11 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchCouple = useCallback(async (coupleId: string) => {
-    const { data } = await supabase
-      .from('couples')
-      .select('*')
-      .eq('id', coupleId)
-      .maybeSingle();
+    const { data } = await supabase.from('couples').select('*').eq('id', coupleId).maybeSingle();
     return data as Couple | null;
   }, []);
 
@@ -117,7 +107,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!session) setStatus('unauthenticated');
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (!session) {
         setProfile(null);
@@ -150,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (payload.new) {
             setCouple(payload.new as Couple);
           }
-        }
+        },
       )
       .subscribe();
 
@@ -180,7 +172,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, couple, partner, status, isMockMode, signUp, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        couple,
+        partner,
+        status,
+        isMockMode,
+        signUp,
+        signIn,
+        signOut,
+        refreshProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

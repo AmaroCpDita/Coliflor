@@ -49,7 +49,10 @@ export default function Login() {
     <div className="page page--centered">
       <div className="stack stack--xl" style={{ width: '100%', maxWidth: '360px' }}>
         {/* Logo Badge Framed */}
-        <div className="animate-fade-in" style={{ textAlign: 'center', marginBottom: 'var(--space-sm)' }}>
+        <div
+          className="animate-fade-in"
+          style={{ textAlign: 'center', marginBottom: 'var(--space-sm)' }}
+        >
           <div className="logo-badge">
             <img src="/logo.png" alt="Coliflor Logo" className="logo-badge__img" />
           </div>
@@ -105,19 +108,25 @@ export default function Login() {
           </div>
 
           {error && (
-            <div className="toast toast--error" style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}>
+            <div
+              className="toast toast--error"
+              style={{ position: 'relative', top: 0, left: 0, transform: 'none' }}
+            >
               {error}
             </div>
           )}
 
-          <button
-            type="submit"
-            className="btn btn--primary btn--full btn--lg"
-            disabled={loading}
-          >
+          <button type="submit" className="btn btn--primary btn--full btn--lg" disabled={loading}>
             {loading ? (
-              <div className="spinner" style={{ width: '20px', height: '20px', borderWidth: '2px' }} />
-            ) : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
+              <div
+                className="spinner"
+                style={{ width: '20px', height: '20px', borderWidth: '2px' }}
+              />
+            ) : mode === 'login' ? (
+              'Entrar'
+            ) : (
+              'Crear cuenta'
+            )}
           </button>
         </form>
 
@@ -135,7 +144,6 @@ export default function Login() {
         >
           {mode === 'login' ? 'Crear cuenta' : 'Iniciar sesión'}
         </button>
-
       </div>
     </div>
   );

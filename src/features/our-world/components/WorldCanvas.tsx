@@ -11,10 +11,16 @@ import type { ParticleConfig, ParticleType } from '../types';
 interface WorldCanvasProps {
   configs: ParticleConfig[];
   performanceFactor?: number;
-  onBurstRef?: React.MutableRefObject<((x: number, y: number, type: ParticleType, count: number, colors: string[]) => void) | null>;
+  onBurstRef?: React.MutableRefObject<
+    ((x: number, y: number, type: ParticleType, count: number, colors: string[]) => void) | null
+  >;
 }
 
-export default function WorldCanvas({ configs, performanceFactor = 1, onBurstRef }: WorldCanvasProps) {
+export default function WorldCanvas({
+  configs,
+  performanceFactor = 1,
+  onBurstRef,
+}: WorldCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<ParticleEngine | null>(null);
 

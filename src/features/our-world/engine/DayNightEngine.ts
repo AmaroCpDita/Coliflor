@@ -35,10 +35,14 @@ export function getCurrentDayNight(): { phase: TimeOfDay; progress: number; hour
 /** Get light intensity for a time of day */
 export function getLightIntensity(phase: TimeOfDay, progress: number): number {
   switch (phase) {
-    case 'morning': return 0.3 + progress * 0.7; // 0.3 → 1.0
-    case 'day': return 1.0;
-    case 'evening': return 1.0 - progress * 0.7; // 1.0 → 0.3
-    case 'night': return 0.15 + Math.sin(progress * Math.PI) * 0.05; // dim
+    case 'morning':
+      return 0.3 + progress * 0.7; // 0.3 → 1.0
+    case 'day':
+      return 1.0;
+    case 'evening':
+      return 1.0 - progress * 0.7; // 1.0 → 0.3
+    case 'night':
+      return 0.15 + Math.sin(progress * Math.PI) * 0.05; // dim
   }
 }
 
@@ -76,7 +80,11 @@ function parseColor(hex: string): [number, number, number] {
   if (h.length === 3) {
     return [parseInt(h[0] + h[0], 16), parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16)];
   }
-  return [parseInt(h.substring(0, 2), 16), parseInt(h.substring(2, 4), 16), parseInt(h.substring(4, 6), 16)];
+  return [
+    parseInt(h.substring(0, 2), 16),
+    parseInt(h.substring(2, 4), 16),
+    parseInt(h.substring(4, 6), 16),
+  ];
 }
 
 /** Get the next phase for smooth transitions */
@@ -94,15 +102,11 @@ export function getDayNightState(biome: BiomeDef): DayNightState {
   let skyColors: string[];
   const transitionZone = 0.15; // 15% transition overlap
 
-  if (progress > (1 - transitionZone)) {
+  if (progress > 1 - transitionZone) {
     // Near end of phase — blend into next
     const nextPhase = getNextPhase(phase);
     const blendT = (progress - (1 - transitionZone)) / transitionZone;
-    skyColors = lerpColors(
-      biome.skyGradients[phase],
-      biome.skyGradients[nextPhase],
-      blendT
-    );
+    skyColors = lerpColors(biome.skyGradients[phase], biome.skyGradients[nextPhase], blendT);
   } else if (progress < transitionZone && phase !== 'morning') {
     // Near start of phase (except morning) — blend from previous
     // Not needed since end-of-previous handles it

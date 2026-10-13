@@ -14,6 +14,9 @@ const COMPANIONS: WorldCompanionDef[] = [
 ];
 const BIOMES = new Set(['forest', 'garden', 'beach', 'magical', 'mountain']);
 
-export function getWorldCompanions(coupleId: string | undefined, biomeId: string): WorldCompanionDef[] {
+export function getWorldCompanions(
+  coupleId: string | undefined,
+  biomeId: string,
+): WorldCompanionDef[] {
   return coupleId === COMPANION_COUPLE_ID && BIOMES.has(biomeId) ? COMPANIONS : [];
 }

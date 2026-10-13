@@ -88,8 +88,8 @@ export class ParticleEngine {
   setConfigs(configs: ParticleConfig[]): void {
     this.configs = configs;
     // Remove ambient effects from the previous phase (especially fireflies at dawn).
-    const activeTypes = new Set(configs.map(config => config.type));
-    this.particles = this.particles.filter(particle => activeTypes.has(particle.type));
+    const activeTypes = new Set(configs.map((config) => config.type));
+    this.particles = this.particles.filter((particle) => activeTypes.has(particle.type));
     this.spawnTimers.clear();
   }
 
@@ -168,7 +168,7 @@ export class ParticleEngine {
       const targetCount = Math.floor(config.count * pf);
 
       // Count active particles of this type from this config
-      const activeCount = this.particles.filter(p => p.type === config.type).length;
+      const activeCount = this.particles.filter((p) => p.type === config.type).length;
 
       if (activeCount < targetCount && this.particles.length < this.options.maxParticles) {
         // Spawn rate: every few frames
@@ -183,8 +183,8 @@ export class ParticleEngine {
 
   private createParticle(config: ParticleConfig): Particle {
     const [xMin, xMax, yMin, yMax] = config.area;
-    const x = this.canvasWidth * (xMin + Math.random() * (xMax - xMin)) / 100;
-    const y = this.canvasHeight * (yMin + Math.random() * (yMax - yMin)) / 100;
+    const x = (this.canvasWidth * (xMin + Math.random() * (xMax - xMin))) / 100;
+    const y = (this.canvasHeight * (yMin + Math.random() * (yMax - yMin))) / 100;
     const size = config.size[0] + Math.random() * (config.size[1] - config.size[0]);
     const speed = config.speed[0] + Math.random() * (config.speed[1] - config.speed[0]);
     const maxOpacity = config.opacity[0] + Math.random() * (config.opacity[1] - config.opacity[0]);
@@ -218,26 +218,54 @@ export class ParticleEngine {
     }
 
     return {
-      x, y, vx, vy, size, opacity: 0, maxOpacity, life, maxLife: life,
-      color, type: config.type, glow: config.glow, pulseOffset: Math.random() * Math.PI * 2,
-      pulseSpeed: config.pulseSpeed, wanderAngle: Math.random() * Math.PI * 2,
-      wanderSpeed: 0.01 + Math.random() * 0.03, rotation: Math.random() * Math.PI * 2,
+      x,
+      y,
+      vx,
+      vy,
+      size,
+      opacity: 0,
+      maxOpacity,
+      life,
+      maxLife: life,
+      color,
+      type: config.type,
+      glow: config.glow,
+      pulseOffset: Math.random() * Math.PI * 2,
+      pulseSpeed: config.pulseSpeed,
+      wanderAngle: Math.random() * Math.PI * 2,
+      wanderSpeed: 0.01 + Math.random() * 0.03,
+      rotation: Math.random() * Math.PI * 2,
       rotationSpeed: (Math.random() - 0.5) * 0.02,
     };
   }
 
-  private createBurstParticle(x: number, y: number, type: ParticleType, colors: string[]): Particle {
+  private createBurstParticle(
+    x: number,
+    y: number,
+    type: ParticleType,
+    colors: string[],
+  ): Particle {
     const angle = Math.random() * Math.PI * 2;
     const speed = 0.5 + Math.random() * 2;
     return {
-      x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 1,
-      size: 2 + Math.random() * 4, opacity: 1, maxOpacity: 1,
-      life: 40 + Math.floor(Math.random() * 40), maxLife: 80,
+      x,
+      y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 1,
+      size: 2 + Math.random() * 4,
+      opacity: 1,
+      maxOpacity: 1,
+      life: 40 + Math.floor(Math.random() * 40),
+      maxLife: 80,
       color: colors[Math.floor(Math.random() * colors.length)],
-      type, glow: type === 'magic' || type === 'spark' ? 10 : 5,
-      pulseOffset: 0, pulseSpeed: 0.05,
-      wanderAngle: angle, wanderSpeed: 0.02,
-      rotation: 0, rotationSpeed: (Math.random() - 0.5) * 0.1,
+      type,
+      glow: type === 'magic' || type === 'spark' ? 10 : 5,
+      pulseOffset: 0,
+      pulseSpeed: 0.05,
+      wanderAngle: angle,
+      wanderSpeed: 0.02,
+      rotation: 0,
+      rotationSpeed: (Math.random() - 0.5) * 0.1,
     };
   }
 

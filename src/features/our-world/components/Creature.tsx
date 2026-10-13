@@ -18,7 +18,14 @@ interface CreatureProps {
   habitat?: { x: [number, number]; y: [number, number] };
 }
 
-export default function Creature({ def, timeOfDay, areaWidth, lightIntensity, onInteract, habitat }: CreatureProps) {
+export default function Creature({
+  def,
+  timeOfDay,
+  areaWidth,
+  lightIntensity,
+  onInteract,
+  habitat,
+}: CreatureProps) {
   const minX = habitat?.x[0] ?? 5;
   const maxX = habitat?.x[1] ?? 90;
   const minY = habitat?.y[0] ?? 5;
@@ -82,10 +89,13 @@ export default function Creature({ def, timeOfDay, areaWidth, lightIntensity, on
         let step = 0;
 
         const moveTimer = setInterval(() => {
-          if (!mountedRef.current) { clearInterval(moveTimer); return; }
+          if (!mountedRef.current) {
+            clearInterval(moveTimer);
+            return;
+          }
           step++;
-          setX(prev => {
-            const newX = prev + (direction * speed * 0.1);
+          setX((prev) => {
+            const newX = prev + direction * speed * 0.1;
             return Math.max(minX, Math.min(maxX, newX));
           });
           if (step >= steps) clearInterval(moveTimer);
@@ -98,7 +108,7 @@ export default function Creature({ def, timeOfDay, areaWidth, lightIntensity, on
 
       if (next === 'looking') {
         setTimeout(() => {
-          if (mountedRef.current) setFacingRight(prev => !prev);
+          if (mountedRef.current) setFacingRight((prev) => !prev);
         }, duration * 0.5);
       }
 
@@ -121,9 +131,12 @@ export default function Creature({ def, timeOfDay, areaWidth, lightIntensity, on
       }, duration);
     };
 
-    const initialDelay = setTimeout(() => {
-      if (mountedRef.current) runBehavior();
-    }, 1000 + Math.random() * 3000);
+    const initialDelay = setTimeout(
+      () => {
+        if (mountedRef.current) runBehavior();
+      },
+      1000 + Math.random() * 3000,
+    );
 
     return () => {
       mountedRef.current = false;
@@ -132,36 +145,39 @@ export default function Creature({ def, timeOfDay, areaWidth, lightIntensity, on
     };
   }, [def, timeOfDay, chooseNextState, minX, maxX]);
 
-  const handleClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation();
-    if (onInteract) {
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      onInteract(def, rect.left + rect.width / 2, rect.top);
-    }
-    // Creature runs away
-    setState('running');
-    const dir = Math.random() > 0.5 ? 1 : -1;
-    setFacingRight(dir > 0);
-    const runaway = setInterval(() => {
-      setX(prev => {
-        const newX = prev + dir * 0.8;
-        if (newX < -5 || newX > 105) {
-          clearInterval(runaway);
-          return prev;
-        }
-        return Math.max(minX, Math.min(maxX, newX));
-      });
-    }, 30);
-    setTimeout(() => {
-      clearInterval(runaway);
-      setOpacity(0);
+  const handleClick = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      e.stopPropagation();
+      if (onInteract) {
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        onInteract(def, rect.left + rect.width / 2, rect.top);
+      }
+      // Creature runs away
+      setState('running');
+      const dir = Math.random() > 0.5 ? 1 : -1;
+      setFacingRight(dir > 0);
+      const runaway = setInterval(() => {
+        setX((prev) => {
+          const newX = prev + dir * 0.8;
+          if (newX < -5 || newX > 105) {
+            clearInterval(runaway);
+            return prev;
+          }
+          return Math.max(minX, Math.min(maxX, newX));
+        });
+      }, 30);
       setTimeout(() => {
-        setX(minX + Math.random() * (maxX - minX));
-        setOpacity(1);
-        setState('idle');
-      }, 3000);
-    }, 1500);
-  }, [def, onInteract, minX, maxX]);
+        clearInterval(runaway);
+        setOpacity(0);
+        setTimeout(() => {
+          setX(minX + Math.random() * (maxX - minX));
+          setOpacity(1);
+          setState('idle');
+        }, 3000);
+      }, 1500);
+    },
+    [def, onInteract, minX, maxX],
+  );
 
   // Animation class based on state
   const stateClass = `creature--${state}`;
@@ -190,22 +206,33 @@ export default function Creature({ def, timeOfDay, areaWidth, lightIntensity, on
       onClick={handleClick}
     >
       <div className={stateClass} style={{ width: '100%', height: '100%' }}>
-      {assetDef.sourceType === 'svg' ? (
-        <Renderer
-          width="100%"
-          height="100%"
-          style={{ width: '100%', height: '100%', display: 'block' }}
-        />
-      ) : (
-        <img src={assetDef.source} decoding="async" alt={def.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-      )}
+        {assetDef.sourceType === 'svg' ? (
+          <Renderer
+            width="100%"
+            height="100%"
+            style={{ width: '100%', height: '100%', display: 'block' }}
+          />
+        ) : (
+          <img
+            src={assetDef.source}
+            decoding="async"
+            alt={def.name}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          />
+        )}
       </div>
       {state === 'sleeping' && (
-        <div className="creature__zzz" style={{
-          position: 'absolute', top: '-10px', right: '-5px',
-          fontSize: '10px', opacity: 0.7,
-          animation: 'worldBob 2s ease-in-out infinite',
-        }}>
+        <div
+          className="creature__zzz"
+          style={{
+            position: 'absolute',
+            top: '-10px',
+            right: '-5px',
+            fontSize: '10px',
+            opacity: 0.7,
+            animation: 'worldBob 2s ease-in-out infinite',
+          }}
+        >
           💤
         </div>
       )}

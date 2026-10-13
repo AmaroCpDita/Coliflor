@@ -6,7 +6,11 @@ interface TransitionMidgroundProps {
   cameraOffsetX: number;
 }
 
-export default function TransitionMidground({ biomeId, lightIntensity, cameraOffsetX }: TransitionMidgroundProps) {
+export default function TransitionMidground({
+  biomeId,
+  lightIntensity,
+  cameraOffsetX,
+}: TransitionMidgroundProps) {
   if (biomeId !== 'forest' && biomeId !== 'garden') return null;
 
   const filterStyle = `brightness(${0.5 + lightIntensity * 0.5})`;

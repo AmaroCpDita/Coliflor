@@ -6,7 +6,15 @@ import { useState, useEffect } from 'react';
 
 function IconGoldHeart({ size = 32 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="var(--color-accent)" stroke="var(--color-accent)" strokeWidth="2" style={{ animation: 'heartPulse 2s infinite' }}>
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="var(--color-accent)"
+      stroke="var(--color-accent)"
+      strokeWidth="2"
+      style={{ animation: 'heartPulse 2s infinite' }}
+    >
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   );
@@ -22,11 +30,13 @@ const LOADING_PHRASES = [
   'Esperando a que el internet colabore...',
   'Sirviendo el café...',
   'Ya vamos, ya vamos...',
-  'Cargando (o intentándolo)...'
+  'Cargando (o intentándolo)...',
 ];
 
 export default function LoadingScreen({ message }: { message?: string }) {
-  const [phraseIndex, setPhraseIndex] = useState(() => Math.floor(Math.random() * LOADING_PHRASES.length));
+  const [phraseIndex, setPhraseIndex] = useState(() =>
+    Math.floor(Math.random() * LOADING_PHRASES.length),
+  );
 
   // Rotate phrases every 2.5 seconds if there is no hardcoded message
   useEffect(() => {
@@ -41,11 +51,26 @@ export default function LoadingScreen({ message }: { message?: string }) {
 
   return (
     <div className="page page--centered">
-      <div className="glass-card text-center stack stack--md animate-fade-in" style={{ padding: 'var(--space-xl) var(--space-lg)', minWidth: '280px' }}>
+      <div
+        className="glass-card text-center stack stack--md animate-fade-in"
+        style={{ padding: 'var(--space-xl) var(--space-lg)', minWidth: '280px' }}
+      >
         <div className="row row--center">
           <IconGoldHeart size={36} />
         </div>
-        <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', letterSpacing: '0.02em', fontWeight: 500, minHeight: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'opacity 0.3s' }}>
+        <p
+          className="text-secondary"
+          style={{
+            fontSize: 'var(--font-size-sm)',
+            letterSpacing: '0.02em',
+            fontWeight: 500,
+            minHeight: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'opacity 0.3s',
+          }}
+        >
           {displayMessage}
         </p>
       </div>

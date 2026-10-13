@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 import type { BucketListItem, BucketListCategory } from '../lib/types';
 import Fireworks from '../components/Fireworks';
 
-const CATEGORIES: { id: BucketListCategory, icon: string, color: string, colorDark: string }[] = [
+const CATEGORIES: { id: BucketListCategory; icon: string; color: string; colorDark: string }[] = [
   { id: 'Lugares', icon: '📍', color: '#7ba5b8', colorDark: '#1a3b4c' },
   { id: 'Restaurantes', icon: '🍝', color: '#c9956c', colorDark: '#4a2f1d' },
   { id: 'Películas', icon: '🍿', color: '#b87da8', colorDark: '#4a2340' },
@@ -24,7 +24,16 @@ const SUGGESTIONS = [
 
 function IconPlus() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <line x1="12" y1="5" x2="12" y2="19" />
       <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
@@ -33,7 +42,16 @@ function IconPlus() {
 
 function IconCheck() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <polyline points="20 6 9 17 4 12" />
     </svg>
   );
@@ -41,7 +59,16 @@ function IconCheck() {
 
 function IconTrophy() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
       <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
       <path d="M4 22h16" />
@@ -59,7 +86,7 @@ export default function BucketList() {
   const [activeCategory, setActiveCategory] = useState<BucketListCategory | 'Todos'>('Todos');
   const [showAddForm, setShowAddForm] = useState(false);
   const [showFireworks, setShowFireworks] = useState(false);
-  
+
   // Form State
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemCategory, setNewItemCategory] = useState<BucketListCategory>('Aventuras');
@@ -85,8 +112,13 @@ export default function BucketList() {
       .channel('bucket-list-realtime')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'bucket_list_items', filter: `couple_id=eq.${couple.id}` },
-        () => fetchItems()
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bucket_list_items',
+          filter: `couple_id=eq.${couple.id}`,
+        },
+        () => fetchItems(),
       )
       .subscribe();
 
@@ -121,13 +153,17 @@ export default function BucketList() {
     }
   };
 
-  const handleAddItem = async (e?: React.FormEvent, suggestionTitle?: string, suggestionCat?: BucketListCategory) => {
+  const handleAddItem = async (
+    e?: React.FormEvent,
+    suggestionTitle?: string,
+    suggestionCat?: BucketListCategory,
+  ) => {
     if (e) e.preventDefault();
     const titleToSave = suggestionTitle || newItemTitle;
     const catToSave = suggestionCat || newItemCategory;
-    
+
     if (!couple || !profile || !titleToSave.trim() || saving) return;
-    
+
     setSaving(true);
 
     if (isMockMode) {
@@ -138,7 +174,7 @@ export default function BucketList() {
         category: catToSave,
         is_completed: false,
         created_by: profile.id,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       };
       setItems([newItem, ...items]);
       setNewItemTitle('');
@@ -148,17 +184,15 @@ export default function BucketList() {
     }
 
     try {
-      const { error } = await supabase
-        .from('bucket_list_items')
-        .insert({
-          couple_id: couple.id,
-          title: titleToSave.trim(),
-          category: catToSave,
-          created_by: profile.id
-        });
+      const { error } = await supabase.from('bucket_list_items').insert({
+        couple_id: couple.id,
+        title: titleToSave.trim(),
+        category: catToSave,
+        created_by: profile.id,
+      });
 
       if (error) throw error;
-      
+
       setNewItemTitle('');
       setShowAddForm(false);
       await fetchItems();
@@ -171,21 +205,21 @@ export default function BucketList() {
 
   const toggleComplete = async (item: BucketListItem) => {
     if (isMockMode) {
-      setItems(items.map(i => i.id === item.id ? { ...i, is_completed: !i.is_completed } : i));
+      setItems(items.map((i) => (i.id === item.id ? { ...i, is_completed: !i.is_completed } : i)));
       if (!item.is_completed) setShowFireworks(true);
       return;
     }
 
     try {
-      setItems(items.map(i => i.id === item.id ? { ...i, is_completed: !i.is_completed } : i));
-      
+      setItems(items.map((i) => (i.id === item.id ? { ...i, is_completed: !i.is_completed } : i)));
+
       if (!item.is_completed) setShowFireworks(true);
 
       const { error } = await supabase
         .from('bucket_list_items')
-        .update({ 
+        .update({
           is_completed: !item.is_completed,
-          completed_at: !item.is_completed ? new Date().toISOString() : null 
+          completed_at: !item.is_completed ? new Date().toISOString() : null,
         })
         .eq('id', item.id);
 
@@ -198,9 +232,9 @@ export default function BucketList() {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('¿Eliminar este deseo de la lista?')) return;
-    
+
     if (isMockMode) {
-      setItems(items.filter(i => i.id !== id));
+      setItems(items.filter((i) => i.id !== id));
       return;
     }
 
@@ -215,7 +249,7 @@ export default function BucketList() {
 
   const filteredItems = useMemo(() => {
     if (activeCategory === 'Todos') return items;
-    return items.filter(i => i.category === activeCategory);
+    return items.filter((i) => i.category === activeCategory);
   }, [items, activeCategory]);
 
   const sortedItems = useMemo(() => {
@@ -233,14 +267,14 @@ export default function BucketList() {
   };
 
   const totalItems = items.length;
-  const completedItems = items.filter(i => i.is_completed).length;
+  const completedItems = items.filter((i) => i.is_completed).length;
   const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
   return (
     <PageTransition className="page">
       {/* Floating Action Button */}
       {!showAddForm && (
-        <motion.button 
+        <motion.button
           whileTap={{ scale: 0.9 }}
           className="animate-slide-up"
           aria-label="Añadir meta"
@@ -270,40 +304,80 @@ export default function BucketList() {
       )}
 
       <div className="container" style={{ paddingBottom: '100px' }}>
-        {showFireworks && <Fireworks intensity="high" colors={['#FF3B30', '#34C759', '#007AFF', '#FFCC00']} confetti={true} />}
-        
+        {showFireworks && (
+          <Fireworks
+            intensity="high"
+            colors={['#FF3B30', '#34C759', '#007AFF', '#FFCC00']}
+            confetti={true}
+          />
+        )}
+
         {/* Header Section */}
         <div style={{ marginBottom: 'var(--space-lg)' }}>
           <h2>Nuestros Deseos</h2>
-          <p className="text-secondary" style={{ marginTop: 'var(--space-xs)', fontSize: 'var(--font-size-sm)' }}>
+          <p
+            className="text-secondary"
+            style={{ marginTop: 'var(--space-xs)', fontSize: 'var(--font-size-sm)' }}
+          >
             Metas, locuras y lugares por conquistar juntos.
           </p>
-          
+
           {/* Progress Card */}
           {totalItems > 0 && (
-            <div className="glass-card animate-fade-in" style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)' }}>
+            <div
+              className="glass-card animate-fade-in"
+              style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)' }}
+            >
               <div className="row row--between" style={{ marginBottom: 'var(--space-sm)' }}>
-                <div className="row row--gap-xs" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
+                <div
+                  className="row row--gap-xs"
+                  style={{ color: 'var(--color-accent)', fontWeight: 600 }}
+                >
                   <IconTrophy />
                   <span>Progreso</span>
                 </div>
                 <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>
-                  {completedItems} <span className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500 }}>/ {totalItems}</span>
+                  {completedItems}{' '}
+                  <span
+                    className="text-secondary"
+                    style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500 }}
+                  >
+                    / {totalItems}
+                  </span>
                 </div>
               </div>
-              
+
               {/* Progress Bar */}
-              <div style={{ width: '100%', height: '8px', background: 'var(--color-bg-tertiary)', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ 
-                  width: `${progressPercent}%`, 
-                  height: '100%', 
-                  background: 'var(--gradient-accent)',
+              <div
+                style={{
+                  width: '100%',
+                  height: '8px',
+                  background: 'var(--color-bg-tertiary)',
                   borderRadius: '4px',
-                  transition: 'width 1s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                }} />
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${progressPercent}%`,
+                    height: '100%',
+                    background: 'var(--gradient-accent)',
+                    borderRadius: '4px',
+                    transition: 'width 1s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                  }}
+                />
               </div>
               {progressPercent === 100 && (
-                <div style={{ textAlign: 'center', marginTop: 'var(--space-sm)', fontSize: 'var(--font-size-xs)', color: 'var(--color-accent)', fontWeight: 600, animation: 'pulse 2s infinite' }}>
+                <div
+                  style={{
+                    textAlign: 'center',
+                    marginTop: 'var(--space-sm)',
+                    fontSize: 'var(--font-size-xs)',
+                    color: 'var(--color-accent)',
+                    fontWeight: 600,
+                    animation: 'pulse 2s infinite',
+                  }}
+                >
                   ¡Han completado todos sus deseos! Añadan más para seguir la aventura.
                 </div>
               )}
@@ -313,38 +387,47 @@ export default function BucketList() {
 
         {/* Filters (Horizontal scroll) - Only show if there are items */}
         {totalItems > 0 && !showAddForm && (
-          <div style={{
-            display: 'flex',
-            overflowX: 'auto',
-            gap: '8px',
-            paddingBottom: 'var(--space-md)',
-            margin: '0 calc(-1 * var(--space-md)) var(--space-md)',
-            paddingLeft: 'var(--space-md)',
-            paddingRight: 'var(--space-md)',
-            WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none',
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              overflowX: 'auto',
+              gap: '8px',
+              paddingBottom: 'var(--space-md)',
+              margin: '0 calc(-1 * var(--space-md)) var(--space-md)',
+              paddingLeft: 'var(--space-md)',
+              paddingRight: 'var(--space-md)',
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+            }}
+          >
             <button
               className="btn btn--sm"
               onClick={() => setActiveCategory('Todos')}
               style={{
                 whiteSpace: 'nowrap',
-                background: activeCategory === 'Todos' ? 'var(--color-text-primary)' : 'var(--color-bg-secondary)',
-                color: activeCategory === 'Todos' ? 'var(--color-bg-primary)' : 'var(--color-text-secondary)',
+                background:
+                  activeCategory === 'Todos'
+                    ? 'var(--color-text-primary)'
+                    : 'var(--color-bg-secondary)',
+                color:
+                  activeCategory === 'Todos'
+                    ? 'var(--color-bg-primary)'
+                    : 'var(--color-text-secondary)',
                 borderColor: activeCategory === 'Todos' ? 'transparent' : 'var(--color-border)',
                 fontWeight: activeCategory === 'Todos' ? 700 : 500,
               }}
             >
               Todo
             </button>
-            {CATEGORIES.map(cat => (
+            {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 className="btn btn--sm"
                 onClick={() => setActiveCategory(cat.id)}
                 style={{
                   whiteSpace: 'nowrap',
-                  background: activeCategory === cat.id ? `${cat.color}22` : 'var(--color-bg-secondary)',
+                  background:
+                    activeCategory === cat.id ? `${cat.color}22` : 'var(--color-bg-secondary)',
                   color: activeCategory === cat.id ? cat.color : 'var(--color-text-secondary)',
                   borderColor: activeCategory === cat.id ? cat.color : 'var(--color-border)',
                   fontWeight: activeCategory === cat.id ? 700 : 500,
@@ -358,11 +441,26 @@ export default function BucketList() {
 
         {/* Add Form */}
         {showAddForm && (
-          <form onSubmit={(e) => handleAddItem(e)} className="glass-card animate-slide-up" style={{ padding: 'var(--space-lg)', marginBottom: 'var(--space-lg)', border: '1px solid var(--color-accent-glow)', boxShadow: '0 10px 30px var(--color-bg-primary)' }}>
-            <div style={{ fontWeight: 700, fontSize: 'var(--font-size-md)', marginBottom: 'var(--space-md)' }}>
+          <form
+            onSubmit={(e) => handleAddItem(e)}
+            className="glass-card animate-slide-up"
+            style={{
+              padding: 'var(--space-lg)',
+              marginBottom: 'var(--space-lg)',
+              border: '1px solid var(--color-accent-glow)',
+              boxShadow: '0 10px 30px var(--color-bg-primary)',
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: 'var(--font-size-md)',
+                marginBottom: 'var(--space-md)',
+              }}
+            >
               ¿Qué aventura sigue? ✨
             </div>
-            
+
             <input
               type="text"
               className="input"
@@ -370,25 +468,46 @@ export default function BucketList() {
               onChange={(e) => setNewItemTitle(e.target.value)}
               placeholder="Ej: Ir de camping a la montaña..."
               autoFocus
-              style={{ marginBottom: 'var(--space-md)', fontSize: 'var(--font-size-base)', padding: '12px 16px' }}
+              style={{
+                marginBottom: 'var(--space-md)',
+                fontSize: 'var(--font-size-base)',
+                padding: '12px 16px',
+              }}
             />
 
-            <div style={{ marginBottom: 'var(--space-sm)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+            <div
+              style={{
+                marginBottom: 'var(--space-sm)',
+                fontSize: 'var(--font-size-xs)',
+                color: 'var(--color-text-secondary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                fontWeight: 600,
+              }}
+            >
               Categoría
             </div>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: 'var(--space-lg)' }}>
-              {CATEGORIES.map(cat => (
+            <div
+              style={{
+                display: 'flex',
+                gap: '8px',
+                flexWrap: 'wrap',
+                marginBottom: 'var(--space-lg)',
+              }}
+            >
+              {CATEGORIES.map((cat) => (
                 <button
                   key={cat.id}
                   type="button"
                   className="btn btn--sm"
                   onClick={() => setNewItemCategory(cat.id)}
                   style={{
-                    background: newItemCategory === cat.id ? `${cat.color}22` : 'var(--color-bg-primary)',
+                    background:
+                      newItemCategory === cat.id ? `${cat.color}22` : 'var(--color-bg-primary)',
                     borderColor: newItemCategory === cat.id ? cat.color : 'var(--color-border)',
                     color: newItemCategory === cat.id ? cat.color : 'var(--color-text-secondary)',
                     padding: '6px 12px',
-                    borderRadius: 'var(--radius-full)'
+                    borderRadius: 'var(--radius-full)',
                   }}
                 >
                   {cat.icon} {cat.id}
@@ -397,10 +516,18 @@ export default function BucketList() {
             </div>
 
             <div className="row row--gap-sm">
-              <button type="submit" className="btn btn--primary btn--full" disabled={!newItemTitle.trim() || saving}>
+              <button
+                type="submit"
+                className="btn btn--primary btn--full"
+                disabled={!newItemTitle.trim() || saving}
+              >
                 {saving ? 'Guardando...' : 'Añadir deseo'}
               </button>
-              <button type="button" className="btn btn--ghost" onClick={() => setShowAddForm(false)}>
+              <button
+                type="button"
+                className="btn btn--ghost"
+                onClick={() => setShowAddForm(false)}
+              >
                 Cancelar
               </button>
             </div>
@@ -409,43 +536,90 @@ export default function BucketList() {
 
         {/* List / Empty States */}
         {loading ? (
-          <div className="text-center text-secondary" style={{ padding: 'var(--space-2xl) 0' }}>Cargando deseos...</div>
+          <div className="text-center text-secondary" style={{ padding: 'var(--space-2xl) 0' }}>
+            Cargando deseos...
+          </div>
         ) : totalItems === 0 && !showAddForm ? (
           // Ultra Premium Empty State
           <div className="animate-fade-in stack stack--lg">
-            <div className="glass-card text-center" style={{ padding: 'var(--space-2xl) var(--space-md)' }}>
-              <div style={{ fontSize: '64px', marginBottom: 'var(--space-sm)', filter: 'drop-shadow(0 4px 12px rgba(229,197,115,0.3))' }}>🎯</div>
-              <h3 style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--space-xs)' }}>El lienzo está en blanco</h3>
-              <p className="text-secondary" style={{ margin: '0 auto', maxWidth: '280px', lineHeight: 1.5 }}>
-                Su lista de deseos aún está vacía. Es el momento perfecto para empezar a planear su próxima gran aventura juntos.
+            <div
+              className="glass-card text-center"
+              style={{ padding: 'var(--space-2xl) var(--space-md)' }}
+            >
+              <div
+                style={{
+                  fontSize: '64px',
+                  marginBottom: 'var(--space-sm)',
+                  filter: 'drop-shadow(0 4px 12px rgba(229,197,115,0.3))',
+                }}
+              >
+                🎯
+              </div>
+              <h3 style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--space-xs)' }}>
+                El lienzo está en blanco
+              </h3>
+              <p
+                className="text-secondary"
+                style={{ margin: '0 auto', maxWidth: '280px', lineHeight: 1.5 }}
+              >
+                Su lista de deseos aún está vacía. Es el momento perfecto para empezar a planear su
+                próxima gran aventura juntos.
               </p>
-              <button 
-                className="btn btn--primary" 
+              <button
+                className="btn btn--primary"
                 style={{ marginTop: 'var(--space-lg)' }}
                 onClick={() => setShowAddForm(true)}
               >
                 Añadir nuestro primer deseo
               </button>
             </div>
-            
+
             <div>
-              <div className="row row--gap-sm" style={{ marginBottom: 'var(--space-md)', color: 'var(--color-text-secondary)' }}>
+              <div
+                className="row row--gap-sm"
+                style={{ marginBottom: 'var(--space-md)', color: 'var(--color-text-secondary)' }}
+              >
                 <span style={{ fontSize: '18px' }}>💡</span>
-                <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ideas para empezar</span>
+                <span
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 'var(--font-size-sm)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  Ideas para empezar
+                </span>
               </div>
               <div className="stack stack--sm">
                 {SUGGESTIONS.map((sug, i) => {
-                  const cat = CATEGORIES.find(c => c.id === sug.cat)!;
+                  const cat = CATEGORIES.find((c) => c.id === sug.cat)!;
                   return (
-                    <div key={i} className="glass-card row row--between" style={{ padding: 'var(--space-md)', borderLeft: `3px solid ${cat.color}` }}>
-                      <div className="stack stack--xs" style={{ flex: 1, paddingRight: 'var(--space-sm)' }}>
-                        <div style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>{sug.title}</div>
-                        <div style={{ fontSize: '11px', color: cat.color, fontWeight: 700 }}>{cat.icon} {cat.id}</div>
+                    <div
+                      key={i}
+                      className="glass-card row row--between"
+                      style={{ padding: 'var(--space-md)', borderLeft: `3px solid ${cat.color}` }}
+                    >
+                      <div
+                        className="stack stack--xs"
+                        style={{ flex: 1, paddingRight: 'var(--space-sm)' }}
+                      >
+                        <div style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
+                          {sug.title}
+                        </div>
+                        <div style={{ fontSize: '11px', color: cat.color, fontWeight: 700 }}>
+                          {cat.icon} {cat.id}
+                        </div>
                       </div>
-                      <button 
-                        className="btn btn--sm" 
-                        onClick={() => handleAddItem(undefined, sug.title, sug.cat as BucketListCategory)}
-                        style={{ background: 'var(--color-bg-primary)', color: 'var(--color-text-primary)' }}
+                      <button
+                        className="btn btn--sm"
+                        onClick={() =>
+                          handleAddItem(undefined, sug.title, sug.cat as BucketListCategory)
+                        }
+                        style={{
+                          background: 'var(--color-bg-primary)',
+                          color: 'var(--color-text-primary)',
+                        }}
                         disabled={saving}
                       >
                         + Añadir
@@ -457,26 +631,31 @@ export default function BucketList() {
             </div>
           </div>
         ) : filteredItems.length === 0 && !showAddForm ? (
-          <div className="text-center text-secondary glass-card" style={{ padding: 'var(--space-2xl) var(--space-md)', opacity: 0.8 }}>
+          <div
+            className="text-center text-secondary glass-card"
+            style={{ padding: 'var(--space-2xl) var(--space-md)', opacity: 0.8 }}
+          >
             <div style={{ fontSize: '48px', marginBottom: 'var(--space-sm)' }}>🔍</div>
             <p>No hay deseos pendientes en esta categoría.</p>
           </div>
         ) : (
           <div className="stack stack--md">
-            {sortedItems.map(item => {
-              const cat = CATEGORIES.find(c => c.id === item.category);
+            {sortedItems.map((item) => {
+              const cat = CATEGORIES.find((c) => c.id === item.category);
               return (
-                <div 
-                  key={item.id} 
-                  className="glass-card animate-slide-up" 
-                  style={{ 
+                <div
+                  key={item.id}
+                  className="glass-card animate-slide-up"
+                  style={{
                     padding: 'var(--space-md)',
                     opacity: item.is_completed ? 0.6 : 1,
                     display: 'flex',
                     gap: 'var(--space-md)',
                     alignItems: 'flex-start',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    background: item.is_completed ? 'var(--color-bg-secondary)' : 'var(--color-bg-card)',
+                    background: item.is_completed
+                      ? 'var(--color-bg-secondary)'
+                      : 'var(--color-bg-card)',
                     border: `1px solid ${item.is_completed ? 'transparent' : 'var(--color-border)'}`,
                     boxShadow: item.is_completed ? 'none' : '0 4px 12px rgba(0,0,0,0.05)',
                   }}
@@ -506,29 +685,35 @@ export default function BucketList() {
                   </button>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ 
-                      fontWeight: 600, 
-                      fontSize: 'var(--font-size-md)',
-                      color: item.is_completed ? 'var(--color-text-secondary)' : 'var(--color-text-primary)',
-                      textDecoration: item.is_completed ? 'line-through' : 'none',
-                      lineHeight: 1.4,
-                      transition: 'all 0.3s',
-                    }}>
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 'var(--font-size-md)',
+                        color: item.is_completed
+                          ? 'var(--color-text-secondary)'
+                          : 'var(--color-text-primary)',
+                        textDecoration: item.is_completed ? 'line-through' : 'none',
+                        lineHeight: 1.4,
+                        transition: 'all 0.3s',
+                      }}
+                    >
                       {item.title}
                     </div>
-                    
+
                     <div className="row row--gap-sm" style={{ marginTop: '8px' }}>
-                      <span style={{ 
-                        fontSize: '11px',
-                        color: cat?.color, 
-                        fontWeight: 700, 
-                        background: `${cat?.color}15`, 
-                        padding: '4px 8px', 
-                        borderRadius: 'var(--radius-sm)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          color: cat?.color,
+                          fontWeight: 700,
+                          background: `${cat?.color}15`,
+                          padding: '4px 8px',
+                          borderRadius: 'var(--radius-sm)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
                         {cat?.icon} {cat?.id}
                       </span>
                       <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>
@@ -538,21 +723,30 @@ export default function BucketList() {
                   </div>
 
                   {/* Context menu / Delete */}
-                  <button 
+                  <button
                     onClick={() => handleDelete(item.id)}
-                    style={{ 
-                      background: 'transparent', 
-                      border: 'none', 
-                      color: 'var(--color-text-tertiary)', 
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--color-text-tertiary)',
                       padding: '4px',
                       cursor: 'pointer',
                       opacity: 0.5,
                     }}
                     title="Eliminar"
-                    onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
-                    onMouseOut={(e) => e.currentTarget.style.opacity = '0.5'}
+                    onMouseOver={(e) => (e.currentTarget.style.opacity = '1')}
+                    onMouseOut={(e) => (e.currentTarget.style.opacity = '0.5')}
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <polyline points="3 6 5 6 21 6"></polyline>
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     </svg>

@@ -18,7 +18,12 @@ export function getInventoryObjects(items: InventoryItem[]): InventoryItem[] {
 }
 
 /** Place one real inventory record, including records saved before the migration. */
-export function findInventorySource(items: InventoryItem[], itemId: string): InventoryItem | undefined {
+export function findInventorySource(
+  items: InventoryItem[],
+  itemId: string,
+): InventoryItem | undefined {
   const canonicalId = getObjectDef(itemId)?.id || itemId;
-  return items.find(item => item.quantity > 0 && (getObjectDef(item.item_id)?.id || item.item_id) === canonicalId);
+  return items.find(
+    (item) => item.quantity > 0 && (getObjectDef(item.item_id)?.id || item.item_id) === canonicalId,
+  );
 }
