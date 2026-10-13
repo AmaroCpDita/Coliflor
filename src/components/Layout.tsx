@@ -4,10 +4,12 @@
 
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
+import NotificationCenter from './NotificationCenter';
+import { useNotificationInbox } from '../hooks/useNotificationInbox';
+import { isActivityNotification } from '../lib/notifications';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { formatTime, formatDate, getTodayInTimezone } from '../lib/utils';
 import type { Message } from '../lib/types';
 
 function IconHome({ active }: { active: boolean }) {
@@ -231,122 +233,6 @@ function IconWorld({ active }: { active?: boolean }) {
   );
 }
 
-function parseNotificationItem(content: string) {
-  if (content.startsWith('💌')) {
-    return {
-      type: 'Notita de Amor',
-      icon: '💌',
-      text: content.replace(/^💌\s*/, ''),
-      accent: '#f472b6',
-      bg: 'rgba(244, 114, 182, 0.14)',
-      border: 'rgba(244, 114, 182, 0.25)',
-    };
-  }
-  if (content.startsWith('📅')) {
-    return {
-      type: 'Calendario',
-      icon: '📅',
-      text: content.replace(/^📅\s*/, ''),
-      accent: '#e5c573',
-      bg: 'rgba(229, 197, 115, 0.14)',
-      border: 'rgba(229, 197, 115, 0.25)',
-    };
-  }
-  if (content.startsWith('📸')) {
-    return {
-      type: 'Fotografía',
-      icon: '📸',
-      text: content.replace(/^📸\s*/, ''),
-      accent: '#34d399',
-      bg: 'rgba(52, 211, 153, 0.14)',
-      border: 'rgba(52, 211, 153, 0.25)',
-    };
-  }
-  if (content.startsWith('🔥')) {
-    return {
-      type: 'Racha Diaria',
-      icon: '🔥',
-      text: content.replace(/^🔥\s*/, ''),
-      accent: '#fb923c',
-      bg: 'rgba(251, 146, 60, 0.14)',
-      border: 'rgba(251, 146, 60, 0.25)',
-    };
-  }
-  if (content.startsWith('🩹')) {
-    return {
-      type: 'Curita de Amor',
-      icon: '🩹',
-      text: content.replace(/^🩹\s*/, ''),
-      accent: '#38bdf8',
-      bg: 'rgba(56, 189, 248, 0.14)',
-      border: 'rgba(56, 189, 248, 0.25)',
-    };
-  }
-  if (content.startsWith('📊')) {
-    return {
-      type: 'Quiz de Pareja',
-      icon: '📊',
-      text: content.replace(/^📊\s*/, ''),
-      accent: '#a78bfa',
-      bg: 'rgba(167, 139, 250, 0.14)',
-      border: 'rgba(167, 139, 250, 0.25)',
-    };
-  }
-  return {
-    type: 'Novedad',
-    icon: '✨',
-    text: content,
-    accent: '#e5c573',
-    bg: 'rgba(229, 197, 115, 0.14)',
-    border: 'rgba(229, 197, 115, 0.25)',
-  };
-}
-
-function formatNotifTime(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - d.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-
-    if (diffMins < 1) return 'Ahora';
-    if (diffMins < 60) return `Hace ${diffMins} min`;
-    if (diffHours < 24 && d.getDate() === now.getDate()) {
-      return formatTime(dateStr);
-    }
-    return formatDate(dateStr.slice(0, 10), 'medium') + ' ' + formatTime(dateStr);
-  } catch {
-    return formatTime(dateStr);
-  }
-}
-
-function groupNotificationsByDate(logs: Message[]) {
-  const groups: { Hoy: Message[]; Ayer: Message[]; Anteriores: Message[] } = {
-    Hoy: [],
-    Ayer: [],
-    Anteriores: [],
-  };
-
-  const todayStr = getTodayInTimezone();
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
-
-  logs.forEach((log) => {
-    const logDate = log.created_at ? log.created_at.slice(0, 10) : todayStr;
-    if (logDate === todayStr) {
-      groups.Hoy.push(log);
-    } else if (logDate === yesterdayStr) {
-      groups.Ayer.push(log);
-    } else {
-      groups.Anteriores.push(log);
-    }
-  });
-
-  return groups;
-}
-
 const NAV_ITEMS = [
   { path: '/', label: 'Inicio', icon: IconHome },
   { path: '/streak', label: 'Racha', icon: IconStreak },
@@ -364,7 +250,14 @@ export default function Layout() {
 
   const [showNotifCenter, setShowNotifCenter] = useState(false);
   const [activityLogs, setActivityLogs] = useState<Message[]>([]);
-  const [hasUnread, setHasUnread] = useState(false);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+  const [notificationsError, setNotificationsError] = useState(false);
+  const inbox = useNotificationInbox(
+    activityLogs,
+    `coliflor_notifications:${couple?.id || 'none'}:${profile?.id || 'guest'}`,
+    profile?.id,
+  );
+  const { hasUnread } = inbox;
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   const location = useLocation();
@@ -455,21 +348,6 @@ export default function Layout() {
     };
   }, []);
 
-  // Lock background scroll when notification drawer is open
-  useEffect(() => {
-    if (showNotifCenter) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-    };
-  }, [showNotifCenter]);
-
   // OneSignal User Login & Web Push Permission Binding
   useEffect(() => {
     if (profile?.id && typeof window !== 'undefined') {
@@ -489,38 +367,47 @@ export default function Layout() {
     }
   }, [profile?.id]);
 
-  // Fetch Activity / System notifications
+  // Keep the inbox in sync without altering the underlying chat history.
   const fetchActivityLogs = useCallback(async () => {
-    if (!couple?.id || isMockMode) return;
-
+    const coupleId = couple?.id;
+    if (!coupleId || isMockMode) {
+      setNotificationsLoading(false);
+      return;
+    }
+    setNotificationsLoading(true);
+    setNotificationsError(false);
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .eq('couple_id', couple.id)
+        .eq('couple_id', coupleId)
+        .or(
+          'content.like.💌%,content.like.📅%,content.like.📸%,content.like.🩹%,content.like.🔥%,content.like.📊%',
+        )
         .order('created_at', { ascending: false })
         .limit(50);
-
-      if (data) {
-        const systemNotifs = data.filter(
-          (m) =>
-            m.content.startsWith('💌') ||
-            m.content.startsWith('📅') ||
-            m.content.startsWith('📸') ||
-            m.content.startsWith('🩹') ||
-            m.content.startsWith('🔥') ||
-            m.content.startsWith('📊'),
-        );
-        setActivityLogs(systemNotifs as Message[]);
-      }
-    } catch (e) {
-      console.warn('Error fetching activity logs:', e);
+      if (coupleRef.current?.id !== coupleId) return;
+      if (error) throw error;
+      setActivityLogs(
+        (data || []).filter(
+          (message) => !message.is_deleted && isActivityNotification(message.content),
+        ) as Message[],
+      );
+    } catch (error) {
+      if (coupleRef.current?.id === coupleId) setNotificationsError(true);
+      console.warn('Error fetching activity logs:', error);
+    } finally {
+      if (coupleRef.current?.id === coupleId) setNotificationsLoading(false);
     }
   }, [couple?.id, isMockMode]);
 
   useEffect(() => {
-    fetchActivityLogs();
-  }, [fetchActivityLogs]);
+    setActivityLogs([]);
+    void fetchActivityLogs();
+    if (!couple?.id || isMockMode) return;
+    const timer = setInterval(() => void fetchActivityLogs(), 5000);
+    return () => clearInterval(timer);
+  }, [fetchActivityLogs, couple?.id, isMockMode]);
 
   const getPartnerNickname = useCallback(() => {
     const c = coupleRef.current;
@@ -613,23 +500,13 @@ export default function Layout() {
       try {
         if (!msg || !msg.id || !profileIdRef.current) return;
 
-        const isSystem =
-          msg.content.startsWith('💌') ||
-          msg.content.startsWith('📅') ||
-          msg.content.startsWith('📸') ||
-          msg.content.startsWith('🩹') ||
-          msg.content.startsWith('🔥') ||
-          msg.content.startsWith('📊');
+        const isSystem = isActivityNotification(msg.content);
 
         if (isSystem) {
           setActivityLogs((prev) => [msg, ...prev.filter((p) => p.id !== msg.id)]);
         }
 
         if (msg.sender_id === profileIdRef.current) return;
-
-        if (isSystem) {
-          setHasUnread(true);
-        }
 
         // STRICT DEDUPLICATION: If already notified once, return immediately
         if (notifiedIdsSetRef.current.has(msg.id)) return;
@@ -727,42 +604,8 @@ export default function Layout() {
     };
   }, [couple?.id, getPartnerNickname, processIncomingMessage, triggerGlobalNotification]);
 
-  // Polling ONLY updates activity logs state (No Push Notifications to prevent loops)
-  useEffect(() => {
-    if (!couple?.id) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const { data } = await supabase
-          .from('messages')
-          .select('*')
-          .eq('couple_id', couple.id)
-          .order('created_at', { ascending: false })
-          .limit(20);
-
-        if (data && data.length > 0) {
-          const systemNotifs = data.filter(
-            (m) =>
-              m.content.startsWith('💌') ||
-              m.content.startsWith('📅') ||
-              m.content.startsWith('📸') ||
-              m.content.startsWith('🩹') ||
-              m.content.startsWith('🔥') ||
-              m.content.startsWith('📊'),
-          );
-          setActivityLogs(systemNotifs as Message[]);
-        }
-      } catch (err) {
-        console.warn('Polling error:', err);
-      }
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [couple?.id]);
-
   const openNotifCenter = useCallback(() => {
     setShowNotifCenter(true);
-    setHasUnread(false);
   }, []);
 
   return (
@@ -783,6 +626,10 @@ export default function Layout() {
           <button
             className="hamburger-btn"
             onClick={openNotifCenter}
+            aria-label={
+              hasUnread ? `Notificaciones, ${inbox.unreadIds.size} sin leer` : 'Notificaciones'
+            }
+            aria-haspopup="dialog"
             style={{ position: 'relative' }}
           >
             <IconBellHeader />
@@ -831,329 +678,26 @@ export default function Layout() {
         </nav>
       )}
 
-      {/* Bell Notification Center Drawer (Sliding from Right Edge) */}
       <AnimatePresence>
         {showNotifCenter && (
-          <motion.div
-            className="side-drawer-backdrop"
-            onClick={() => setShowNotifCenter(false)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <motion.div
-              className="side-drawer"
-              onClick={(e) => e.stopPropagation()}
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              style={{
-                animation: 'none',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '16px',
-                padding: '24px 20px',
-              }}
-            >
-              {/* Header */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingBottom: '14px',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div
-                    style={{
-                      width: '34px',
-                      height: '34px',
-                      borderRadius: '10px',
-                      background: 'rgba(229, 197, 115, 0.15)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <IconBellHeader />
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#fff' }}>
-                        Notificaciones
-                      </h3>
-                      {activityLogs.length > 0 && (
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            padding: '1px 7px',
-                            borderRadius: 'var(--radius-full)',
-                            background: 'var(--color-accent, #e5c573)',
-                            color: '#000',
-                          }}
-                        >
-                          {activityLogs.length}
-                        </span>
-                      )}
-                    </div>
-                    <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>
-                      Actividad de {partnerName}
-                    </span>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {activityLogs.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setActivityLogs([])}
-                      title="Limpiar todas las notificaciones"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--color-text-tertiary)',
-                        fontSize: '11px',
-                        cursor: 'pointer',
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        transition: 'color 0.2s',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = 'var(--color-text-tertiary)')
-                      }
-                    >
-                      Limpiar
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setShowNotifCenter(false)}
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      border: 'none',
-                      color: 'var(--color-text-secondary)',
-                      fontSize: '14px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                    }}
-                    aria-label="Cerrar notificaciones"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-
-              {/* Notification List by Date Group */}
-              <div
-                style={{
-                  flex: 1,
-                  overflowY: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px',
-                  paddingRight: '4px',
-                }}
-              >
-                {activityLogs.length === 0 ? (
-                  <div
-                    className="empty-state"
-                    style={{
-                      padding: '40px 16px',
-                      textAlign: 'center',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flex: 1,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '56px',
-                        height: '56px',
-                        borderRadius: '50%',
-                        background: 'rgba(229, 197, 115, 0.1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: '14px',
-                        fontSize: '26px',
-                      }}
-                    >
-                      🔔
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '15px',
-                        fontWeight: 700,
-                        color: '#fff',
-                        marginBottom: '6px',
-                      }}
-                    >
-                      Bandeja limpia
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '12px',
-                        color: 'var(--color-text-secondary)',
-                        lineHeight: 1.5,
-                        maxWidth: '240px',
-                      }}
-                    >
-                      No tienes avisos pendientes. Aquí verás cuando tu pareja agregue notitas,
-                      eventos o fotos.
-                    </div>
-                  </div>
-                ) : (
-                  (() => {
-                    const groups = groupNotificationsByDate(activityLogs);
-                    return (Object.keys(groups) as Array<keyof typeof groups>).map((groupKey) => {
-                      const items = groups[groupKey];
-                      if (items.length === 0) return null;
-
-                      return (
-                        <div
-                          key={groupKey}
-                          style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
-                        >
-                          <div
-                            style={{
-                              fontSize: '10px',
-                              fontWeight: 700,
-                              letterSpacing: '1px',
-                              textTransform: 'uppercase',
-                              color: 'var(--color-text-tertiary)',
-                              paddingLeft: '4px',
-                              marginBottom: '2px',
-                            }}
-                          >
-                            {groupKey}
-                          </div>
-
-                          {items.map((log) => {
-                            const notif = parseNotificationItem(log.content);
-                            return (
-                              <motion.div
-                                key={log.id}
-                                style={{
-                                  padding: '12px 14px',
-                                  background: 'rgba(255, 255, 255, 0.035)',
-                                  border: `1px solid ${notif.border}`,
-                                  borderRadius: '16px',
-                                  display: 'flex',
-                                  alignItems: 'flex-start',
-                                  gap: '12px',
-                                  backdropFilter: 'blur(10px)',
-                                  WebkitBackdropFilter: 'blur(10px)',
-                                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
-                                }}
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.25 }}
-                              >
-                                <div
-                                  style={{
-                                    width: '36px',
-                                    height: '36px',
-                                    borderRadius: '12px',
-                                    background: notif.bg,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '18px',
-                                    flexShrink: 0,
-                                    border: `1px solid ${notif.border}`,
-                                  }}
-                                >
-                                  {notif.icon}
-                                </div>
-
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div
-                                    style={{
-                                      display: 'flex',
-                                      justifyContent: 'space-between',
-                                      alignItems: 'baseline',
-                                      marginBottom: '4px',
-                                      gap: '6px',
-                                    }}
-                                  >
-                                    <span
-                                      style={{
-                                        fontSize: '12px',
-                                        fontWeight: 700,
-                                        color: notif.accent,
-                                        letterSpacing: '0.2px',
-                                      }}
-                                    >
-                                      {notif.type}
-                                    </span>
-                                    <span
-                                      style={{
-                                        fontSize: '10px',
-                                        color: 'var(--color-text-tertiary)',
-                                        whiteSpace: 'nowrap',
-                                      }}
-                                    >
-                                      {formatNotifTime(log.created_at)}
-                                    </span>
-                                  </div>
-
-                                  <div
-                                    style={{
-                                      fontSize: '13px',
-                                      color: 'var(--color-text-primary)',
-                                      lineHeight: 1.45,
-                                      wordBreak: 'break-word',
-                                    }}
-                                  >
-                                    {notif.text}
-                                  </div>
-                                </div>
-                              </motion.div>
-                            );
-                          })}
-                        </div>
-                      );
-                    });
-                  })()
-                )}
-              </div>
-
-              {/* Bottom Footer */}
-              <div
-                style={{
-                  paddingTop: '10px',
-                  borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                }}
-              >
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--full btn--sm"
-                  onClick={() => setShowNotifCenter(false)}
-                  style={{
-                    borderRadius: '12px',
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    padding: '10px',
-                  }}
-                >
-                  Cerrar
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
+          <NotificationCenter
+            logs={inbox.visibleLogs}
+            unreadIds={inbox.unreadIds}
+            partnerName={partnerName}
+            viewerId={profile?.id}
+            loading={notificationsLoading}
+            error={notificationsError}
+            onClose={() => setShowNotifCenter(false)}
+            onReadAll={inbox.markAllRead}
+            onClear={inbox.clearAll}
+            onDismiss={inbox.dismiss}
+            onRetry={() => void fetchActivityLogs()}
+            onOpen={(log, route) => {
+              inbox.markRead(log.id);
+              setShowNotifCenter(false);
+              navigate(route);
+            }}
+          />
         )}
       </AnimatePresence>
     </>

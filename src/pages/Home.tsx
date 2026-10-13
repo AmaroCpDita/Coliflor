@@ -656,8 +656,7 @@ export default function Home() {
         {/* Celebration Full Screen Modal */}
         {celebration && <CelebrationModal celebration={celebration} partnerName={partnerName} />}
 
-        {/* Hero Card with Custom Background Image Album & Page Turn Effect */}
-        {/* Hero Card with Custom Background Image Album & Page Turn Effect */}
+        {/* Our photographic story */}
         <HeroPageTurn
           images={heroImages}
           intervalMs={4000}
@@ -665,107 +664,25 @@ export default function Home() {
           celebrationType={celebration?.type}
           onManageAlbum={() => navigate('/settings')}
         >
-          {/* Top subtle badge: Initials & Heart */}
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '4px 14px',
-              borderRadius: 'var(--radius-full)',
-              background: 'rgba(0, 0, 0, 0.35)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              marginTop: '4px',
-              marginBottom: '6px',
-            }}
-          >
-            <span style={{ fontWeight: 700, fontSize: '13px', color: '#ffffff' }}>
-              {myName.charAt(0)}
-            </span>
+          <div className="hero-story-identity" aria-hidden="true">
+            <span>{myName.charAt(0)}</span>
             <IconGoldHeart size={14} />
-            <span style={{ fontWeight: 700, fontSize: '13px', color: '#ffffff' }}>
-              {partnerName.charAt(0)}
-            </span>
+            <span>{partnerName.charAt(0)}</span>
           </div>
-
-          <h2
-            style={{
-              fontSize: '18px',
-              fontWeight: 700,
-              color: '#ffffff',
-              textShadow: '0 2px 8px rgba(0,0,0,0.7)',
-              margin: '0 0 auto 0',
-              letterSpacing: '0.3px',
-            }}
-          >
-            {myName} & {partnerName}
+          <h2 className="hero-story-names">
+            {myName} <em>&</em> {partnerName}
           </h2>
+          <p className="hero-story-subtitle">Lo mejor de la vida es compartirla contigo.</p>
 
-          {/* Bottom area: Days count and anniversary date */}
-          <div
-            style={{
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              marginTop: '36px',
-            }}
-          >
-            <div
-              style={{
-                textTransform: 'uppercase',
-                fontSize: '11px',
-                letterSpacing: '1.5px',
-                fontWeight: 600,
-                color: 'rgba(255,255,255,0.85)',
-                marginBottom: '4px',
-                textShadow: '0 1px 4px rgba(0,0,0,0.8)',
-              }}
-            >
-              Llevan juntos
+          <div className="hero-story-summary">
+            <span className="hero-story-label">Cada día, juntos</span>
+            <div className="hero-story-count">
+              <span className={isCelebrating ? 'days-counter--celebrating' : ''}>{daysCount}</span>
+              <span>días</span>
             </div>
-
-            <div
-              style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '8px' }}
-            >
-              <span
-                className={isCelebrating ? 'days-counter--celebrating' : ''}
-                style={{
-                  fontSize: '52px',
-                  fontWeight: 800,
-                  color: '#ffffff',
-                  textShadow: isCelebrating ? 'none' : '0 4px 18px rgba(0,0,0,0.8)',
-                  lineHeight: 1,
-                }}
-              >
-                {daysCount}
-              </span>
-              <span
-                style={{
-                  fontSize: '18px',
-                  fontWeight: 600,
-                  color: 'rgba(255,255,255,0.95)',
-                  textShadow: '0 2px 8px rgba(0,0,0,0.8)',
-                }}
-              >
-                días
-              </span>
-            </div>
-
             {couple && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  color: 'rgba(255,255,255,0.8)',
-                  fontSize: '11px',
-                  textShadow: '0 1px 6px rgba(0,0,0,0.8)',
-                }}
-              >
-                <IconCalendar size={13} />
+              <div className="hero-story-date">
+                <IconCalendar size={12} />
                 <span>Desde el {formatDate(couple.relationship_start, 'long')}</span>
               </div>
             )}

@@ -1,10 +1,8 @@
-// ============================================================
-// Coliflor — Hero Page Turn (Album Slideshow Component)
-// Changes image every 4s with a realistic 3D book/album page-turn effect
-// ============================================================
-
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// Coliflor — photographic album with a flexible, curled paper transition.
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from 'react';
+import { useReducedMotion } from 'framer-motion';
+import { createPageCurl } from './heroPageCurl';
+import './HeroPageTurn.css';
 
 interface HeroPageTurnProps {
   images: string[];
@@ -16,6 +14,15 @@ interface HeroPageTurnProps {
   isCelebrating?: boolean;
 }
 
+interface PageTurn {
+  from: HTMLImageElement;
+  to: HTMLImageElement;
+  toIndex: number;
+  direction: number;
+}
+
+const TURN_DURATION = 1450;
+
 export default function HeroPageTurn({
   images,
   defaultImage,
@@ -26,314 +33,346 @@ export default function HeroPageTurn({
   isCelebrating,
 }: HeroPageTurnProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState(1);
+  const [turn, setTurn] = useState<PageTurn | null>(null);
+  const [isPreparing, setIsPreparing] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const touchStartXRef = useRef<number | null>(null);
-
-  // Normalize image list
-  const activeImages = images.length > 0 ? images : defaultImage ? [defaultImage] : [];
+  const [isAutoplayPaused, setIsAutoplayPaused] = useState(false);
+  const [fallback, setFallback] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const busyRef = useRef(false);
+  const albumVersionRef = useRef(0);
+  const loadedImagesRef = useRef(new Map<string, Promise<HTMLImageElement>>());
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const suppressClickUntilRef = useRef(0);
+  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeImages = useMemo(
+    () => (images.length > 0 ? images : defaultImage ? [defaultImage] : []),
+    [images, defaultImage],
+  );
+  const albumKey = JSON.stringify(activeImages);
   const hasMultiple = activeImages.length > 1;
-  const currentImage = activeImages.length > 0 ? activeImages[currentIndex] : null;
-  const nextImage =
-    activeImages.length > 0
-      ? activeImages[(currentIndex + direction + activeImages.length) % activeImages.length]
-      : null;
+  const safeIndex = currentIndex < activeImages.length ? currentIndex : 0;
+  const currentImage = activeImages[safeIndex] || null;
 
-  // Auto-advance every 4 seconds
+  const loadImage = useCallback((url: string) => {
+    const cached = loadedImagesRef.current.get(url);
+    if (cached) return cached;
+    const promise = new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new Image();
+      image.crossOrigin = 'anonymous';
+      image.onload = () => resolve(image);
+      image.onerror = () => {
+        // Some image hosts disallow canvas access but can still display photos.
+        const plainImage = new Image();
+        plainImage.onload = () => resolve(plainImage);
+        plainImage.onerror = reject;
+        plainImage.src = url;
+      };
+      image.src = url;
+    });
+    loadedImagesRef.current.set(url, promise);
+    void promise.catch(() => {
+      if (loadedImagesRef.current.get(url) === promise) loadedImagesRef.current.delete(url);
+    });
+    return promise;
+  }, []);
+
   useEffect(() => {
-    if (!hasMultiple || isPaused) return;
-
-    const timer = setInterval(() => {
-      setDirection(1);
-      setCurrentIndex((prev) => (prev + 1) % activeImages.length);
-    }, intervalMs);
-
-    return () => clearInterval(timer);
-  }, [hasMultiple, intervalMs, isPaused, activeImages.length]);
-
-  // Keep index within bounds if images change
-  useEffect(() => {
-    if (activeImages.length > 0 && currentIndex >= activeImages.length) {
-      setCurrentIndex(0);
+    albumVersionRef.current += 1;
+    busyRef.current = false;
+    setCurrentIndex(0);
+    setTurn(null);
+    setIsPreparing(false);
+    for (const url of loadedImagesRef.current.keys()) {
+      if (!activeImages.includes(url)) loadedImagesRef.current.delete(url);
     }
-  }, [activeImages.length, currentIndex]);
+    return () => {
+      albumVersionRef.current += 1;
+    };
+  }, [albumKey]);
 
-  const goToNext = useCallback(() => {
-    if (!hasMultiple) return;
-    setDirection(1);
-    setCurrentIndex((prev) => (prev + 1) % activeImages.length);
-  }, [hasMultiple, activeImages.length]);
+  // Warm adjacent pages without downloading the whole album at once.
+  useEffect(() => {
+    if (!currentImage) return;
+    const neighbors = [safeIndex, (safeIndex + 1) % activeImages.length];
+    if (hasMultiple) neighbors.push((safeIndex - 1 + activeImages.length) % activeImages.length);
+    const nearbyUrls = new Set(neighbors.map((index) => activeImages[index]));
+    for (const url of loadedImagesRef.current.keys()) {
+      if (!nearbyUrls.has(url)) loadedImagesRef.current.delete(url);
+    }
+    for (const index of new Set(neighbors)) void loadImage(activeImages[index]).catch(() => {});
+  }, [albumKey, safeIndex, currentImage, hasMultiple, loadImage]);
 
-  const goToPrev = useCallback(() => {
-    if (!hasMultiple) return;
-    setDirection(-1);
-    setCurrentIndex((prev) => (prev - 1 + activeImages.length) % activeImages.length);
-  }, [hasMultiple, activeImages.length]);
+  const goToPage = useCallback(
+    async (direction: number) => {
+      if (!hasMultiple || !currentImage || busyRef.current) return;
+      const toIndex = (safeIndex + direction + activeImages.length) % activeImages.length;
+      if (reducedMotion) {
+        setCurrentIndex(toIndex);
+        return;
+      }
+      busyRef.current = true;
+      setIsPreparing(true);
+      const version = albumVersionRef.current;
+      try {
+        const [from, to] = await Promise.all([
+          loadImage(currentImage),
+          loadImage(activeImages[toIndex]),
+        ]);
+        if (version !== albumVersionRef.current) return;
+        setFallback(false);
+        setTurn({ from, to, toIndex, direction });
+      } catch {
+        if (version === albumVersionRef.current) busyRef.current = false;
+      } finally {
+        if (version === albumVersionRef.current) setIsPreparing(false);
+      }
+    },
+    [activeImages, currentImage, hasMultiple, loadImage, reducedMotion, safeIndex],
+  );
 
-  // Touch handlers for swipe
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartXRef.current = e.touches[0].clientX;
+  useLayoutEffect(() => {
+    if (!turn || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const renderer = reducedMotion
+      ? null
+      : createPageCurl(canvasRef.current, turn.from, turn.to, turn.direction);
+    setFallback(!renderer);
+    const handleContextLost = () => setFallback(true);
+    canvas.addEventListener('webglcontextlost', handleContextLost);
+    let frame = 0;
+    let start: number | null = null;
+    const duration = reducedMotion ? 0 : renderer ? TURN_DURATION : 350;
+    const animate = (now: number) => {
+      if (start === null) start = now;
+      const elapsed = duration ? Math.min(1, (now - start) / duration) : 1;
+      const progress = elapsed * elapsed * (3 - 2 * elapsed);
+      renderer?.draw(progress);
+      if (elapsed < 1) {
+        frame = requestAnimationFrame(animate);
+      } else {
+        setCurrentIndex(turn.toIndex);
+        setTurn(null);
+        busyRef.current = false;
+      }
+    };
+    renderer?.draw(0);
+    frame = requestAnimationFrame(animate);
+    return () => {
+      cancelAnimationFrame(frame);
+      canvas.removeEventListener('webglcontextlost', handleContextLost);
+      renderer?.dispose();
+    };
+  }, [turn, reducedMotion]);
+
+  useEffect(() => {
+    if (!hasMultiple || isPaused || isAutoplayPaused || isPreparing || turn || reducedMotion)
+      return;
+    const timer = setTimeout(() => void goToPage(1), intervalMs);
+    return () => clearTimeout(timer);
+  }, [
+    hasMultiple,
+    intervalMs,
+    isPaused,
+    isAutoplayPaused,
+    isPreparing,
+    turn,
+    reducedMotion,
+    goToPage,
+  ]);
+
+  useEffect(
+    () => () => {
+      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    },
+    [],
+  );
+
+  const pause = () => {
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
     setIsPaused(true);
   };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartXRef.current !== null) {
-      const touchEndX = e.changedTouches[0].clientX;
-      const diff = touchEndX - touchStartXRef.current;
-      if (diff < -40) {
-        goToNext();
-      } else if (diff > 40) {
-        goToPrev();
-      }
-      touchStartXRef.current = null;
-    }
-    // Resume auto-advance after 3s
-    setTimeout(() => setIsPaused(false), 3000);
+  const resumeAfterTouch = () => {
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = setTimeout(() => setIsPaused(false), 3000);
   };
-
-  // 3D Bending Page Turn animation variants (Real paper leaf curl effect)
-  const pageVariants: Record<string, any> = {
-    enter: (dir: number) => ({
-      rotateY: dir > 0 ? 115 : -115,
-      skewY: dir > 0 ? -5 : 5,
-      scale: 0.97,
-      boxShadow: dir > 0 ? '-35px 0 55px rgba(0,0,0,0.85)' : '35px 0 55px rgba(0,0,0,0.85)',
-      borderTopRightRadius: dir > 0 ? '40px 140px' : '0px',
-      borderBottomRightRadius: dir > 0 ? '40px 140px' : '0px',
-      borderTopLeftRadius: dir > 0 ? '0px' : '40px 140px',
-      borderBottomLeftRadius: dir > 0 ? '0px' : '40px 140px',
-    }),
-    center: {
-      rotateY: 0,
-      skewY: 0,
-      scale: 1,
-      boxShadow: '0 0 0 rgba(0,0,0,0)',
-      borderTopRightRadius: '0px',
-      borderBottomRightRadius: '0px',
-      borderTopLeftRadius: '0px',
-      borderBottomLeftRadius: '0px',
-      transition: {
-        duration: 0.85,
-        ease: [0.22, 1, 0.36, 1], // Smooth paper settle
-      },
-    },
-    exit: (dir: number) => ({
-      rotateY: dir > 0 ? -115 : 115,
-      skewY: dir > 0 ? 5 : -5,
-      scale: 0.97,
-      boxShadow: dir > 0 ? '35px 0 55px rgba(0,0,0,0.85)' : '-35px 0 55px rgba(0,0,0,0.85)',
-      borderTopRightRadius: dir > 0 ? '0px' : '40px 140px',
-      borderBottomRightRadius: dir > 0 ? '0px' : '40px 140px',
-      borderTopLeftRadius: dir > 0 ? '40px 140px' : '0px',
-      borderBottomLeftRadius: dir > 0 ? '40px 140px' : '0px',
-      transition: {
-        duration: 0.85,
-        ease: [0.4, 0, 0.2, 1],
-      },
-    }),
+  const handleTouchEnd = (event: React.TouchEvent) => {
+    const start = touchStartRef.current;
+    const end = event.changedTouches[0];
+    if (start && end) {
+      const x = end.clientX - start.x;
+      const y = end.clientY - start.y;
+      if (Math.abs(x) > 40 && Math.abs(x) > Math.abs(y)) {
+        suppressClickUntilRef.current = Date.now() + 500;
+        void goToPage(x < 0 ? 1 : -1);
+      }
+    }
+    touchStartRef.current = null;
+    resumeAfterTouch();
   };
 
   return (
     <div
-      className={`glass-card text-center animate-fade-in hero-page-turn-card ${
+      className={`glass-card text-center animate-fade-in hero-page-turn-card ${!currentImage ? 'hero-page-turn-card--empty' : ''} ${
         isCelebrating ? 'hero-card--celebrating' : ''
       }`}
-      onMouseEnter={() => setIsPaused(true)}
+      onMouseEnter={pause}
       onMouseLeave={() => setIsPaused(false)}
-      onTouchStart={handleTouchStart}
+      onFocusCapture={pause}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setIsPaused(false);
+      }}
+      onTouchStart={(event) => {
+        touchStartRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+        pause();
+      }}
       onTouchEnd={handleTouchEnd}
+      onTouchCancel={() => {
+        touchStartRef.current = null;
+        resumeAfterTouch();
+      }}
       style={{
-        padding: 'var(--space-xl) var(--space-md)',
-        borderRadius: '32px',
         boxShadow:
           celebrationType === 'aniversario'
             ? '0 0 40px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.1)'
-            : isCelebrating
-              ? undefined
-              : '0 12px 40px rgba(0,0,0,0.3)',
-        border:
-          celebrationType === 'aniversario'
-            ? '2px solid rgba(255, 215, 0, 0.4)'
-            : isCelebrating
-              ? 'none'
-              : 'none',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        position: 'relative',
-        overflow: 'hidden',
-        perspective: '2200px',
-        minHeight: '380px',
+            : undefined,
+        border: celebrationType === 'aniversario' ? '2px solid rgba(255, 215, 0, 0.4)' : undefined,
       }}
     >
-      {/* 3D Page Turn Background Layer */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 0,
-          perspective: '1600px',
-          overflow: 'hidden',
-          backgroundColor: '#0d0e12',
-          backgroundImage: currentImage
-            ? undefined
-            : 'radial-gradient(ellipse at 50% 20%, rgba(229, 197, 115, 0.12) 0%, rgba(13, 14, 18, 0.95) 75%)',
-        }}
-      >
-        {/* Base sheet: Next page waiting underneath as page curls away */}
-        {hasMultiple && nextImage && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              backgroundImage: `url('${nextImage}')`,
-              backgroundPosition: 'center',
-              backgroundSize: 'cover',
-              backgroundRepeat: 'no-repeat',
-            }}
-          />
-        )}
-
-        {/* Turning curled paper sheet */}
+      <div className="hero-album-background" aria-hidden="true">
         {currentImage && (
-          <AnimatePresence initial={false} custom={direction} mode="popLayout">
-            <motion.div
-              key={currentIndex}
-              custom={direction}
-              variants={pageVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                backgroundImage: `url('${currentImage}')`,
-                backgroundPosition: 'center',
-                backgroundSize: 'cover',
-                backgroundRepeat: 'no-repeat',
-                transformOrigin: direction > 0 ? 'left center' : 'right center',
-                transformStyle: 'preserve-3d',
-                backfaceVisibility: 'visible',
-                WebkitBackfaceVisibility: 'visible',
-              }}
-            >
-              {/* Backside showing next page when turned over */}
-              {nextImage && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    backgroundImage: `url('${nextImage}')`,
-                    backgroundPosition: 'center',
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    transform: 'rotateY(180deg)',
-                    backfaceVisibility: 'hidden',
-                  }}
-                />
-              )}
-
-              {/* Dynamic paper curl shine & shadow along the bend */}
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background:
-                    direction > 0
-                      ? 'linear-gradient(to right, transparent 0%, rgba(255,255,255,0.18) 45%, rgba(0,0,0,0.5) 85%, transparent 100%)'
-                      : 'linear-gradient(to left, transparent 0%, rgba(255,255,255,0.18) 45%, rgba(0,0,0,0.5) 85%, transparent 100%)',
-                  opacity: 0.65,
-                  pointerEvents: 'none',
-                }}
-              />
-
-              {/* Book Spine Shadow on Left */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  bottom: 0,
-                  left: 0,
-                  width: '35px',
-                  background:
-                    'linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 50%, transparent 100%)',
-                  pointerEvents: 'none',
-                }}
-              />
-            </motion.div>
-          </AnimatePresence>
+          <img
+            className="hero-album-photo"
+            src={fallback && turn ? turn.to.src : currentImage}
+            alt=""
+          />
         )}
-
-        {/* Soft atmospheric gradient: Keeps images bright and clear while guaranteeing text contrast */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'linear-gradient(to bottom, rgba(0, 0, 0, 0.22) 0%, rgba(0, 0, 0, 0.05) 35%, rgba(10, 11, 15, 0.65) 100%)',
-            pointerEvents: 'none',
-            zIndex: 1,
-          }}
+        {turn && fallback && (
+          <img className="hero-album-photo hero-album-fallback" src={turn.from.src} alt="" />
+        )}
+        <canvas
+          ref={canvasRef}
+          className="hero-album-curl"
+          style={{ visibility: turn && !fallback ? 'visible' : 'hidden' }}
         />
+        <div className="hero-album-atmosphere" />
+        {!currentImage && (
+          <div className="hero-album-empty-art">
+            <svg viewBox="0 0 120 120" fill="none" stroke="currentColor" strokeWidth="0.7">
+              <path d="M20 32c18-5 30-1 40 5 10-6 22-10 40-5v57c-18-5-30-1-40 5-10-6-22-10-40-5zM60 37v57" />
+              <path d="M43 50c-8-11-21 4 0 17 21-13 8-28 0-17M72 48h18M72 56h18M72 64h13" />
+            </svg>
+          </div>
+        )}
       </div>
 
-      {/* Foreground Content (avatars, names, days counter, note) */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 2,
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flex: 1,
-        }}
-      >
-        {children}
+      <div className="hero-album-toolbar">
+        <span className="hero-album-eyebrow">
+          <span aria-hidden="true">✦</span> Nuestra historia
+        </span>
+        {onManageAlbum && (
+          <button type="button" className="hero-album-manage" onClick={onManageAlbum}>
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="4" />
+              <circle cx="8" cy="8" r="1.5" />
+              <path d="m3 17 5-5 4 4 4-5 5 6" />
+            </svg>
+            {currentImage ? 'Álbum' : 'Añadir fotos'}
+          </button>
+        )}
       </div>
 
-      {/* Invisible side tap areas for manual next/prev navigation */}
+      <div className="hero-album-content">{children}</div>
+
+      <div className="hero-album-footer">
+        <div className="hero-album-caption">
+          <span>{currentImage ? 'Un recuerdo a la vez' : 'Su próximo recuerdo empieza aquí'}</span>
+          {currentImage && (
+            <span className="hero-album-counter">
+              {String(safeIndex + 1).padStart(2, '0')} <i>/</i>{' '}
+              {String(activeImages.length).padStart(2, '0')}
+            </span>
+          )}
+        </div>
+
+        {hasMultiple && (
+          <div className="hero-album-controls">
+            {[-1, 0, 1]
+              .filter((direction) => direction !== 0 || !reducedMotion)
+              .map((direction) => (
+                <button
+                  key={direction}
+                  type="button"
+                  className={`hero-album-navigation hero-album-navigation--${direction < 0 ? 'previous' : 'next'}`}
+                  aria-label={
+                    direction === 0
+                      ? isAutoplayPaused
+                        ? 'Reanudar álbum'
+                        : 'Pausar álbum'
+                      : direction < 0
+                        ? 'Foto anterior'
+                        : 'Siguiente foto'
+                  }
+                  aria-pressed={direction === 0 ? isAutoplayPaused : undefined}
+                  aria-disabled={direction !== 0 ? Boolean(turn || isPreparing) : undefined}
+                  title={
+                    direction === 0
+                      ? isAutoplayPaused
+                        ? 'Reanudar álbum'
+                        : 'Pausar álbum'
+                      : direction < 0
+                        ? 'Foto anterior'
+                        : 'Siguiente foto'
+                  }
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (direction === 0) {
+                      setIsAutoplayPaused((value) => !value);
+                      return;
+                    }
+                    if (Date.now() >= suppressClickUntilRef.current) void goToPage(direction);
+                  }}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    {direction === 0 ? (
+                      isAutoplayPaused ? (
+                        <path d="m9 5 11 7-11 7z" />
+                      ) : (
+                        <path d="M9 5v14M15 5v14" />
+                      )
+                    ) : (
+                      <path d={direction < 0 ? 'm14 6-6 6 6 6' : 'm10 6 6 6-6 6'} />
+                    )}
+                  </svg>
+                </button>
+              ))}
+          </div>
+        )}
+      </div>
       {hasMultiple && (
-        <>
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              goToPrev();
-            }}
-            title="Foto anterior"
-            style={{
-              position: 'absolute',
-              top: '40px',
-              bottom: '40px',
-              left: 0,
-              width: '25%',
-              zIndex: 3,
-              cursor: 'pointer',
-            }}
-          />
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              goToNext();
-            }}
-            title="Siguiente foto"
-            style={{
-              position: 'absolute',
-              top: '40px',
-              bottom: '40px',
-              right: 0,
-              width: '25%',
-              zIndex: 3,
-              cursor: 'pointer',
-            }}
-          />
-        </>
+        <div className="hero-album-progress" aria-hidden="true">
+          <span style={{ width: `${((safeIndex + 1) / activeImages.length) * 100}%` }} />
+        </div>
       )}
     </div>
   );
