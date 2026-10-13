@@ -2,13 +2,13 @@
 // Coliflor — Home Page (Mockup Re-design)
 // ============================================================
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import PageTransition from '../components/PageTransition';
 import HeroPageTurn from '../components/HeroPageTurn';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { daysSince, generateInviteCode, formatDate, parseHeroAlbumPaths } from '../lib/utils';
+import { daysSince, generateInviteCode, parseHeroAlbumPaths } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { sendPushNotification } from '../lib/push';
 import { getCelebration, Celebration, CelebrationType } from '../lib/celebrations';
@@ -320,90 +320,77 @@ export default function Home() {
   const [quizStatus, setQuizStatus] = useState('Nuevo');
 
   // Dynamic Hero Image Album (up to 20 images with 4s page-turn effect)
+  const heroCoupleRef = useRef(couple?.id);
   const [heroImages, setHeroImages] = useState<string[]>(() => {
     try {
-      const cached = localStorage.getItem('coliflor_hero_images');
-      return cached ? JSON.parse(cached) : [];
+      const cached = couple?.id ? localStorage.getItem(`coliflor_hero_images:${couple.id}`) : null;
+      const parsed = JSON.parse(cached || '[]');
+      return Array.isArray(parsed)
+        ? parsed.filter((url): url is string => typeof url === 'string')
+        : [];
     } catch {
       return [];
     }
   });
 
   useEffect(() => {
+    if (heroCoupleRef.current !== couple?.id) setHeroImages([]);
+    heroCoupleRef.current = couple?.id;
     if (!couple || isMockMode) {
       setHeroImages([]);
       return;
     }
-
-    // Auto-purge legacy single photo if present (user explicitly requested to delete existing photo)
-    if (couple.hero_image_path && !couple.hero_image_path.trim().startsWith('[')) {
-      const legacyPath = couple.hero_image_path.trim();
-      (async () => {
-        try {
-          await supabase.storage.from('photos').remove([legacyPath]);
-        } catch {
-          // Ignore removal error
-        }
-        await supabase.from('couples').update({ hero_image_path: '[]' }).eq('id', couple.id);
-        refreshProfile();
-      })();
-      localStorage.removeItem('coliflor_hero_images');
-      setHeroImages([]);
-      return;
-    }
-
+    const key = `coliflor_hero_images:${couple.id}`;
     const paths = parseHeroAlbumPaths(couple.hero_image_path);
-    if (paths.length === 0) {
-      localStorage.removeItem('coliflor_hero_images');
+    if (!paths.length) {
+      try {
+        localStorage.removeItem(key);
+      } catch {}
       setHeroImages([]);
       return;
     }
-
     let active = true;
-
-    // Fetch signed URLs for all images in the album
-    supabase.storage
-      .from('photos')
-      .createSignedUrls(paths, 3600)
-      .then(({ data }) => {
+    const refreshImages = async () => {
+      try {
+        const { data } = await supabase.storage.from('photos').createSignedUrls(paths, 3600);
         if (!active) return;
-        if (data && data.length > 0) {
-          const validUrls = data
-            .map((item) => item.signedUrl)
-            .filter((url): url is string => Boolean(url));
-          try {
-            localStorage.setItem('coliflor_hero_images', JSON.stringify(validUrls));
-          } catch {}
-          setHeroImages(validUrls);
-        } else {
-          // Fallback to individual requests
-          Promise.all(
-            paths.map((p) =>
-              supabase.storage
+        const urls = await Promise.all(
+          paths.map(async (path) => {
+            const signed = data?.find((item) => item.path === path)?.signedUrl;
+            if (signed) return signed;
+            try {
+              const { data: single } = await supabase.storage
                 .from('photos')
-                .createSignedUrl(p, 3600)
-                .then(({ data: singleData }) => singleData?.signedUrl || null)
-                .catch(() => null),
-            ),
-          ).then((urls) => {
-            if (active) {
-              const valid = urls.filter((u): u is string => Boolean(u));
-              try {
-                localStorage.setItem('coliflor_hero_images', JSON.stringify(valid));
-              } catch {}
-              setHeroImages(valid);
+                .createSignedUrl(path, 3600);
+              return single?.signedUrl || null;
+            } catch {
+              return null;
             }
-          });
-        }
-      })
-      .catch(() => {
-        if (active) setHeroImages([]);
-      });
-
+          }),
+        );
+        const valid = urls.filter((url): url is string => Boolean(url));
+        if (!active || !valid.length) return;
+        try {
+          localStorage.setItem(key, JSON.stringify(valid));
+        } catch {}
+        setHeroImages(valid);
+      } catch {
+        // Keep the current photographs visible through a temporary network failure.
+      }
+    };
+    void refreshImages();
+    // Refresh private URLs before their one-hour expiry, including after sleep.
+    const timer = setInterval(() => void refreshImages(), 50 * 60 * 1000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void refreshImages();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       active = false;
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [couple?.hero_image_path, couple?.id, isMockMode, refreshProfile]);
+  }, [couple?.hero_image_path, couple?.id, isMockMode]);
 
   // Sync mySentNote when couple changes
   useEffect(() => {
@@ -662,7 +649,6 @@ export default function Home() {
           intervalMs={4000}
           isCelebrating={isCelebrating}
           celebrationType={celebration?.type}
-          onManageAlbum={() => navigate('/settings')}
         >
           <div className="hero-story-identity" aria-hidden="true">
             <span>{myName.charAt(0)}</span>
@@ -675,17 +661,10 @@ export default function Home() {
           <p className="hero-story-subtitle">Lo mejor de la vida es compartirla contigo.</p>
 
           <div className="hero-story-summary">
-            <span className="hero-story-label">Cada día, juntos</span>
             <div className="hero-story-count">
               <span className={isCelebrating ? 'days-counter--celebrating' : ''}>{daysCount}</span>
-              <span>días</span>
+              <span>días juntos</span>
             </div>
-            {couple && (
-              <div className="hero-story-date">
-                <IconCalendar size={12} />
-                <span>Desde el {formatDate(couple.relationship_start, 'long')}</span>
-              </div>
-            )}
           </div>
         </HeroPageTurn>
 

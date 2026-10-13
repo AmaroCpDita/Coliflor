@@ -1,19 +1,15 @@
 import PageTransition from '../components/PageTransition';
 import PhotoFilmRoll from '../components/PhotoFilmRoll';
+import { useHeroAlbum } from '../hooks/useHeroAlbum';
 // ============================================================
 // Coliflor — Settings / Configuración Page
 // ============================================================
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
-import {
-  formatDate,
-  compressImage,
-  parseHeroAlbumPaths,
-  serializeHeroAlbumPaths,
-} from '../lib/utils';
+import { formatDate } from '../lib/utils';
 
 function IconUser() {
   return (
@@ -118,11 +114,7 @@ export default function Settings() {
   const [coupleSuccess, setCoupleSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  const [uploadingHero, setUploadingHero] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState('');
-  const [albumItems, setAlbumItems] = useState<{ path: string; url: string }[]>([]);
-  const [loadingAlbum, setLoadingAlbum] = useState(false);
-  const [albumError, setAlbumError] = useState('');
+  const album = useHeroAlbum(couple, Boolean(profile) && !isMockMode, refreshProfile);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,262 +168,6 @@ export default function Settings() {
       setError(err?.message || 'Error al guardar fecha de aniversario');
     } finally {
       setSavingCouple(false);
-    }
-  };
-
-  // Load Hero Album Photos and auto-purge legacy single photo
-  useEffect(() => {
-    if (!couple || isMockMode) {
-      setAlbumItems([]);
-      return;
-    }
-
-    // Auto-purge legacy single photo if present (user explicitly requested to delete existing photo)
-    if (couple.hero_image_path && !couple.hero_image_path.trim().startsWith('[')) {
-      const legacyPath = couple.hero_image_path.trim();
-      (async () => {
-        try {
-          await supabase.storage.from('photos').remove([legacyPath]);
-        } catch {
-          // Ignore removal error
-        }
-        await supabase.from('couples').update({ hero_image_path: '[]' }).eq('id', couple.id);
-        refreshProfile();
-      })();
-      setAlbumItems([]);
-      return;
-    }
-
-    const paths = parseHeroAlbumPaths(couple.hero_image_path);
-    if (paths.length === 0) {
-      setAlbumItems([]);
-      return;
-    }
-
-    setLoadingAlbum(true);
-    supabase.storage
-      .from('photos')
-      .createSignedUrls(paths, 3600)
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          const items = data
-            .map((d, idx) => ({ path: paths[idx] || d.path || '', url: d.signedUrl || '' }))
-            .filter((item) => item.path && item.url);
-          setAlbumItems(items);
-        } else {
-          // Fallback to individual calls
-          Promise.all(
-            paths.map((p) =>
-              supabase.storage
-                .from('photos')
-                .createSignedUrl(p, 3600)
-                .then(({ data: d }) => (d?.signedUrl ? { path: p, url: d.signedUrl } : null))
-                .catch(() => null),
-            ),
-          ).then((results) => {
-            setAlbumItems(results.filter((r): r is { path: string; url: string } => r !== null));
-          });
-        }
-      })
-      .catch(() => setAlbumItems([]))
-      .finally(() => setLoadingAlbum(false));
-  }, [couple?.hero_image_path, couple?.id, isMockMode, refreshProfile]);
-
-  const handleUploadHeroImagesList = async (files: File[], replaceAll = false) => {
-    if (files.length === 0 || !couple || !profile) return;
-
-    setAlbumError('');
-    setUploadingHero(true);
-
-    const oldPaths = parseHeroAlbumPaths(couple.hero_image_path);
-    const currentPaths = replaceAll ? [] : oldPaths;
-    const availableSlots = Math.max(0, 20 - currentPaths.length);
-    const filesToUpload = files.slice(0, availableSlots);
-
-    if (replaceAll && oldPaths.length > 0) {
-      try {
-        await supabase.storage.from('photos').remove(oldPaths);
-      } catch {
-        // Ignore storage removal errors
-      }
-    }
-
-    const newPaths: string[] = [];
-    const newItems: { path: string; url: string }[] = [];
-
-    try {
-      for (let i = 0; i < filesToUpload.length; i++) {
-        const file = filesToUpload[i];
-        setUploadProgress(`Fotograma ${i + 1} de ${filesToUpload.length}...`);
-
-        try {
-          const compressed = await compressImage(file, 1600, 0.8, false);
-          const storagePath = `${couple.id}/hero_${Date.now()}_${i}.jpg`;
-
-          const uploadPromise = supabase.storage.from('photos').upload(storagePath, compressed, {
-            contentType: 'image/jpeg',
-            upsert: true,
-          });
-
-          const uploadTimeout = new Promise<never>((_, reject) =>
-            setTimeout(
-              () =>
-                reject(
-                  new Error(
-                    'La subida tardó demasiado tiempo. Verifica tu conexión a internet o intenta nuevamente.',
-                  ),
-                ),
-              25000,
-            ),
-          );
-
-          const { error: uploadError } = (await Promise.race([uploadPromise, uploadTimeout])) as {
-            data: any;
-            error: any;
-          };
-
-          if (uploadError) throw uploadError;
-          newPaths.push(storagePath);
-        } catch (itemErr: any) {
-          console.warn(`Error al procesar/subir fotograma ${i + 1}:`, itemErr);
-          // Continue processing remaining photos
-        }
-      }
-
-      if (newPaths.length === 0) {
-        throw new Error(
-          'No se pudo subir ninguna de las fotos seleccionadas. Verifica el formato e intenta nuevamente.',
-        );
-      }
-
-      const updatedPaths = replaceAll
-        ? newPaths.slice(0, 20)
-        : [...currentPaths, ...newPaths].slice(0, 20);
-
-      const { error: updateError } = await supabase
-        .from('couples')
-        .update({ hero_image_path: serializeHeroAlbumPaths(updatedPaths) })
-        .eq('id', couple.id);
-
-      if (updateError) throw updateError;
-
-      // Obtain signed URLs for newly uploaded paths
-      const { data: urlsData } = await supabase.storage
-        .from('photos')
-        .createSignedUrls(newPaths, 3600);
-      if (urlsData) {
-        urlsData.forEach((d, idx) => {
-          if (d?.signedUrl) {
-            newItems.push({ path: newPaths[idx] || d.path || '', url: d.signedUrl });
-          }
-        });
-      }
-
-      if (replaceAll) {
-        setAlbumItems(newItems.slice(0, 20));
-      } else {
-        setAlbumItems((prev) => [...prev, ...newItems].slice(0, 20));
-      }
-
-      await refreshProfile();
-      setCoupleSuccess(true);
-      setTimeout(() => setCoupleSuccess(false), 3000);
-    } catch (err: any) {
-      setAlbumError(err?.message || 'Error al subir fotos al rollo');
-      throw err;
-    } finally {
-      setUploadingHero(false);
-      setUploadProgress('');
-    }
-  };
-
-  const handleReorderAlbumPhoto = async (fromIndex: number, toIndex: number) => {
-    if (!couple || toIndex < 0 || toIndex >= albumItems.length || fromIndex === toIndex) return;
-
-    setAlbumError('');
-    const newItems = [...albumItems];
-    const [moved] = newItems.splice(fromIndex, 1);
-    newItems.splice(toIndex, 0, moved);
-    setAlbumItems(newItems);
-
-    try {
-      const newPaths = newItems.map((item) => item.path);
-      const { error: updateError } = await supabase
-        .from('couples')
-        .update({ hero_image_path: serializeHeroAlbumPaths(newPaths) })
-        .eq('id', couple.id);
-
-      if (updateError) throw updateError;
-      await refreshProfile();
-    } catch (err: any) {
-      setAlbumError(err?.message || 'Error al reordenar los fotogramas');
-      refreshProfile();
-    }
-  };
-
-  const handleDeleteAlbumPhoto = async (pathToDelete: string) => {
-    if (!couple || !profile) return;
-    setAlbumError('');
-
-    const prevItems = albumItems;
-    setAlbumItems((prev) => prev.filter((it) => it.path !== pathToDelete));
-
-    try {
-      try {
-        await supabase.storage.from('photos').remove([pathToDelete]);
-      } catch {
-        // Ignore storage removal errors
-      }
-
-      const currentPaths = parseHeroAlbumPaths(couple.hero_image_path);
-      const updatedPaths = currentPaths.filter((p) => p !== pathToDelete);
-
-      const { error: updateError } = await supabase
-        .from('couples')
-        .update({ hero_image_path: serializeHeroAlbumPaths(updatedPaths) })
-        .eq('id', couple.id);
-
-      if (updateError) throw updateError;
-      await refreshProfile();
-    } catch (err: any) {
-      setAlbumItems(prevItems);
-      setAlbumError(err?.message || 'Error al eliminar la foto');
-    }
-  };
-
-  const handleClearAllAlbumPhotos = async () => {
-    if (!couple || !profile) return;
-    if (
-      !window.confirm(
-        '¿Seguro que deseas vaciar el rollo y eliminar todas las fotos de la portada?',
-      )
-    )
-      return;
-
-    setAlbumError('');
-    const prevItems = albumItems;
-    setAlbumItems([]);
-
-    try {
-      const currentPaths = parseHeroAlbumPaths(couple.hero_image_path);
-      if (currentPaths.length > 0) {
-        try {
-          await supabase.storage.from('photos').remove(currentPaths);
-        } catch {}
-      }
-
-      const { error: updateError } = await supabase
-        .from('couples')
-        .update({ hero_image_path: '[]' })
-        .eq('id', couple.id);
-
-      if (updateError) throw updateError;
-      await refreshProfile();
-      setCoupleSuccess(true);
-      setTimeout(() => setCoupleSuccess(false), 3000);
-    } catch (err: any) {
-      setAlbumItems(prevItems);
-      setAlbumError(err?.message || 'Error al vaciar el rollo');
     }
   };
 
@@ -630,16 +366,18 @@ export default function Settings() {
               }}
             >
               <PhotoFilmRoll
-                items={albumItems}
-                loading={loadingAlbum}
-                uploading={uploadingHero}
-                uploadProgress={uploadProgress}
-                error={albumError}
-                onClearError={() => setAlbumError('')}
-                onAddPhotos={handleUploadHeroImagesList}
-                onDelete={handleDeleteAlbumPhoto}
-                onReorder={handleReorderAlbumPhoto}
-                onClearAll={handleClearAllAlbumPhotos}
+                items={album.items}
+                loading={album.loading}
+                saving={album.saving}
+                uploading={album.uploading}
+                uploadProgress={album.progress}
+                error={album.error}
+                onClearError={album.clearError}
+                onRetry={album.reload}
+                onAddPhotos={album.addPhotos}
+                onDelete={album.deletePhoto}
+                onReorder={album.reorder}
+                onClearAll={album.clear}
               />
             </div>
           </div>
