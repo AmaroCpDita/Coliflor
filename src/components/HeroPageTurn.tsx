@@ -18,7 +18,7 @@ interface HeroPageTurnProps {
 
 export default function HeroPageTurn({
   images,
-  defaultImage = '/hero-bg.jpg',
+  defaultImage,
   intervalMs = 4000,
   children,
   onManageAlbum,
@@ -26,16 +26,19 @@ export default function HeroPageTurn({
   isCelebrating,
 }: HeroPageTurnProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  // Placeholder: nextImage will be computed after activeImages are defined.
   const [direction, setDirection] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
   const touchStartXRef = useRef<number | null>(null);
 
   // Normalize image list
-  const activeImages = images.length > 0 ? images : [defaultImage];
+  const activeImages = images.length > 0 ? images : defaultImage ? [defaultImage] : [];
   const hasMultiple = activeImages.length > 1;
+  const currentImage = activeImages.length > 0 ? activeImages[currentIndex] : null;
   const nextImage =
-    activeImages[(currentIndex + direction + activeImages.length) % activeImages.length];
+    activeImages.length > 0
+      ? activeImages[(currentIndex + direction + activeImages.length) % activeImages.length]
+      : null;
+
   // Auto-advance every 4 seconds
   useEffect(() => {
     if (!hasMultiple || isPaused) return;
@@ -50,7 +53,7 @@ export default function HeroPageTurn({
 
   // Keep index within bounds if images change
   useEffect(() => {
-    if (currentIndex >= activeImages.length) {
+    if (activeImages.length > 0 && currentIndex >= activeImages.length) {
       setCurrentIndex(0);
     }
   }, [activeImages.length, currentIndex]);
@@ -118,8 +121,6 @@ export default function HeroPageTurn({
     }),
   };
 
-  const currentImage = activeImages[currentIndex] || defaultImage;
-
   return (
     <div
       className={`glass-card text-center animate-fade-in hero-page-turn-card ${
@@ -130,7 +131,7 @@ export default function HeroPageTurn({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       style={{
-        padding: 'var(--space-2xl) var(--space-md)',
+        padding: 'var(--space-xl) var(--space-md)',
         borderRadius: '32px',
         boxShadow:
           celebrationType === 'aniversario'
@@ -147,9 +148,11 @@ export default function HeroPageTurn({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
+        justifyContent: 'space-between',
         position: 'relative',
         overflow: 'hidden',
         perspective: '2000px',
+        minHeight: '380px',
       }}
     >
       {/* 3D Page Turn Background Layer */}
@@ -161,112 +164,91 @@ export default function HeroPageTurn({
           perspective: '1400px',
           overflow: 'hidden',
           backgroundColor: '#0d0e12',
+          backgroundImage: currentImage
+            ? undefined
+            : 'radial-gradient(ellipse at 50% 20%, rgba(229, 197, 115, 0.12) 0%, rgba(13, 14, 18, 0.95) 75%)',
         }}
       >
-        <AnimatePresence initial={false} custom={direction} mode="popLayout">
-          <motion.div
-            key={currentIndex}
-            custom={direction}
-            variants={pageVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              backgroundImage: `url('${currentImage}')`,
-              backgroundPosition: 'center',
-              backgroundSize: 'cover',
-              backgroundRepeat: 'no-repeat',
-              transformOrigin: direction > 0 ? 'left center' : 'right center',
-              backfaceVisibility: 'visible',
-              WebkitBackfaceVisibility: 'visible',
-            }}
-          >
-            {/* Backside showing next image during turn */}
-            <div
+        {currentImage && (
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <motion.div
+              key={currentIndex}
+              custom={direction}
+              variants={pageVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
               style={{
                 position: 'absolute',
                 inset: 0,
-                backgroundImage: `url('${nextImage}')`,
+                width: '100%',
+                height: '100%',
+                backgroundImage: `url('${currentImage}')`,
                 backgroundPosition: 'center',
                 backgroundSize: 'cover',
                 backgroundRepeat: 'no-repeat',
-                transform: 'rotateY(180deg)',
-                backfaceVisibility: 'hidden',
+                transformOrigin: direction > 0 ? 'left center' : 'right center',
+                backfaceVisibility: 'visible',
+                WebkitBackfaceVisibility: 'visible',
               }}
-            />
-            {/* Spine Shadow on Left (Book Spine Effect) */}
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                bottom: 0,
-                left: 0,
-                width: '35px',
-                background:
-                  'linear-gradient(to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 50%, transparent 100%)',
-                pointerEvents: 'none',
-              }}
-            />
-          </motion.div>
-        </AnimatePresence>
+            >
+              {/* Backside showing next image during turn */}
+              {nextImage && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundImage: `url('${nextImage}')`,
+                    backgroundPosition: 'center',
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    transform: 'rotateY(180deg)',
+                    backfaceVisibility: 'hidden',
+                  }}
+                />
+              )}
+              {/* Spine Shadow on Left (Book Spine Effect) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  width: '35px',
+                  background:
+                    'linear-gradient(to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 50%, transparent 100%)',
+                  pointerEvents: 'none',
+                }}
+              />
+            </motion.div>
+          </AnimatePresence>
+        )}
 
-        {/* Darkening Gradient Overlay for guaranteed text readability */}
+        {/* Soft atmospheric gradient: Keeps images bright and clear while guaranteeing text contrast */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
             background:
-              'linear-gradient(to bottom, rgba(13, 14, 18, 0.35) 0%, rgba(13, 14, 18, 0.65) 55%, rgba(13, 14, 18, 0.92) 100%)',
+              'linear-gradient(to bottom, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.05) 35%, rgba(10, 11, 15, 0.65) 100%)',
             pointerEvents: 'none',
             zIndex: 1,
           }}
         />
       </div>
 
-      {/* Top Controls: Page Pill & Manage Album Icon */}
+      {/* Top Controls: Manage Album Icon Button (No counters) */}
       <div
         style={{
           position: 'absolute',
           top: '14px',
-          left: '16px',
           right: '16px',
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           alignItems: 'center',
           zIndex: 3,
         }}
       >
-        {hasMultiple ? (
-          <div
-            style={{
-              padding: '4px 10px',
-              borderRadius: 'var(--radius-full)',
-              background: 'rgba(0, 0, 0, 0.45)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              color: 'rgba(255, 255, 255, 0.9)',
-              fontSize: '11px',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              letterSpacing: '0.5px',
-            }}
-          >
-            <span>📖</span>
-            <span>
-              {currentIndex + 1} / {activeImages.length}
-            </span>
-          </div>
-        ) : (
-          <div />
-        )}
-
         {onManageAlbum && (
           <button
             type="button"
@@ -274,12 +256,12 @@ export default function HeroPageTurn({
               e.stopPropagation();
               onManageAlbum();
             }}
-            title="Administrar álbum de fotos (máx. 20)"
-            aria-label="Administrar fotos de inicio"
+            title="Administrar álbum de fotos"
+            aria-label="Administrar fotos de portada"
             style={{
-              padding: '6px 10px',
+              padding: '6px 12px',
               borderRadius: 'var(--radius-full)',
-              background: 'rgba(0, 0, 0, 0.45)',
+              background: 'rgba(0, 0, 0, 0.35)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -289,8 +271,8 @@ export default function HeroPageTurn({
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '5px',
-              transition: 'background 0.2s ease',
+              gap: '6px',
+              transition: 'background 0.2s ease, transform 0.15s ease',
             }}
           >
             <svg
@@ -306,7 +288,7 @@ export default function HeroPageTurn({
               <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
               <circle cx="12" cy="13" r="4" />
             </svg>
-            <span>{images.length > 0 ? `${images.length}/20` : 'Agregar fotos'}</span>
+            <span>Fotos</span>
           </button>
         )}
       </div>
@@ -320,55 +302,12 @@ export default function HeroPageTurn({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          justifyContent: 'space-between',
+          flex: 1,
         }}
       >
         {children}
       </div>
-
-      {/* Bottom Page Indicators (Dots) */}
-      {hasMultiple && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            zIndex: 3,
-            padding: '4px 10px',
-            borderRadius: 'var(--radius-full)',
-            background: 'rgba(0, 0, 0, 0.35)',
-            backdropFilter: 'blur(6px)',
-            WebkitBackdropFilter: 'blur(6px)',
-          }}
-        >
-          {activeImages.map((_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setDirection(idx > currentIndex ? 1 : -1);
-                setCurrentIndex(idx);
-              }}
-              aria-label={`Ver foto ${idx + 1}`}
-              style={{
-                width: idx === currentIndex ? '16px' : '6px',
-                height: '6px',
-                borderRadius: '3px',
-                border: 'none',
-                padding: 0,
-                background:
-                  idx === currentIndex
-                    ? 'var(--color-accent, #e5c573)'
-                    : 'rgba(255, 255, 255, 0.35)',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-              }}
-            />
-          ))}
-        </div>
-      )}
 
       {/* Invisible side tap areas for manual next/prev navigation */}
       {hasMultiple && (
@@ -384,7 +323,7 @@ export default function HeroPageTurn({
               top: '40px',
               bottom: '40px',
               left: 0,
-              width: '18%',
+              width: '20%',
               zIndex: 3,
               cursor: 'pointer',
             }}
@@ -400,7 +339,7 @@ export default function HeroPageTurn({
               top: '40px',
               bottom: '40px',
               right: 0,
-              width: '18%',
+              width: '20%',
               zIndex: 3,
               cursor: 'pointer',
             }}

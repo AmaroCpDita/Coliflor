@@ -51,11 +51,11 @@ function IconCamera() {
   );
 }
 
-function IconCalendar() {
+function IconCalendar({ size = 16 }: { size?: number }) {
   return (
     <svg
-      width="24"
-      height="24"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -320,7 +320,14 @@ export default function Home() {
   const [quizStatus, setQuizStatus] = useState('Nuevo');
 
   // Dynamic Hero Image Album (up to 20 images with 4s page-turn effect)
-  const [heroImages, setHeroImages] = useState<string[]>([]);
+  const [heroImages, setHeroImages] = useState<string[]>(() => {
+    try {
+      const cached = localStorage.getItem('coliflor_hero_images');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     if (!couple || isMockMode) {
@@ -340,12 +347,14 @@ export default function Home() {
         await supabase.from('couples').update({ hero_image_path: '[]' }).eq('id', couple.id);
         refreshProfile();
       })();
+      localStorage.removeItem('coliflor_hero_images');
       setHeroImages([]);
       return;
     }
 
     const paths = parseHeroAlbumPaths(couple.hero_image_path);
     if (paths.length === 0) {
+      localStorage.removeItem('coliflor_hero_images');
       setHeroImages([]);
       return;
     }
@@ -362,6 +371,9 @@ export default function Home() {
           const validUrls = data
             .map((item) => item.signedUrl)
             .filter((url): url is string => Boolean(url));
+          try {
+            localStorage.setItem('coliflor_hero_images', JSON.stringify(validUrls));
+          } catch {}
           setHeroImages(validUrls);
         } else {
           // Fallback to individual requests
@@ -375,7 +387,11 @@ export default function Home() {
             ),
           ).then((urls) => {
             if (active) {
-              setHeroImages(urls.filter((u): u is string => Boolean(u)));
+              const valid = urls.filter((u): u is string => Boolean(u));
+              try {
+                localStorage.setItem('coliflor_hero_images', JSON.stringify(valid));
+              } catch {}
+              setHeroImages(valid);
             }
           });
         }
@@ -641,127 +657,119 @@ export default function Home() {
         {celebration && <CelebrationModal celebration={celebration} partnerName={partnerName} />}
 
         {/* Hero Card with Custom Background Image Album & Page Turn Effect */}
+        {/* Hero Card with Custom Background Image Album & Page Turn Effect */}
         <HeroPageTurn
           images={heroImages}
-          defaultImage="/hero-bg.jpg"
           intervalMs={4000}
           isCelebrating={isCelebrating}
           celebrationType={celebration?.type}
           onManageAlbum={() => navigate('/settings')}
         >
-          {/* Avatar Row */}
-          <div className="row row--center" style={{ gap: '12px', marginBottom: '16px' }}>
-            <div
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.3)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 600,
-                fontSize: '18px',
-                color: '#ffffff',
-                textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-              }}
-            >
+          {/* Top subtle badge: Initials & Heart */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '4px 14px',
+              borderRadius: 'var(--radius-full)',
+              background: 'rgba(0, 0, 0, 0.35)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              marginTop: '4px',
+              marginBottom: '6px',
+            }}
+          >
+            <span style={{ fontWeight: 700, fontSize: '13px', color: '#ffffff' }}>
               {myName.charAt(0)}
-            </div>
-            <IconGoldHeart size={24} />
-            <div
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.3)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 600,
-                fontSize: '18px',
-                color: '#ffffff',
-                textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-              }}
-            >
+            </span>
+            <IconGoldHeart size={14} />
+            <span style={{ fontWeight: 700, fontSize: '13px', color: '#ffffff' }}>
               {partnerName.charAt(0)}
-            </div>
+            </span>
           </div>
 
           <h2
             style={{
-              fontSize: '24px',
+              fontSize: '18px',
               fontWeight: 700,
-              marginBottom: '24px',
               color: '#ffffff',
-              textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+              textShadow: '0 2px 8px rgba(0,0,0,0.7)',
+              margin: '0 0 auto 0',
+              letterSpacing: '0.3px',
             }}
           >
             {myName} & {partnerName}
           </h2>
 
+          {/* Bottom area: Days count and anniversary date */}
           <div
             style={{
-              textTransform: 'uppercase',
-              fontSize: '12px',
-              letterSpacing: '2px',
-              fontWeight: 600,
-              color: 'rgba(255,255,255,0.8)',
-              marginBottom: '8px',
-              textShadow: '0 1px 4px rgba(0,0,0,0.5)',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              marginTop: '36px',
             }}
           >
-            Llevan juntos
-          </div>
-
-          <div
-            style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '24px' }}
-          >
-            <span
-              className={isCelebrating ? 'days-counter--celebrating' : ''}
-              style={{
-                fontSize: '64px',
-                fontWeight: 700,
-                color: '#ffffff',
-                textShadow: isCelebrating ? 'none' : '0 4px 16px rgba(0,0,0,0.6)',
-                lineHeight: 1,
-              }}
-            >
-              {daysCount}
-            </span>
-            <span
-              style={{
-                fontSize: '20px',
-                fontWeight: 600,
-                color: 'rgba(255,255,255,0.9)',
-                textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-              }}
-            >
-              días
-            </span>
-          </div>
-
-          {couple && (
             <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                color: 'rgba(255,255,255,0.7)',
-                fontSize: '12px',
-                textShadow: '0 1px 4px rgba(0,0,0,0.5)',
+                textTransform: 'uppercase',
+                fontSize: '11px',
+                letterSpacing: '1.5px',
+                fontWeight: 600,
+                color: 'rgba(255,255,255,0.85)',
+                marginBottom: '4px',
+                textShadow: '0 1px 4px rgba(0,0,0,0.8)',
               }}
             >
-              <IconCalendar />
-              <span>Desde el {formatDate(couple.relationship_start, 'long')}</span>
+              Llevan juntos
             </div>
-          )}
+
+            <div
+              style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '8px' }}
+            >
+              <span
+                className={isCelebrating ? 'days-counter--celebrating' : ''}
+                style={{
+                  fontSize: '52px',
+                  fontWeight: 800,
+                  color: '#ffffff',
+                  textShadow: isCelebrating ? 'none' : '0 4px 18px rgba(0,0,0,0.8)',
+                  lineHeight: 1,
+                }}
+              >
+                {daysCount}
+              </span>
+              <span
+                style={{
+                  fontSize: '18px',
+                  fontWeight: 600,
+                  color: 'rgba(255,255,255,0.95)',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.8)',
+                }}
+              >
+                días
+              </span>
+            </div>
+
+            {couple && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: 'rgba(255,255,255,0.8)',
+                  fontSize: '11px',
+                  textShadow: '0 1px 6px rgba(0,0,0,0.8)',
+                }}
+              >
+                <IconCalendar size={13} />
+                <span>Desde el {formatDate(couple.relationship_start, 'long')}</span>
+              </div>
+            )}
+          </div>
         </HeroPageTurn>
 
         {/* Section: HOY */}
