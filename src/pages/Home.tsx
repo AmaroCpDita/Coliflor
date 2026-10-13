@@ -646,6 +646,7 @@ export default function Home() {
         {/* Our photographic story */}
         <HeroPageTurn
           images={heroImages}
+          albumId={couple?.id}
           intervalMs={4000}
           isCelebrating={isCelebrating}
           celebrationType={celebration?.type}

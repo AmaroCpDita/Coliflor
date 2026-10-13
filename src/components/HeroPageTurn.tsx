@@ -2,11 +2,18 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import { createPageCurl } from './heroPageCurl';
+import {
+  heroPhotoIdentity,
+  heroPlaybackKey,
+  loadHeroPlayback,
+  saveHeroPlayback,
+} from '../lib/heroAlbumPlayback';
 import './HeroPageTurn.css';
 
 interface HeroPageTurnProps {
   images: string[];
   defaultImage?: string;
+  albumId?: string;
   intervalMs?: number;
   children: React.ReactNode;
   celebrationType?: string | null;
@@ -17,6 +24,7 @@ interface PageTurn {
   from: HTMLImageElement;
   to: HTMLImageElement;
   toIndex: number;
+  toUrl: string;
   direction: number;
 }
 
@@ -25,12 +33,12 @@ const TURN_DURATION = 800;
 export default function HeroPageTurn({
   images,
   defaultImage,
+  albumId,
   intervalMs = 4000,
   children,
   celebrationType,
   isCelebrating,
 }: HeroPageTurnProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [turn, setTurn] = useState<PageTurn | null>(null);
   const [isPreparing, setIsPreparing] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -42,13 +50,23 @@ export default function HeroPageTurn({
   const loadedImagesRef = useRef(new Map<string, Promise<HTMLImageElement>>());
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const activeImages = useMemo(
+  const sourceImages = useMemo(
     () => (images.length > 0 ? images : defaultImage ? [defaultImage] : []),
     [images, defaultImage],
   );
+  const playbackKey = heroPlaybackKey(sourceImages, albumId);
+  const playback = useMemo(() => loadHeroPlayback(playbackKey, sourceImages), [playbackKey]);
+  const activeImages = useMemo(() => {
+    const urls = new Map(sourceImages.map((url) => [heroPhotoIdentity(url), url]));
+    return playback.order.map((identity) => urls.get(identity)!);
+  }, [sourceImages, playback]);
+  const [selection, setSelection] = useState(() => ({ key: playbackKey, index: playback.index }));
   const albumKey = JSON.stringify(activeImages);
   const hasMultiple = activeImages.length > 1;
-  const safeIndex = currentIndex < activeImages.length ? currentIndex : 0;
+  const safeIndex =
+    selection.key === playbackKey && selection.index < activeImages.length
+      ? selection.index
+      : playback.index;
   const currentImage = activeImages[safeIndex] || null;
 
   const loadImage = useCallback((url: string) => {
@@ -74,10 +92,10 @@ export default function HeroPageTurn({
     return promise;
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     albumVersionRef.current += 1;
     busyRef.current = false;
-    setCurrentIndex(0);
+    setSelection({ key: playbackKey, index: playback.index });
     setTurn(null);
     setIsPreparing(false);
     for (const url of loadedImagesRef.current.keys()) {
@@ -86,7 +104,11 @@ export default function HeroPageTurn({
     return () => {
       albumVersionRef.current += 1;
     };
-  }, [albumKey]);
+  }, [playbackKey]);
+
+  useEffect(() => {
+    saveHeroPlayback(playback, safeIndex);
+  }, [playback, safeIndex]);
 
   // Warm adjacent pages without downloading the whole album at once.
   useEffect(() => {
@@ -105,7 +127,7 @@ export default function HeroPageTurn({
       if (!hasMultiple || !currentImage || busyRef.current) return;
       const toIndex = (safeIndex + direction + activeImages.length) % activeImages.length;
       if (reducedMotion) {
-        setCurrentIndex(toIndex);
+        setSelection({ key: playbackKey, index: toIndex });
         return;
       }
       busyRef.current = true;
@@ -118,18 +140,23 @@ export default function HeroPageTurn({
         ]);
         if (version !== albumVersionRef.current) return;
         setFallback(false);
-        setTurn({ from, to, toIndex, direction });
+        setTurn({ from, to, toIndex, toUrl: activeImages[toIndex], direction });
       } catch {
         if (version === albumVersionRef.current) busyRef.current = false;
       } finally {
         if (version === albumVersionRef.current) setIsPreparing(false);
       }
     },
-    [activeImages, currentImage, hasMultiple, loadImage, reducedMotion, safeIndex],
+    [activeImages, currentImage, hasMultiple, loadImage, reducedMotion, safeIndex, playbackKey],
   );
 
   useLayoutEffect(() => {
-    if (!turn || !canvasRef.current) return;
+    if (!turn) {
+      // Release input only after React commits the new photograph.
+      busyRef.current = false;
+      return;
+    }
+    if (!canvasRef.current) return;
     const canvas = canvasRef.current;
     const renderer = reducedMotion
       ? null
@@ -148,9 +175,8 @@ export default function HeroPageTurn({
       if (elapsed < 1) {
         frame = requestAnimationFrame(animate);
       } else {
-        setCurrentIndex(turn.toIndex);
+        setSelection({ key: playbackKey, index: turn.toIndex });
         setTurn(null);
-        busyRef.current = false;
       }
     };
     renderer?.draw(0);
@@ -160,7 +186,7 @@ export default function HeroPageTurn({
       canvas.removeEventListener('webglcontextlost', handleContextLost);
       renderer?.dispose();
     };
-  }, [turn, reducedMotion]);
+  }, [turn, reducedMotion, playbackKey]);
 
   useEffect(() => {
     if (!hasMultiple || isPaused || isPreparing || turn || reducedMotion) return;
@@ -234,12 +260,9 @@ export default function HeroPageTurn({
       }}
     >
       <div className="hero-album-background" aria-hidden="true">
+        {/* The destination stays underneath the curl, including its final frame. */}
         {currentImage && (
-          <img
-            className="hero-album-photo"
-            src={fallback && turn ? turn.to.src : currentImage}
-            alt=""
-          />
+          <img className="hero-album-photo" src={turn ? turn.toUrl : currentImage} alt="" />
         )}
         {turn && fallback && (
           <img className="hero-album-photo hero-album-fallback" src={turn.from.src} alt="" />
