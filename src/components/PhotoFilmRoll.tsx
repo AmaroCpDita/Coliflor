@@ -1,20 +1,14 @@
 // ============================================================
 // Coliflor — PhotoFilmRoll Component (Rollo Fotográfico 35mm)
-// Allows viewing, reordering, deleting, and staging up to 20 photos
-// for the couple's hero rotating slideshow.
+// Ultra-reliable photo selection & upload for iOS & Android
+// Supports batch uploads up to 20 photos without memory crashes.
 // ============================================================
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 
 export interface FilmRollItem {
   path: string;
   url: string;
-}
-
-interface StagedFile {
-  id: string;
-  file: File;
-  previewUrl: string;
 }
 
 interface PhotoFilmRollProps {
@@ -24,7 +18,7 @@ interface PhotoFilmRollProps {
   uploadProgress?: string;
   error?: string;
   onClearError?: () => void;
-  onAddPhotos: (files: File[]) => Promise<void>;
+  onAddPhotos: (files: File[], replaceAll?: boolean) => Promise<void>;
   onDelete: (path: string) => Promise<void> | void;
   onReorder: (fromIndex: number, toIndex: number) => Promise<void> | void;
   onClearAll: () => Promise<void> | void;
@@ -47,91 +41,78 @@ export default function PhotoFilmRoll({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const reelScrollRef = useRef<HTMLDivElement>(null);
 
-  // Staged files for preview before upload
-  const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
-  const [showStagingModal, setShowStagingModal] = useState(false);
-
   // Inspector modal for viewing/editing a selected photo
   const [inspectIndex, setInspectIndex] = useState<number | null>(null);
 
-  // Clean up object URLs when stagedFiles change or unmount
-  useEffect(() => {
-    return () => {
-      stagedFiles.forEach((f) => URL.revokeObjectURL(f.previewUrl));
-    };
-  }, [stagedFiles]);
+  // Replace vs Append dialog if user selects many photos and already has photos
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [showReplaceDialog, setShowReplaceDialog] = useState(false);
 
   const availableSlots = Math.max(0, maxPhotos - items.length);
 
-  // Trigger system file picker
+  // Trigger system file picker safely across iOS Safari & Android
   const handleOpenPicker = () => {
-    if (availableSlots <= 0) return;
     if (onClearError) onClearError();
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     fileInputRef.current?.click();
   };
 
   // Handle files selected from system picker
-  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawFiles = Array.from(e.target.files || []);
     if (rawFiles.length === 0) return;
 
-    // Map files to staged items with preview URLs
-    const newStaged: StagedFile[] = rawFiles.map((file, idx) => ({
-      id: `${Date.now()}_${idx}_${file.name}`,
-      file,
-      previewUrl: URL.createObjectURL(file),
-    }));
-
-    setStagedFiles(newStaged);
-    setShowStagingModal(true);
     if (onClearError) onClearError();
 
-    // Reset input value so re-selecting same files triggers change
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
+    // Auto-cap to maxPhotos (20) so selecting > 20 never breaks or blocks
+    const cappedFiles = rawFiles.slice(0, maxPhotos);
 
-  // Remove a single photo from staging
-  const handleRemoveStaged = (id: string) => {
-    setStagedFiles((prev) => {
-      const target = prev.find((item) => item.id === id);
-      if (target) URL.revokeObjectURL(target.previewUrl);
-      return prev.filter((item) => item.id !== id);
-    });
-  };
-
-  // Auto-trim staged files to available slots
-  const handleAutoTrimStaged = () => {
-    if (availableSlots <= 0) return;
-    setStagedFiles((prev) => {
-      const keep = prev.slice(0, availableSlots);
-      const discarded = prev.slice(availableSlots);
-      discarded.forEach((f) => URL.revokeObjectURL(f.previewUrl));
-      return keep;
-    });
-  };
-
-  // Cancel staging modal
-  const handleCloseStaging = () => {
-    if (uploading) return;
-    stagedFiles.forEach((f) => URL.revokeObjectURL(f.previewUrl));
-    setStagedFiles([]);
-    setShowStagingModal(false);
-  };
-
-  // Confirm upload of staged files
-  const handleConfirmUpload = async () => {
-    if (stagedFiles.length === 0 || stagedFiles.length > availableSlots || uploading) return;
-
-    try {
-      const filesToUpload = stagedFiles.map((s) => s.file);
-      await onAddPhotos(filesToUpload);
-      // Clean up and close modal on success
-      stagedFiles.forEach((f) => URL.revokeObjectURL(f.previewUrl));
-      setStagedFiles([]);
-      setShowStagingModal(false);
-    } catch {
-      // Error is handled via props and displayed in modal/card
+    // If album already has photos and incoming photos exceed remaining slots,
+    // give user the clear choice to Replace Album or Fill Remaining Slots
+    if (items.length > 0 && cappedFiles.length > availableSlots) {
+      setPendingFiles(cappedFiles);
+      setShowReplaceDialog(true);
+      return;
     }
+
+    // Direct upload: if empty or fits remaining slots, start uploading immediately!
+    const toUpload = cappedFiles.slice(0, availableSlots > 0 ? availableSlots : maxPhotos);
+    try {
+      await onAddPhotos(toUpload, false);
+    } catch {
+      // Error handled via props
+    }
+  };
+
+  // Handle choice to replace all photos with new selection
+  const handleConfirmReplace = async () => {
+    setShowReplaceDialog(false);
+    const toUpload = pendingFiles.slice(0, maxPhotos);
+    setPendingFiles([]);
+    try {
+      await onAddPhotos(toUpload, true);
+    } catch {
+      // Error handled via props
+    }
+  };
+
+  // Handle choice to append only what fits up to 20
+  const handleConfirmAppend = async () => {
+    setShowReplaceDialog(false);
+    const toUpload = pendingFiles.slice(0, availableSlots);
+    setPendingFiles([]);
+    try {
+      await onAddPhotos(toUpload, false);
+    } catch {
+      // Error handled via props
+    }
+  };
+
+  const handleCancelChoice = () => {
+    setShowReplaceDialog(false);
+    setPendingFiles([]);
   };
 
   // Quick reorder helpers
@@ -197,13 +178,21 @@ export default function PhotoFilmRoll({
 
   return (
     <div style={{ position: 'relative' }}>
-      {/* Hidden system file picker (accept="image/*" ensures smooth native picker behavior without conflicting MIME filters) */}
+      {/* System file picker placed safely with opacity: 0 (avoids iOS Safari display:none untrusted click blocking) */}
       <input
         ref={fileInputRef}
         type="file"
         multiple
         accept="image/*"
-        style={{ display: 'none' }}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '1px',
+          height: '1px',
+          opacity: 0,
+          pointerEvents: 'none',
+        }}
         onChange={handleFilesSelected}
       />
 
@@ -243,8 +232,8 @@ export default function PhotoFilmRoll({
         className="text-secondary"
         style={{ fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-md)' }}
       >
-        Tus fotos giran automáticamente cada 4 segundos con animación 3D en la pantalla de inicio.
-        Toca cualquier fotograma para ver opciones o cambiar el orden.
+        Tus fotos pasan cada 4 segundos con animación de página en el inicio. Puedes seleccionar
+        hasta 20 fotos de una sola vez o ir agregando poco a poco.
       </p>
 
       {/* Local Error Alert */}
@@ -377,7 +366,7 @@ export default function PhotoFilmRoll({
             >
               <span style={{ fontSize: '28px' }}>🎞️</span>
               <p style={{ margin: 0, maxWidth: '280px', lineHeight: 1.4 }}>
-                Tu rollo fotográfico está listo. Puedes subir hasta 20 fotos para la portada.
+                Tu rollo fotográfico está listo. Selecciona tus 20 fotos para la portada.
               </p>
               <button
                 type="button"
@@ -392,7 +381,7 @@ export default function PhotoFilmRoll({
                   padding: '6px 16px',
                 }}
               >
-                ➕ Cargar primeras fotos
+                ➕ Seleccionar fotos (hasta 20)
               </button>
             </div>
           )}
@@ -600,9 +589,7 @@ export default function PhotoFilmRoll({
               >
                 +
               </div>
-              <span style={{ fontSize: '10px', fontWeight: 700, lineHeight: 1.2 }}>
-                Fotograma #{items.length + 1}
-              </span>
+              <span style={{ fontSize: '10px', fontWeight: 700, lineHeight: 1.2 }}>Agregar</span>
               <span
                 style={{
                   fontSize: '9px',
@@ -610,7 +597,7 @@ export default function PhotoFilmRoll({
                   color: 'var(--color-text-secondary)',
                 }}
               >
-                ({availableSlots} disponibles)
+                ({availableSlots} libres)
               </span>
             </div>
           )}
@@ -636,7 +623,7 @@ export default function PhotoFilmRoll({
               }}
             >
               <span style={{ fontSize: '18px' }}>🔒</span>
-              <span style={{ fontSize: '10px', fontWeight: 700 }}>Rollo Lleno</span>
+              <span style={{ fontSize: '10px', fontWeight: 700 }}>Rollo Completo</span>
               <span style={{ fontSize: '8px', opacity: 0.8 }}>20 / 20 fotos</span>
             </div>
           )}
@@ -679,15 +666,15 @@ export default function PhotoFilmRoll({
           type="button"
           className="btn btn--primary btn--full"
           onClick={handleOpenPicker}
-          disabled={uploading || items.length >= maxPhotos}
+          disabled={uploading}
           style={{ fontWeight: 700 }}
         >
           {uploading
             ? uploadProgress || 'Subiendo fotos al rollo...'
-            : items.length >= maxPhotos
-              ? 'Límite de 20 fotogramas alcanzado'
-              : items.length === 0
-                ? '➕ Agregar fotos al rollo'
+            : items.length === 0
+              ? '➕ Subir fotos a la portada (hasta 20)'
+              : items.length >= maxPhotos
+                ? '🔄 Reemplazar fotos del rollo (20/20)'
                 : `➕ Agregar más fotos (${items.length}/${maxPhotos})`}
         </button>
 
@@ -709,9 +696,9 @@ export default function PhotoFilmRoll({
       </div>
 
       {/* ============================================================ */}
-      {/* 1. STAGING & PREVIEW MODAL (Strict 20-photo validation)        */}
+      {/* 1. UPLOADING LIVE MODAL (Sequential, zero memory crashes)     */}
       {/* ============================================================ */}
-      {showStagingModal && (
+      {uploading && (
         <div
           style={{
             position: 'fixed',
@@ -726,301 +713,141 @@ export default function PhotoFilmRoll({
             padding: '16px',
             animation: 'fadeIn 0.2s ease',
           }}
-          onClick={handleCloseStaging}
         >
           <div
             style={{
               background: '#13141c',
-              border: '1px solid rgba(229, 197, 115, 0.3)',
+              border: '1px solid rgba(229, 197, 115, 0.35)',
               borderRadius: 'var(--radius-lg)',
-              maxWidth: '480px',
+              maxWidth: '380px',
               width: '100%',
-              maxHeight: '90vh',
-              display: 'flex',
-              flexDirection: 'column',
+              padding: '24px 20px',
+              textAlign: 'center',
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8)',
-              overflow: 'hidden',
+            }}
+          >
+            <div style={{ fontSize: '36px', marginBottom: '12px' }}>🎞️</div>
+            <h3
+              style={{
+                fontSize: 'var(--font-size-base)',
+                fontWeight: 700,
+                margin: '0 0 6px',
+                color: '#fff',
+              }}
+            >
+              Subiendo fotos al rollo
+            </h3>
+            <p
+              style={{
+                fontSize: 'var(--font-size-sm)',
+                fontWeight: 600,
+                color: 'var(--color-accent, #e5c573)',
+                margin: '0 0 16px',
+              }}
+            >
+              {uploadProgress || 'Procesando imágenes...'}
+            </p>
+            <div
+              className="spinner"
+              style={{
+                width: '32px',
+                height: '32px',
+                margin: '0 auto 16px',
+                borderColor: 'var(--color-accent) transparent var(--color-accent) transparent',
+              }}
+            />
+            <p className="text-secondary" style={{ fontSize: '11px', margin: 0, lineHeight: 1.4 }}>
+              Optimizando las fotos para que carguen al instante en iOS y Android sin lentitud. Por
+              favor espera.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* 2. REPLACE VS APPEND DIALOG (When user selects > free slots)  */}
+      {/* ============================================================ */}
+      {showReplaceDialog && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            animation: 'fadeIn 0.2s ease',
+          }}
+          onClick={handleCancelChoice}
+        >
+          <div
+            style={{
+              background: '#13141c',
+              border: '1px solid rgba(229, 197, 115, 0.35)',
+              borderRadius: 'var(--radius-lg)',
+              maxWidth: '420px',
+              width: '100%',
+              padding: '20px',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
             <div
-              style={{
-                padding: '16px 20px',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}
             >
-              <div>
-                <h3
-                  style={{
-                    fontSize: 'var(--font-size-base)',
-                    fontWeight: 700,
-                    margin: 0,
-                    color: '#fff',
-                  }}
-                >
-                  🎞️ Preparar fotos para el rollo
-                </h3>
-                <p
-                  className="text-secondary"
-                  style={{ fontSize: 'var(--font-size-xs)', margin: '2px 0 0' }}
-                >
-                  Revisa tu selección antes de subirlas al álbum
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleCloseStaging}
-                disabled={uploading}
+              <span style={{ fontSize: '24px' }}>🎞️</span>
+              <h3
                 style={{
-                  background: 'none',
-                  border: 'none',
+                  fontSize: 'var(--font-size-base)',
+                  fontWeight: 700,
+                  margin: 0,
                   color: '#fff',
-                  fontSize: '20px',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  opacity: uploading ? 0.4 : 0.8,
                 }}
               >
-                ✕
-              </button>
+                ¿Cómo deseas guardar tus fotos?
+              </h3>
             </div>
-
-            {/* Modal Body / Selection Status */}
-            <div
-              style={{
-                padding: '16px 20px',
-                overflowY: 'auto',
-                flex: 1,
-              }}
+            <p
+              className="text-secondary"
+              style={{ fontSize: 'var(--font-size-xs)', lineHeight: 1.4, marginBottom: '16px' }}
             >
-              {/* Exceeds limit warning */}
-              {stagedFiles.length > availableSlots && (
-                <div
-                  style={{
-                    padding: '12px 14px',
-                    borderRadius: 'var(--radius-md)',
-                    background: 'rgba(239, 68, 68, 0.15)',
-                    border: '1px solid rgba(239, 68, 68, 0.4)',
-                    color: '#fca5a5',
-                    fontSize: 'var(--font-size-xs)',
-                    marginBottom: '14px',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  <div style={{ fontWeight: 700, marginBottom: '4px' }}>
-                    ⚠️ Has seleccionado {stagedFiles.length} fotos.
-                  </div>
-                  Solo puedes tener hasta 20 fotos en el rollo (te quedan{' '}
-                  <strong>{availableSlots}</strong> espacios disponibles).
-                  <div style={{ marginTop: '8px' }}>
-                    <button
-                      type="button"
-                      onClick={handleAutoTrimStaged}
-                      style={{
-                        background: 'rgba(239, 68, 68, 0.25)',
-                        border: '1px solid rgba(239, 68, 68, 0.5)',
-                        color: '#fff',
-                        fontWeight: 700,
-                        fontSize: '11px',
-                        padding: '6px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      ✂️ Conservar solo las primeras {availableSlots} fotos
-                    </button>
-                  </div>
-                </div>
-              )}
+              Seleccionaste <strong>{pendingFiles.length} fotos</strong> y actualmente tienes{' '}
+              <strong>{items.length} fotos</strong> en el rollo (máximo 20 fotos en total).
+            </p>
 
-              {/* Valid selection pill */}
-              {stagedFiles.length <= availableSlots && stagedFiles.length > 0 && (
-                <div
-                  style={{
-                    padding: '10px 14px',
-                    borderRadius: 'var(--radius-md)',
-                    background: 'rgba(229, 197, 115, 0.1)',
-                    border: '1px solid rgba(229, 197, 115, 0.3)',
-                    color: 'var(--color-accent, #e5c573)',
-                    fontSize: 'var(--font-size-xs)',
-                    marginBottom: '14px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <span>
-                    ✨ <strong>{stagedFiles.length} fotos</strong> listas para agregar
-                  </span>
-                  <span style={{ fontSize: '11px', opacity: 0.9 }}>
-                    Total: {items.length + stagedFiles.length} / 20
-                  </span>
-                </div>
-              )}
-
-              {/* Uploading progress indicator */}
-              {uploading && (
-                <div
-                  style={{
-                    padding: '16px',
-                    background: 'rgba(0,0,0,0.4)',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid rgba(229, 197, 115, 0.3)',
-                    textAlign: 'center',
-                    marginBottom: '14px',
-                  }}
-                >
-                  <div
-                    className="spinner"
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      margin: '0 auto 10px',
-                      borderColor:
-                        'var(--color-accent) transparent var(--color-accent) transparent',
-                    }}
-                  />
-                  <div
-                    style={{
-                      color: 'var(--color-accent, #e5c573)',
-                      fontWeight: 700,
-                      fontSize: 'var(--font-size-sm)',
-                      marginBottom: '4px',
-                    }}
-                  >
-                    {uploadProgress || 'Procesando fotogramas...'}
-                  </div>
-                  <p
-                    className="text-secondary"
-                    style={{ fontSize: 'var(--font-size-xs)', margin: 0 }}
-                  >
-                    Optimizando imágenes para que carguen de inmediato sin lentitud.
-                  </p>
-                </div>
-              )}
-
-              {/* Thumbnail Grid of Selected Files */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
-                  gap: '8px',
-                }}
-              >
-                {stagedFiles.map((staged, idx) => {
-                  const isOverLimit = idx >= availableSlots;
-                  return (
-                    <div
-                      key={staged.id}
-                      style={{
-                        position: 'relative',
-                        aspectRatio: '1',
-                        borderRadius: 'var(--radius-sm)',
-                        overflow: 'hidden',
-                        background: '#08080a',
-                        border: isOverLimit
-                          ? '2px solid rgba(239, 68, 68, 0.8)'
-                          : '1px solid rgba(255, 255, 255, 0.15)',
-                        opacity: isOverLimit ? 0.6 : 1,
-                      }}
-                    >
-                      <img
-                        src={staged.previewUrl}
-                        alt={`Selección ${idx + 1}`}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          display: 'block',
-                        }}
-                      />
-                      <span
-                        style={{
-                          position: 'absolute',
-                          bottom: '3px',
-                          left: '3px',
-                          fontSize: '9px',
-                          fontWeight: 700,
-                          color: '#fff',
-                          background: isOverLimit ? '#ef4444' : 'rgba(0,0,0,0.7)',
-                          padding: '1px 4px',
-                          borderRadius: '3px',
-                        }}
-                      >
-                        #{idx + 1}
-                      </span>
-                      {!uploading && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveStaged(staged.id)}
-                          title="Quitar foto"
-                          style={{
-                            position: 'absolute',
-                            top: '3px',
-                            right: '3px',
-                            width: '20px',
-                            height: '20px',
-                            borderRadius: '50%',
-                            border: 'none',
-                            background: 'rgba(239, 68, 68, 0.9)',
-                            color: '#fff',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: 0,
-                          }}
-                        >
-                          ✕
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Modal Actions */}
-            <div
-              style={{
-                padding: '14px 20px',
-                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                display: 'flex',
-                gap: '10px',
-              }}
-            >
+            <div className="stack stack--sm">
               <button
                 type="button"
-                className="btn btn--secondary"
-                onClick={handleCloseStaging}
-                disabled={uploading}
-                style={{ flex: 1 }}
+                className="btn btn--primary btn--full"
+                onClick={handleConfirmReplace}
+                style={{ fontWeight: 700, padding: '12px' }}
+              >
+                🔄 Reemplazar todo el rollo con estas {Math.min(maxPhotos, pendingFiles.length)}{' '}
+                fotos
+              </button>
+
+              {availableSlots > 0 && (
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--full"
+                  onClick={handleConfirmAppend}
+                  style={{ fontSize: 'var(--font-size-xs)', padding: '10px' }}
+                >
+                  ➕ Agregar solo {availableSlots} fotos (hasta completar 20)
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="btn btn--ghost btn--full"
+                onClick={handleCancelChoice}
+                style={{ fontSize: 'var(--font-size-xs)' }}
               >
                 Cancelar
-              </button>
-              <button
-                type="button"
-                className="btn btn--primary"
-                onClick={handleConfirmUpload}
-                disabled={
-                  uploading || stagedFiles.length === 0 || stagedFiles.length > availableSlots
-                }
-                style={{
-                  flex: 2,
-                  fontWeight: 700,
-                }}
-              >
-                {uploading
-                  ? 'Subiendo...'
-                  : stagedFiles.length > availableSlots
-                    ? `Excede el límite (+${stagedFiles.length - availableSlots})`
-                    : `✨ Subir ${stagedFiles.length} foto${stagedFiles.length === 1 ? '' : 's'}`}
               </button>
             </div>
           </div>
@@ -1028,7 +855,7 @@ export default function PhotoFilmRoll({
       )}
 
       {/* ============================================================ */}
-      {/* 2. INSPECTOR & VIEWER MODAL (Edit, Reorder, Delete Photo)     */}
+      {/* 3. INSPECTOR & VIEWER MODAL (Edit, Reorder, Delete Photo)     */}
       {/* ============================================================ */}
       {inspectIndex !== null && items[inspectIndex] && (
         <div

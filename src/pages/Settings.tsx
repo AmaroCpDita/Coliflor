@@ -237,15 +237,24 @@ export default function Settings() {
       .finally(() => setLoadingAlbum(false));
   }, [couple?.hero_image_path, couple?.id, isMockMode, refreshProfile]);
 
-  const handleUploadHeroImagesList = async (files: File[]) => {
+  const handleUploadHeroImagesList = async (files: File[], replaceAll = false) => {
     if (files.length === 0 || !couple || !profile) return;
 
     setAlbumError('');
     setUploadingHero(true);
 
-    const currentPaths = parseHeroAlbumPaths(couple.hero_image_path);
-    const availableSlots = 20 - currentPaths.length;
+    const oldPaths = parseHeroAlbumPaths(couple.hero_image_path);
+    const currentPaths = replaceAll ? [] : oldPaths;
+    const availableSlots = Math.max(0, 20 - currentPaths.length);
     const filesToUpload = files.slice(0, availableSlots);
+
+    if (replaceAll && oldPaths.length > 0) {
+      try {
+        await supabase.storage.from('photos').remove(oldPaths);
+      } catch {
+        // Ignore storage removal errors
+      }
+    }
 
     const newPaths: string[] = [];
     const newItems: { path: string; url: string }[] = [];
@@ -255,36 +264,50 @@ export default function Settings() {
         const file = filesToUpload[i];
         setUploadProgress(`Fotograma ${i + 1} de ${filesToUpload.length}...`);
 
-        const compressed = await compressImage(file, 1600, 0.8, false);
-        const storagePath = `${couple.id}/hero_${Date.now()}_${i}.jpg`;
+        try {
+          const compressed = await compressImage(file, 1600, 0.8, false);
+          const storagePath = `${couple.id}/hero_${Date.now()}_${i}.jpg`;
 
-        const uploadPromise = supabase.storage.from('photos').upload(storagePath, compressed, {
-          contentType: 'image/jpeg',
-          upsert: true,
-        });
+          const uploadPromise = supabase.storage.from('photos').upload(storagePath, compressed, {
+            contentType: 'image/jpeg',
+            upsert: true,
+          });
 
-        const uploadTimeout = new Promise<never>((_, reject) =>
-          setTimeout(
-            () =>
-              reject(
-                new Error(
-                  'La subida tardó demasiado tiempo. Verifica tu conexión a internet o intenta nuevamente.',
+          const uploadTimeout = new Promise<never>((_, reject) =>
+            setTimeout(
+              () =>
+                reject(
+                  new Error(
+                    'La subida tardó demasiado tiempo. Verifica tu conexión a internet o intenta nuevamente.',
+                  ),
                 ),
-              ),
-            25000,
-          ),
-        );
+              25000,
+            ),
+          );
 
-        const { error: uploadError } = (await Promise.race([uploadPromise, uploadTimeout])) as {
-          data: any;
-          error: any;
-        };
+          const { error: uploadError } = (await Promise.race([uploadPromise, uploadTimeout])) as {
+            data: any;
+            error: any;
+          };
 
-        if (uploadError) throw uploadError;
-        newPaths.push(storagePath);
+          if (uploadError) throw uploadError;
+          newPaths.push(storagePath);
+        } catch (itemErr: any) {
+          console.warn(`Error al procesar/subir fotograma ${i + 1}:`, itemErr);
+          // Continue processing remaining photos
+        }
       }
 
-      const updatedPaths = [...currentPaths, ...newPaths].slice(0, 20);
+      if (newPaths.length === 0) {
+        throw new Error(
+          'No se pudo subir ninguna de las fotos seleccionadas. Verifica el formato e intenta nuevamente.',
+        );
+      }
+
+      const updatedPaths = replaceAll
+        ? newPaths.slice(0, 20)
+        : [...currentPaths, ...newPaths].slice(0, 20);
+
       const { error: updateError } = await supabase
         .from('couples')
         .update({ hero_image_path: serializeHeroAlbumPaths(updatedPaths) })
@@ -304,8 +327,11 @@ export default function Settings() {
         });
       }
 
-      // Optimistically append new items so user sees them immediately in film roll
-      setAlbumItems((prev) => [...prev, ...newItems].slice(0, 20));
+      if (replaceAll) {
+        setAlbumItems(newItems.slice(0, 20));
+      } else {
+        setAlbumItems((prev) => [...prev, ...newItems].slice(0, 20));
+      }
 
       await refreshProfile();
       setCoupleSuccess(true);
