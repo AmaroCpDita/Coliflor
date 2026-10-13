@@ -410,3 +410,39 @@ export async function compressImage(
     img.src = url;
   });
 }
+
+/**
+ * Parse the hero_image_path field which can be:
+ * - A JSON array string: '["path1", "path2"]'
+ * - A legacy single path string: 'couple_id/hero_123.jpg'
+ * - null or undefined
+ */
+export function parseHeroAlbumPaths(rawPath?: string | null): string[] {
+  if (!rawPath || typeof rawPath !== 'string') return [];
+  const trimmed = rawPath.trim();
+  if (!trimmed) return [];
+
+  if (trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .filter((p): p is string => typeof p === 'string' && p.trim().length > 0)
+          .slice(0, 20);
+      }
+    } catch {
+      return [];
+    }
+  }
+
+  // Legacy single path: if it doesn't start with [, it's an old single path
+  return [trimmed];
+}
+
+/**
+ * Serialize an array of paths into a JSON string (capped at max 20).
+ */
+export function serializeHeroAlbumPaths(paths: string[]): string {
+  const clean = paths.filter((p) => typeof p === 'string' && p.trim().length > 0).slice(0, 20);
+  return JSON.stringify(clean);
+}

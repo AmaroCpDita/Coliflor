@@ -3,12 +3,16 @@ import PageTransition from '../components/PageTransition';
 // Coliflor — Settings / Configuración Page
 // ============================================================
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
-import { formatDate, compressImage } from '../lib/utils';
-import { useRef } from 'react';
+import {
+  formatDate,
+  compressImage,
+  parseHeroAlbumPaths,
+  serializeHeroAlbumPaths,
+} from '../lib/utils';
 
 function IconUser() {
   return (
@@ -101,7 +105,7 @@ function IconLogOut() {
 }
 
 export default function Settings() {
-  const { user, profile, couple, partner, refreshProfile, signOut } = useAuth();
+  const { user, profile, couple, partner, refreshProfile, signOut, isMockMode } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
@@ -114,6 +118,9 @@ export default function Settings() {
   const [error, setError] = useState('');
 
   const [uploadingHero, setUploadingHero] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
+  const [albumItems, setAlbumItems] = useState<{ path: string; url: string }[]>([]);
+  const [loadingAlbum, setLoadingAlbum] = useState(false);
   const heroFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -171,44 +178,125 @@ export default function Settings() {
     }
   };
 
-  const handleUploadHeroImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !couple || !profile) return;
+  // Load Hero Album Photos and auto-purge legacy single photo
+  useEffect(() => {
+    if (!couple || isMockMode) {
+      setAlbumItems([]);
+      return;
+    }
+
+    // Auto-purge legacy single photo if present (user explicitly requested to delete existing photo)
+    if (couple.hero_image_path && !couple.hero_image_path.trim().startsWith('[')) {
+      const legacyPath = couple.hero_image_path.trim();
+      (async () => {
+        try {
+          await supabase.storage.from('photos').remove([legacyPath]);
+        } catch {
+          // Ignore removal error
+        }
+        await supabase.from('couples').update({ hero_image_path: '[]' }).eq('id', couple.id);
+        refreshProfile();
+      })();
+      setAlbumItems([]);
+      return;
+    }
+
+    const paths = parseHeroAlbumPaths(couple.hero_image_path);
+    if (paths.length === 0) {
+      setAlbumItems([]);
+      return;
+    }
+
+    setLoadingAlbum(true);
+    supabase.storage
+      .from('photos')
+      .createSignedUrls(paths, 3600)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const items = data
+            .map((d, idx) => ({ path: paths[idx] || d.path || '', url: d.signedUrl || '' }))
+            .filter((item) => item.path && item.url);
+          setAlbumItems(items);
+        } else {
+          // Fallback to individual calls
+          Promise.all(
+            paths.map((p) =>
+              supabase.storage
+                .from('photos')
+                .createSignedUrl(p, 3600)
+                .then(({ data: d }) => (d?.signedUrl ? { path: p, url: d.signedUrl } : null))
+                .catch(() => null),
+            ),
+          ).then((results) => {
+            setAlbumItems(results.filter((r): r is { path: string; url: string } => r !== null));
+          });
+        }
+      })
+      .catch(() => setAlbumItems([]))
+      .finally(() => setLoadingAlbum(false));
+  }, [couple?.hero_image_path, couple?.id, isMockMode, refreshProfile]);
+
+  const handleUploadHeroImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0 || !couple || !profile) return;
+
+    const currentPaths = parseHeroAlbumPaths(couple.hero_image_path);
+    const availableSlots = 20 - currentPaths.length;
+
+    if (availableSlots <= 0) {
+      setError('Ya tienes el máximo de 20 fotos en el álbum. Elimina alguna para agregar más.');
+      if (heroFileInputRef.current) heroFileInputRef.current.value = '';
+      return;
+    }
+
+    const filesToUpload = files.slice(0, availableSlots);
+    if (files.length > availableSlots) {
+      setError(`Solo se agregaron ${availableSlots} fotos para no superar el límite de 20.`);
+    } else {
+      setError('');
+    }
 
     setUploadingHero(true);
-    setError('');
+    const newPaths: string[] = [];
 
     try {
-      const compressed = await compressImage(file, 1600, 0.8, false);
-      const storagePath = `${couple.id}/hero_${Date.now()}.jpg`;
+      for (let i = 0; i < filesToUpload.length; i++) {
+        const file = filesToUpload[i];
+        setUploadProgress(`Procesando foto ${i + 1} de ${filesToUpload.length}...`);
 
-      const uploadPromise = supabase.storage.from('photos').upload(storagePath, compressed, {
-        contentType: 'image/jpeg',
-        upsert: true,
-      });
+        const compressed = await compressImage(file, 1600, 0.8, false);
+        const storagePath = `${couple.id}/hero_${Date.now()}_${i}.jpg`;
 
-      const uploadTimeout = new Promise<never>((_, reject) =>
-        setTimeout(
-          () =>
-            reject(
-              new Error(
-                'La subida tardó demasiado tiempo. Verifica tu conexión a internet o intenta nuevamente.',
+        const uploadPromise = supabase.storage.from('photos').upload(storagePath, compressed, {
+          contentType: 'image/jpeg',
+          upsert: true,
+        });
+
+        const uploadTimeout = new Promise<never>((_, reject) =>
+          setTimeout(
+            () =>
+              reject(
+                new Error(
+                  'La subida tardó demasiado tiempo. Verifica tu conexión a internet o intenta nuevamente.',
+                ),
               ),
-            ),
-          25000,
-        ),
-      );
+            25000,
+          ),
+        );
 
-      const { error: uploadError } = (await Promise.race([uploadPromise, uploadTimeout])) as {
-        data: any;
-        error: any;
-      };
+        const { error: uploadError } = (await Promise.race([uploadPromise, uploadTimeout])) as {
+          data: any;
+          error: any;
+        };
 
-      if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
+        newPaths.push(storagePath);
+      }
 
+      const updatedPaths = [...currentPaths, ...newPaths].slice(0, 20);
       const { error: updateError } = await supabase
         .from('couples')
-        .update({ hero_image_path: storagePath })
+        .update({ hero_image_path: serializeHeroAlbumPaths(updatedPaths) })
         .eq('id', couple.id);
 
       if (updateError) throw updateError;
@@ -217,10 +305,65 @@ export default function Settings() {
       setCoupleSuccess(true);
       setTimeout(() => setCoupleSuccess(false), 3000);
     } catch (err: any) {
-      setError(err?.message || 'Error al subir foto de fondo');
+      setError(err?.message || 'Error al subir fotos al álbum');
     } finally {
       setUploadingHero(false);
+      setUploadProgress('');
       if (heroFileInputRef.current) heroFileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteAlbumPhoto = async (pathToDelete: string) => {
+    if (!couple || !profile) return;
+    setError('');
+
+    const currentPaths = parseHeroAlbumPaths(couple.hero_image_path);
+    const updatedPaths = currentPaths.filter((p) => p !== pathToDelete);
+
+    try {
+      try {
+        await supabase.storage.from('photos').remove([pathToDelete]);
+      } catch {
+        // Ignore storage removal errors
+      }
+
+      const { error: updateError } = await supabase
+        .from('couples')
+        .update({ hero_image_path: serializeHeroAlbumPaths(updatedPaths) })
+        .eq('id', couple.id);
+
+      if (updateError) throw updateError;
+      await refreshProfile();
+    } catch (err: any) {
+      setError(err?.message || 'Error al eliminar la foto');
+    }
+  };
+
+  const handleClearAllAlbumPhotos = async () => {
+    if (!couple || !profile) return;
+    if (!window.confirm('¿Seguro que deseas eliminar todas las fotos de la portada?')) return;
+
+    setError('');
+    const currentPaths = parseHeroAlbumPaths(couple.hero_image_path);
+
+    try {
+      if (currentPaths.length > 0) {
+        try {
+          await supabase.storage.from('photos').remove(currentPaths);
+        } catch {}
+      }
+
+      const { error: updateError } = await supabase
+        .from('couples')
+        .update({ hero_image_path: '[]' })
+        .eq('id', couple.id);
+
+      if (updateError) throw updateError;
+      await refreshProfile();
+      setCoupleSuccess(true);
+      setTimeout(() => setCoupleSuccess(false), 3000);
+    } catch (err: any) {
+      setError(err?.message || 'Error al vaciar el álbum');
     }
   };
 
@@ -418,33 +561,182 @@ export default function Settings() {
                 borderTop: '1px solid var(--color-border)',
               }}
             >
-              <div className="row row--gap-sm" style={{ marginBottom: 'var(--space-sm)' }}>
-                <IconCamera />
-                <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
-                  Foto de Fondo (Inicio)
-                </h3>
+              <div className="row row--between" style={{ marginBottom: 'var(--space-xs)' }}>
+                <div className="row row--gap-sm">
+                  <IconCamera />
+                  <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
+                    Álbum de Portada (Inicio)
+                  </h3>
+                </div>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-full)',
+                    background:
+                      albumItems.length >= 20
+                        ? 'rgba(239, 68, 68, 0.2)'
+                        : 'rgba(229, 197, 115, 0.15)',
+                    color: albumItems.length >= 20 ? '#fca5a5' : 'var(--color-accent, #e5c573)',
+                    border: '1px solid rgba(229, 197, 115, 0.3)',
+                  }}
+                >
+                  {albumItems.length} / 20 fotos
+                </span>
               </div>
               <p
                 className="text-secondary"
                 style={{ fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-md)' }}
               >
-                Personaliza la foto de la pantalla principal de la aplicación.
+                Estas fotos irán cambiando cada 4 segundos en la pantalla de inicio con un efecto de
+                pasar página. Puedes agregar hasta 20 fotos.
               </p>
+
+              {/* Photo Thumbnails Grid */}
+              {albumItems.length > 0 && (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))',
+                    gap: '8px',
+                    marginBottom: 'var(--space-md)',
+                  }}
+                >
+                  {albumItems.map((item, index) => (
+                    <div
+                      key={item.path}
+                      style={{
+                        position: 'relative',
+                        aspectRatio: '1',
+                        borderRadius: 'var(--radius-md)',
+                        overflow: 'hidden',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        background: 'rgba(0,0,0,0.3)',
+                      }}
+                    >
+                      <img
+                        src={item.url}
+                        alt={`Portada ${index + 1}`}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block',
+                        }}
+                      />
+                      <span
+                        style={{
+                          position: 'absolute',
+                          bottom: '3px',
+                          left: '4px',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          color: '#fff',
+                          background: 'rgba(0,0,0,0.6)',
+                          padding: '1px 4px',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        #{index + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteAlbumPhoto(item.path)}
+                        title="Eliminar foto"
+                        aria-label={`Eliminar foto ${index + 1}`}
+                        style={{
+                          position: 'absolute',
+                          top: '3px',
+                          right: '3px',
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          border: 'none',
+                          background: 'rgba(239, 68, 68, 0.85)',
+                          color: '#fff',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: 0,
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {loadingAlbum && (
+                <div
+                  className="text-center"
+                  style={{
+                    padding: 'var(--space-md)',
+                    color: 'var(--color-text-secondary)',
+                    fontSize: 'var(--font-size-xs)',
+                  }}
+                >
+                  Cargando fotos del álbum...
+                </div>
+              )}
+
+              {albumItems.length === 0 && !loadingAlbum && (
+                <div
+                  style={{
+                    padding: 'var(--space-md)',
+                    borderRadius: 'var(--radius-md)',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px dashed rgba(255,255,255,0.15)',
+                    textAlign: 'center',
+                    marginBottom: 'var(--space-md)',
+                    color: 'var(--color-text-secondary)',
+                    fontSize: 'var(--font-size-xs)',
+                  }}
+                >
+                  No hay fotos en el álbum. Sube fotos de ustedes para que aparezcan en el inicio.
+                </div>
+              )}
 
               <input
                 type="file"
+                multiple
                 accept="image/jpeg,image/png,image/webp,image/*"
                 ref={heroFileInputRef}
                 style={{ display: 'none' }}
-                onChange={handleUploadHeroImage}
+                onChange={handleUploadHeroImages}
               />
-              <button
-                className="btn btn--secondary btn--full"
-                onClick={() => heroFileInputRef.current?.click()}
-                disabled={uploadingHero}
-              >
-                {uploadingHero ? 'Subiendo...' : 'Elegir nueva foto'}
-              </button>
+
+              <div className="stack stack--sm">
+                <button
+                  className="btn btn--primary btn--full"
+                  onClick={() => heroFileInputRef.current?.click()}
+                  disabled={uploadingHero || albumItems.length >= 20}
+                >
+                  {uploadingHero
+                    ? uploadProgress || 'Subiendo fotos...'
+                    : albumItems.length >= 20
+                      ? 'Límite de 20 fotos alcanzado'
+                      : albumItems.length === 0
+                        ? '➕ Subir fotos a la portada'
+                        : `➕ Agregar más fotos (${albumItems.length}/20)`}
+                </button>
+
+                {albumItems.length > 0 && (
+                  <button
+                    className="btn btn--ghost btn--full"
+                    onClick={handleClearAllAlbumPhotos}
+                    disabled={uploadingHero}
+                    style={{ color: '#f87171', fontSize: 'var(--font-size-xs)' }}
+                  >
+                    🗑️ Vaciar álbum (Eliminar todas)
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}

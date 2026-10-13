@@ -3,11 +3,12 @@
 // ============================================================
 
 import { useState, useEffect, useMemo } from 'react';
-import { Link, useOutletContext } from 'react-router-dom';
+import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import PageTransition from '../components/PageTransition';
+import HeroPageTurn from '../components/HeroPageTurn';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { daysSince, generateInviteCode, formatDate } from '../lib/utils';
+import { daysSince, generateInviteCode, formatDate, parseHeroAlbumPaths } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { sendPushNotification } from '../lib/push';
 import { getCelebration, Celebration, CelebrationType } from '../lib/celebrations';
@@ -142,6 +143,7 @@ function IconGoldHeart({ size = 20 }: { size?: number }) {
 const DEFAULT_DEDICATION = '¡Escribe aquí tu primera notita! Ámame mucho y dime cosas bonitas 💛';
 
 export default function Home() {
+  const navigate = useNavigate();
   const { user, profile, couple, partner, refreshProfile, isMockMode } = useAuth();
   const { theme } = useTheme();
   const { openNotifCenter, hasUnread } =
@@ -317,21 +319,75 @@ export default function Home() {
   // Realtime updates state for quick actions
   const [quizStatus, setQuizStatus] = useState('Nuevo');
 
-  // Dynamic Hero Image
-  const [heroImageUrl, setHeroImageUrl] = useState<string>('/hero-bg.jpg');
+  // Dynamic Hero Image Album (up to 20 images with 4s page-turn effect)
+  const [heroImages, setHeroImages] = useState<string[]>([]);
 
   useEffect(() => {
-    if (couple?.hero_image_path && !isMockMode) {
-      supabase.storage
-        .from('photos')
-        .createSignedUrl(couple.hero_image_path, 3600)
-        .then(({ data }) => {
-          if (data?.signedUrl) setHeroImageUrl(data.signedUrl);
-        });
-    } else {
-      setHeroImageUrl('/hero-bg.jpg');
+    if (!couple || isMockMode) {
+      setHeroImages([]);
+      return;
     }
-  }, [couple?.hero_image_path, isMockMode]);
+
+    // Auto-purge legacy single photo if present (user explicitly requested to delete existing photo)
+    if (couple.hero_image_path && !couple.hero_image_path.trim().startsWith('[')) {
+      const legacyPath = couple.hero_image_path.trim();
+      (async () => {
+        try {
+          await supabase.storage.from('photos').remove([legacyPath]);
+        } catch {
+          // Ignore removal error
+        }
+        await supabase.from('couples').update({ hero_image_path: '[]' }).eq('id', couple.id);
+        refreshProfile();
+      })();
+      setHeroImages([]);
+      return;
+    }
+
+    const paths = parseHeroAlbumPaths(couple.hero_image_path);
+    if (paths.length === 0) {
+      setHeroImages([]);
+      return;
+    }
+
+    let active = true;
+
+    // Fetch signed URLs for all images in the album
+    supabase.storage
+      .from('photos')
+      .createSignedUrls(paths, 3600)
+      .then(({ data }) => {
+        if (!active) return;
+        if (data && data.length > 0) {
+          const validUrls = data
+            .map((item) => item.signedUrl)
+            .filter((url): url is string => Boolean(url));
+          setHeroImages(validUrls);
+        } else {
+          // Fallback to individual requests
+          Promise.all(
+            paths.map((p) =>
+              supabase.storage
+                .from('photos')
+                .createSignedUrl(p, 3600)
+                .then(({ data: singleData }) => singleData?.signedUrl || null)
+                .catch(() => null),
+            ),
+          ).then((urls) => {
+            if (active) {
+              setHeroImages(urls.filter((u): u is string => Boolean(u)));
+            }
+          });
+        }
+      })
+      .catch(() => {
+        if (active) setHeroImages([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [couple?.hero_image_path, couple?.id, isMockMode, refreshProfile]);
 
   // Sync mySentNote when couple changes
   useEffect(() => {
@@ -584,34 +640,14 @@ export default function Home() {
         {/* Celebration Full Screen Modal */}
         {celebration && <CelebrationModal celebration={celebration} partnerName={partnerName} />}
 
-        {/* Hero Card with Custom Background Image */}
-        <div
-          className={`glass-card text-center animate-fade-in ${isCelebrating ? 'hero-card--celebrating' : ''}`}
-          style={{
-            padding: 'var(--space-2xl) var(--space-md)',
-            background: `
-            linear-gradient(to bottom, rgba(13, 14, 18, 0.2) 0%, rgba(13, 14, 18, 0.9) 100%),
-            url('${heroImageUrl}') center/cover no-repeat
-          `,
-            borderRadius: '32px',
-            boxShadow:
-              celebration?.type === 'aniversario'
-                ? '0 0 40px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.1)'
-                : isCelebrating
-                  ? undefined
-                  : '0 12px 40px rgba(0,0,0,0.3)',
-            border:
-              celebration?.type === 'aniversario'
-                ? '2px solid rgba(255, 215, 0, 0.4)'
-                : isCelebrating
-                  ? 'none'
-                  : 'none',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
+        {/* Hero Card with Custom Background Image Album & Page Turn Effect */}
+        <HeroPageTurn
+          images={heroImages}
+          defaultImage="/hero-bg.jpg"
+          intervalMs={4000}
+          isCelebrating={isCelebrating}
+          celebrationType={celebration?.type}
+          onManageAlbum={() => navigate('/settings')}
         >
           {/* Avatar Row */}
           <div className="row row--center" style={{ gap: '12px', marginBottom: '16px' }}>
@@ -726,7 +762,7 @@ export default function Home() {
               <span>Desde el {formatDate(couple.relationship_start, 'long')}</span>
             </div>
           )}
-        </div>
+        </HeroPageTurn>
 
         {/* Section: HOY */}
         <div className="stack stack--sm" style={{ marginTop: '16px' }}>
