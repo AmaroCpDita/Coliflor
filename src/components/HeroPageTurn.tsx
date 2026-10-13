@@ -91,32 +91,44 @@ export default function HeroPageTurn({
     setTimeout(() => setIsPaused(false), 3000);
   };
 
-  // 3D Page turn animation variants
+  // 3D Bending Page Turn animation variants (Real paper leaf curl effect)
   const pageVariants: Record<string, any> = {
     enter: (dir: number) => ({
-      rotateY: dir > 0 ? 120 : -120,
-      opacity: 1,
-      scale: 0.96,
-      boxShadow: dir > 0 ? '-30px 0 45px rgba(0,0,0,0.8)' : '30px 0 45px rgba(0,0,0,0.8)',
+      rotateY: dir > 0 ? 115 : -115,
+      skewY: dir > 0 ? -5 : 5,
+      scale: 0.97,
+      boxShadow: dir > 0 ? '-35px 0 55px rgba(0,0,0,0.85)' : '35px 0 55px rgba(0,0,0,0.85)',
+      borderTopRightRadius: dir > 0 ? '40px 140px' : '0px',
+      borderBottomRightRadius: dir > 0 ? '40px 140px' : '0px',
+      borderTopLeftRadius: dir > 0 ? '0px' : '40px 140px',
+      borderBottomLeftRadius: dir > 0 ? '0px' : '40px 140px',
     }),
     center: {
       rotateY: 0,
-      opacity: 1,
+      skewY: 0,
       scale: 1,
       boxShadow: '0 0 0 rgba(0,0,0,0)',
+      borderTopRightRadius: '0px',
+      borderBottomRightRadius: '0px',
+      borderTopLeftRadius: '0px',
+      borderBottomLeftRadius: '0px',
       transition: {
-        duration: 0.8,
-        ease: 'easeOut',
+        duration: 0.85,
+        ease: [0.22, 1, 0.36, 1], // Smooth paper settle
       },
     },
     exit: (dir: number) => ({
-      rotateY: dir > 0 ? -120 : 120,
-      opacity: 1,
-      scale: 0.96,
-      boxShadow: dir > 0 ? '30px 0 45px rgba(0,0,0,0.8)' : '-30px 0 45px rgba(0,0,0,0.8)',
+      rotateY: dir > 0 ? -115 : 115,
+      skewY: dir > 0 ? 5 : -5,
+      scale: 0.97,
+      boxShadow: dir > 0 ? '35px 0 55px rgba(0,0,0,0.85)' : '-35px 0 55px rgba(0,0,0,0.85)',
+      borderTopRightRadius: dir > 0 ? '0px' : '40px 140px',
+      borderBottomRightRadius: dir > 0 ? '0px' : '40px 140px',
+      borderTopLeftRadius: dir > 0 ? '40px 140px' : '0px',
+      borderBottomLeftRadius: dir > 0 ? '40px 140px' : '0px',
       transition: {
-        duration: 0.8,
-        ease: 'easeIn',
+        duration: 0.85,
+        ease: [0.4, 0, 0.2, 1],
       },
     }),
   };
@@ -151,7 +163,7 @@ export default function HeroPageTurn({
         justifyContent: 'space-between',
         position: 'relative',
         overflow: 'hidden',
-        perspective: '2000px',
+        perspective: '2200px',
         minHeight: '380px',
       }}
     >
@@ -161,7 +173,7 @@ export default function HeroPageTurn({
           position: 'absolute',
           inset: 0,
           zIndex: 0,
-          perspective: '1400px',
+          perspective: '1600px',
           overflow: 'hidden',
           backgroundColor: '#0d0e12',
           backgroundImage: currentImage
@@ -169,6 +181,23 @@ export default function HeroPageTurn({
             : 'radial-gradient(ellipse at 50% 20%, rgba(229, 197, 115, 0.12) 0%, rgba(13, 14, 18, 0.95) 75%)',
         }}
       >
+        {/* Base sheet: Next page waiting underneath as page curls away */}
+        {hasMultiple && nextImage && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              backgroundImage: `url('${nextImage}')`,
+              backgroundPosition: 'center',
+              backgroundSize: 'cover',
+              backgroundRepeat: 'no-repeat',
+            }}
+          />
+        )}
+
+        {/* Turning curled paper sheet */}
         {currentImage && (
           <AnimatePresence initial={false} custom={direction} mode="popLayout">
             <motion.div
@@ -188,11 +217,12 @@ export default function HeroPageTurn({
                 backgroundSize: 'cover',
                 backgroundRepeat: 'no-repeat',
                 transformOrigin: direction > 0 ? 'left center' : 'right center',
+                transformStyle: 'preserve-3d',
                 backfaceVisibility: 'visible',
                 WebkitBackfaceVisibility: 'visible',
               }}
             >
-              {/* Backside showing next image during turn */}
+              {/* Backside showing next page when turned over */}
               {nextImage && (
                 <div
                   style={{
@@ -207,7 +237,22 @@ export default function HeroPageTurn({
                   }}
                 />
               )}
-              {/* Spine Shadow on Left (Book Spine Effect) */}
+
+              {/* Dynamic paper curl shine & shadow along the bend */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background:
+                    direction > 0
+                      ? 'linear-gradient(to right, transparent 0%, rgba(255,255,255,0.18) 45%, rgba(0,0,0,0.5) 85%, transparent 100%)'
+                      : 'linear-gradient(to left, transparent 0%, rgba(255,255,255,0.18) 45%, rgba(0,0,0,0.5) 85%, transparent 100%)',
+                  opacity: 0.65,
+                  pointerEvents: 'none',
+                }}
+              />
+
+              {/* Book Spine Shadow on Left */}
               <div
                 style={{
                   position: 'absolute',
@@ -216,7 +261,7 @@ export default function HeroPageTurn({
                   left: 0,
                   width: '35px',
                   background:
-                    'linear-gradient(to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 50%, transparent 100%)',
+                    'linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 50%, transparent 100%)',
                   pointerEvents: 'none',
                 }}
               />
@@ -230,67 +275,11 @@ export default function HeroPageTurn({
             position: 'absolute',
             inset: 0,
             background:
-              'linear-gradient(to bottom, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.05) 35%, rgba(10, 11, 15, 0.65) 100%)',
+              'linear-gradient(to bottom, rgba(0, 0, 0, 0.22) 0%, rgba(0, 0, 0, 0.05) 35%, rgba(10, 11, 15, 0.65) 100%)',
             pointerEvents: 'none',
             zIndex: 1,
           }}
         />
-      </div>
-
-      {/* Top Controls: Manage Album Icon Button (No counters) */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '14px',
-          right: '16px',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          zIndex: 3,
-        }}
-      >
-        {onManageAlbum && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onManageAlbum();
-            }}
-            title="Administrar álbum de fotos"
-            aria-label="Administrar fotos de portada"
-            style={{
-              padding: '6px 12px',
-              borderRadius: 'var(--radius-full)',
-              background: 'rgba(0, 0, 0, 0.35)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              color: '#ffffff',
-              fontSize: '11px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'background 0.2s ease, transform 0.15s ease',
-            }}
-          >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-              <circle cx="12" cy="13" r="4" />
-            </svg>
-            <span>Fotos</span>
-          </button>
-        )}
       </div>
 
       {/* Foreground Content (avatars, names, days counter, note) */}
@@ -323,7 +312,7 @@ export default function HeroPageTurn({
               top: '40px',
               bottom: '40px',
               left: 0,
-              width: '20%',
+              width: '25%',
               zIndex: 3,
               cursor: 'pointer',
             }}
@@ -339,7 +328,7 @@ export default function HeroPageTurn({
               top: '40px',
               bottom: '40px',
               right: 0,
-              width: '20%',
+              width: '25%',
               zIndex: 3,
               cursor: 'pointer',
             }}

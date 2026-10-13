@@ -4,7 +4,7 @@
 // Supports batch uploads up to 20 photos without memory crashes.
 // ============================================================
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export interface FilmRollItem {
   path: string;
@@ -47,6 +47,19 @@ export default function PhotoFilmRoll({
   // Replace vs Append dialog if user selects many photos and already has photos
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [showReplaceDialog, setShowReplaceDialog] = useState(false);
+
+  // Floating upload card state
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const prevUploadingRef = useRef(uploading);
+
+  useEffect(() => {
+    if (prevUploadingRef.current && !uploading && !error) {
+      setUploadSuccess(true);
+      const timer = setTimeout(() => setUploadSuccess(false), 3500);
+      return () => clearTimeout(timer);
+    }
+    prevUploadingRef.current = uploading;
+  }, [uploading, error]);
 
   const availableSlots = Math.max(0, maxPhotos - items.length);
 
@@ -987,6 +1000,105 @@ export default function PhotoFilmRoll({
                   Listo
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ============================================================ */}
+      {/* 4. FLOATING UPLOAD CARD (Bottom-Right / Pared inferior derecha) */}
+      {/* ============================================================ */}
+      {(uploading || uploadSuccess) && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '20px',
+            zIndex: 99999,
+            background: 'rgba(18, 20, 28, 0.96)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: uploadSuccess
+              ? '1px solid rgba(74, 222, 128, 0.5)'
+              : '1px solid rgba(229, 197, 115, 0.5)',
+            borderRadius: '16px',
+            padding: '12px 18px',
+            boxShadow: uploadSuccess
+              ? '0 16px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(74, 222, 128, 0.25)'
+              : '0 16px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(229, 197, 115, 0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            maxWidth: '320px',
+            animation: 'fadeIn 0.3s ease',
+          }}
+        >
+          {uploadSuccess ? (
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: 'rgba(74, 222, 128, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px',
+                color: '#4ade80',
+                flexShrink: 0,
+              }}
+            >
+              ✓
+            </div>
+          ) : (
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: 'rgba(229, 197, 115, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <div
+                style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid rgba(229, 197, 115, 0.3)',
+                  borderTopColor: 'var(--color-accent, #e5c573)',
+                  borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite',
+                }}
+              />
+            </div>
+          )}
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: '13px',
+                fontWeight: 700,
+                color: uploadSuccess ? '#4ade80' : '#ffffff',
+                marginBottom: '2px',
+                letterSpacing: '0.2px',
+              }}
+            >
+              {uploadSuccess ? '¡Fotos subidas!' : 'Subiendo foto...'}
+            </div>
+            <div
+              style={{
+                fontSize: '11px',
+                color: 'var(--color-text-secondary)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {uploadSuccess
+                ? 'Tu rollo fotográfico se actualizó'
+                : uploadProgress || 'Subiendo y guardando en tu rollo...'}
             </div>
           </div>
         </div>
