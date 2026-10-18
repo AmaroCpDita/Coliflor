@@ -542,7 +542,9 @@ export default function Streak() {
 
     try {
       const compressed = await compressImage(previewFile, 1200, 0.7, flipHorizontal);
-      const storagePath = `${couple.id}/${today}/${profile.id}.jpg`;
+      const replacingTodayPhoto = Boolean(todayPhotos.myPhoto);
+      const storagePath =
+        todayPhotos.myPhoto?.storage_path ?? `${couple.id}/${today}/${profile.id}.jpg`;
 
       // Step 1: Upload to storage with safety timeout
       const uploadPromise = supabase.storage.from('photos').upload(storagePath, compressed, {
@@ -568,6 +570,18 @@ export default function Streak() {
       };
 
       if (uploadError) throw uploadError;
+
+      if (replacingTodayPhoto) {
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        setPreviewFile(null);
+        setPreviewUrl(null);
+        lastUploadRef.current = null;
+        setMyPhotoUrl(null);
+        await fetchTodayPhotos();
+        setSuccessMessage('✅ Foto de hoy corregida.');
+        setTimeout(() => setSuccessMessage(''), 4000);
+        return;
+      }
 
       // Step 2: Register in DB with retry (up to 3 attempts)
       let rpcSuccess = false;
@@ -658,6 +672,34 @@ export default function Streak() {
     if (uploadInputRef.current) uploadInputRef.current.value = '';
   };
 
+  const copyTodayPhotoToRecoveredDay = async (date: string) => {
+    if (!couple || !profile || !todayPhotos.myPhoto) {
+      throw new Error('No tienes una foto de hoy para reutilizar.');
+    }
+
+    const { data: photoBlob, error: downloadError } = await supabase.storage
+      .from('photos')
+      .download(todayPhotos.myPhoto.storage_path);
+    if (downloadError || !photoBlob)
+      throw downloadError || new Error('No se pudo leer la foto de hoy.');
+
+    const storagePath = `${couple.id}/${date}/${profile.id}.jpg`;
+    const { error: uploadError } = await supabase.storage
+      .from('photos')
+      .upload(storagePath, photoBlob, {
+        contentType: 'image/jpeg',
+        upsert: true,
+      });
+    if (uploadError) throw uploadError;
+
+    const { error: photoError } = await supabase.rpc('register_recovery_photo', {
+      p_couple_id: couple.id,
+      p_storage_path: storagePath,
+      p_photo_date: date,
+    });
+    if (photoError) throw photoError;
+  };
+
   // --- Recovery Flow ---
   const handleStartRecovery = (day: HistoryDay) => {
     setRecoveryDay(day);
@@ -677,18 +719,20 @@ export default function Streak() {
     setRecoveryFlip(false);
   };
 
-  const handleUseRecovery = async () => {
+  const handleUseRecovery = async (reuseTodayPhoto = false) => {
     if (!couple || !profile || !recoveryDay || usingRecovery) return;
 
-    // If I missed this day's photo, require photo upload first.
-    if (!recoveryDay.myPhoto && recoveryStep === 'confirm') {
+    if (recoveryStep === 'confirm' && !reuseTodayPhoto) {
       setRecoveryStep('photo');
       return;
     }
 
+    if (!reuseTodayPhoto && !recoveryPreviewFile) return;
+
     setUsingRecovery(true);
     setRecoveryStep('uploading');
     setError('');
+    let recoveryApplied = false;
 
     try {
       // Step 1: Apply recovery
@@ -698,9 +742,11 @@ export default function Streak() {
       });
 
       if (rpcError) throw rpcError;
+      recoveryApplied = true;
 
-      // Step 2: Upload recovery photo if I missed it
-      if (!recoveryDay.myPhoto && recoveryPreviewFile) {
+      if (reuseTodayPhoto) {
+        await copyTodayPhotoToRecoveredDay(recoveryDay.date);
+      } else if (recoveryPreviewFile) {
         const compressed = await compressImage(recoveryPreviewFile, 1200, 0.7, recoveryFlip);
         const storagePath = `${couple.id}/${recoveryDay.date}/${profile.id}.jpg`;
 
@@ -734,7 +780,7 @@ export default function Streak() {
           p_photo_date: recoveryDay.date,
         });
 
-        if (photoError) console.warn('Recovery photo registration warning:', photoError);
+        if (photoError) throw photoError;
       }
 
       // Send notification
@@ -756,12 +802,28 @@ export default function Streak() {
       setShowRecovery(false);
       setRecoveryDay(null);
       setRecoveryStep('confirm');
+      if (reuseTodayPhoto) {
+        setSuccessMessage(
+          '✅ Foto copiada al día recuperado. Ahora puedes cambiar tu foto de hoy.',
+        );
+      }
 
       await refreshProfile();
       await fetchYesterdayPhotos();
       await fetchHistory();
     } catch (err: any) {
-      setError(err?.message || 'Error al aplicar recuperación');
+      setError(
+        recoveryApplied
+          ? 'El comodín se aplicó, pero faltó guardar tu foto. Toca ese día en la línea para terminar. ' +
+              (err?.message || '')
+          : err?.message || 'Error al aplicar recuperación',
+      );
+      if (recoveryApplied) {
+        setShowRecovery(false);
+        setRecoveryDay(null);
+        await refreshProfile();
+        await fetchHistory();
+      }
       setRecoveryStep('confirm');
     } finally {
       setUsingRecovery(false);
@@ -855,6 +917,28 @@ export default function Streak() {
     } finally {
       setPastDayUploading(false);
       if (pastDayFileInputRef.current) pastDayFileInputRef.current.value = '';
+    }
+  };
+
+  const handleReuseTodayForPastDay = async () => {
+    if (!pastDayUpload || !todayPhotos.myPhoto || pastDayUploading) return;
+    setPastDayUploading(true);
+    setError('');
+    try {
+      await copyTodayPhotoToRecoveredDay(pastDayUpload.date);
+      const date = pastDayUpload.date;
+      if (pastDayPreviewUrl) URL.revokeObjectURL(pastDayPreviewUrl);
+      setPastDayUpload(null);
+      setPastDayPreviewFile(null);
+      setPastDayPreviewUrl(null);
+      setSuccessMessage(
+        `✅ Foto de hoy copiada al ${formatDate(date, 'medium')}. Ahora puedes cambiar la foto de hoy.`,
+      );
+      await fetchHistory();
+    } catch (err: any) {
+      setError(err?.message || 'No se pudo copiar la foto de hoy.');
+    } finally {
+      setPastDayUploading(false);
     }
   };
 
@@ -1008,7 +1092,9 @@ export default function Streak() {
             </p>
             {recoveriesRemaining > 0 && !yesterdayComplete && (
               <p className="text-center text-secondary" style={{ fontSize: 'var(--font-size-xs)' }}>
-                Toca un día faltante en la línea de días para recuperarlo.
+                {iMissedYesterday
+                  ? 'Toca el día faltante en la línea para recuperar tu foto.'
+                  : `${partnerName} puede tocar el día faltante para recuperar su foto.`}
               </p>
             )}
           </div>
@@ -1047,7 +1133,7 @@ export default function Streak() {
               className="text-center"
               style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}
             >
-              Vista previa de tu fotografía
+              {todayPhotos.myPhoto ? 'Nueva foto para hoy' : 'Vista previa de tu fotografía'}
             </div>
             <div style={{ position: 'relative' }}>
               <img
@@ -1137,6 +1223,8 @@ export default function Streak() {
                     />
                     Subiendo foto...
                   </span>
+                ) : todayPhotos.myPhoto ? (
+                  'Confirmar cambio'
                 ) : (
                   'Confirmar y subir'
                 )}
@@ -1310,6 +1398,17 @@ export default function Streak() {
           </div>
         )}
 
+        {todayPhotos.myPhoto && !previewUrl && (
+          <div className="stack stack--sm">
+            <button className="btn btn--ghost btn--sm btn--full" onClick={handleOpenUpload}>
+              Cambiar mi foto de hoy
+            </button>
+            <p className="text-secondary text-center" style={{ fontSize: 'var(--font-size-xs)' }}>
+              Si esta foto era para un día faltante, recupéralo primero desde la línea de días.
+            </p>
+          </div>
+        )}
+
         <input
           ref={fileInputRef}
           type="file"
@@ -1394,6 +1493,7 @@ export default function Streak() {
                 const canUpload = status === 'recovered' && !h.myPhoto;
                 const canRecover =
                   !h.isRecovered &&
+                  !h.myPhoto &&
                   status !== 'complete' &&
                   recoveriesRemaining > 0 &&
                   !showRecovery;
@@ -1524,11 +1624,9 @@ export default function Streak() {
                       className="text-secondary"
                       style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}
                     >
-                      {recoveryDay && !recoveryDay.myPhoto
-                        ? !recoveryDay.partnerPhoto
-                          ? `Ambos faltaron el ${formatDate(recoveryDay.date, 'medium')}. Sube tu foto para recuperar ese día.`
-                          : `Te faltó la foto del ${formatDate(recoveryDay.date, 'medium')}. Súbela para recuperar ese día.`
-                        : `${partnerName} no subió foto el ${recoveryDay ? formatDate(recoveryDay.date, 'medium') : ''}. ¿Usar un comodín para recuperarlo?`}
+                      {recoveryDay && !recoveryDay.partnerPhoto
+                        ? `Ambos faltaron el ${formatDate(recoveryDay.date, 'medium')}. Sube tu foto para recuperar ese día.`
+                        : `Te faltó la foto del ${recoveryDay ? formatDate(recoveryDay.date, 'medium') : ''}. Súbela para recuperar ese día.`}
                     </p>
                   </div>
 
@@ -1550,14 +1648,10 @@ export default function Streak() {
 
                   <button
                     className="btn btn--primary btn--full btn--lg"
-                    onClick={handleUseRecovery}
+                    onClick={() => handleUseRecovery()}
                     disabled={usingRecovery}
                   >
-                    {recoveryDay && !recoveryDay.myPhoto
-                      ? 'Siguiente: Subir foto'
-                      : usingRecovery
-                        ? 'Recuperando...'
-                        : 'Confirmar recuperación'}
+                    Siguiente: elegir foto
                   </button>
                   <button className="btn btn--ghost btn--full" onClick={handleCancelRecovery}>
                     Cancelar
@@ -1644,11 +1738,29 @@ export default function Streak() {
 
                   <button
                     className="btn btn--primary btn--full btn--lg"
-                    onClick={handleUseRecovery}
+                    onClick={() => handleUseRecovery()}
                     disabled={!recoveryPreviewFile || usingRecovery}
                   >
                     {usingRecovery ? 'Recuperando...' : 'Confirmar y recuperar racha'}
                   </button>
+
+                  {todayPhotos.myPhoto && (
+                    <button
+                      className="btn btn--secondary btn--full"
+                      onClick={() => handleUseRecovery(true)}
+                      disabled={usingRecovery}
+                    >
+                      Usar una copia de mi foto de hoy
+                    </button>
+                  )}
+                  {todayPhotos.myPhoto && (
+                    <p
+                      className="text-secondary text-center"
+                      style={{ fontSize: 'var(--font-size-xs)' }}
+                    >
+                      Después podrás cambiar la foto de hoy sin perder la recuperada.
+                    </p>
+                  )}
 
                   {recoveryPreviewUrl && (
                     <button
@@ -1770,6 +1882,16 @@ export default function Streak() {
               >
                 {pastDayUploading ? 'Subiendo...' : 'Confirmar y subir foto'}
               </button>
+
+              {todayPhotos.myPhoto && (
+                <button
+                  className="btn btn--secondary btn--full"
+                  onClick={handleReuseTodayForPastDay}
+                  disabled={pastDayUploading}
+                >
+                  Usar una copia de mi foto de hoy
+                </button>
+              )}
 
               {pastDayPreviewUrl && (
                 <button
