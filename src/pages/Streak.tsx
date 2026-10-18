@@ -255,6 +255,8 @@ export default function Streak() {
   const recoveryFileInputRef = useRef<HTMLInputElement>(null);
   const pastDayFileInputRef = useRef<HTMLInputElement>(null);
   const lastUploadRef = useRef<{ file: File; flip: boolean } | null>(null);
+  const todayPhotoRequestRef = useRef(0);
+  const todayPhotoScopeRef = useRef('');
 
   const today = getTodayInTimezone();
   const yesterday = (() => {
@@ -281,6 +283,14 @@ export default function Streak() {
 
   const fetchTodayPhotos = useCallback(async () => {
     if (!couple || !profile) return;
+    const requestId = ++todayPhotoRequestRef.current;
+    const scope = `${couple.id}:${profile.id}:${today}`;
+    if (todayPhotoScopeRef.current !== scope) {
+      todayPhotoScopeRef.current = scope;
+      setTodayPhotos({ date: today, myPhoto: null, partnerPhoto: null });
+      setMyPhotoUrl(null);
+      setPartnerPhotoUrl(null);
+    }
 
     if (isMockMode) {
       const mockMyPhoto: StreakPhoto = {
@@ -319,21 +329,19 @@ export default function Streak() {
     if (data) {
       const myPhoto = data.find((p: StreakPhoto) => p.user_id === profile.id) || null;
       const partnerPhoto = data.find((p: StreakPhoto) => p.user_id !== profile.id) || null;
+      if (requestId !== todayPhotoRequestRef.current) return;
       setTodayPhotos({ date: today, myPhoto, partnerPhoto });
-
-      if (myPhoto) {
-        const { data: urlData } = await supabase.storage
-          .from('photos')
-          .createSignedUrl(myPhoto.storage_path, 3600);
-        if (urlData) setMyPhotoUrl(urlData.signedUrl);
-      }
-
-      if (partnerPhoto && myPhoto) {
-        const { data: urlData } = await supabase.storage
-          .from('photos')
-          .createSignedUrl(partnerPhoto.storage_path, 3600);
-        if (urlData) setPartnerPhotoUrl(urlData.signedUrl);
-      }
+      const [myUrl, partnerUrl] = await Promise.all([
+        myPhoto
+          ? supabase.storage.from('photos').createSignedUrl(myPhoto.storage_path, 3600)
+          : Promise.resolve(null),
+        myPhoto && partnerPhoto
+          ? supabase.storage.from('photos').createSignedUrl(partnerPhoto.storage_path, 3600)
+          : Promise.resolve(null),
+      ]);
+      if (requestId !== todayPhotoRequestRef.current) return;
+      setMyPhotoUrl(myUrl?.data?.signedUrl ?? null);
+      setPartnerPhotoUrl(partnerUrl?.data?.signedUrl ?? null);
     }
   }, [couple?.id, profile?.id, today, isMockMode]);
 
@@ -476,6 +484,18 @@ export default function Streak() {
     fetchYesterdayPhotos();
     fetchHistory();
   }, [fetchTodayPhotos, fetchYesterdayPhotos, fetchHistory]);
+
+  useEffect(() => {
+    const refreshVisiblePhotos = () => {
+      if (document.visibilityState === 'visible') void fetchTodayPhotos();
+    };
+    document.addEventListener('visibilitychange', refreshVisiblePhotos);
+    const timer = setInterval(refreshVisiblePhotos, 50 * 60 * 1000);
+    return () => {
+      document.removeEventListener('visibilitychange', refreshVisiblePhotos);
+      clearInterval(timer);
+    };
+  }, [fetchTodayPhotos]);
 
   // Prevent accidental close during upload
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { compressImage, parseHeroAlbumPaths, serializeHeroAlbumPaths } from '../lib/utils';
+import { saveCachedHeroImages } from '../lib/heroAlbumCache';
 import type { Couple } from '../lib/types';
 import type { FilmRollItem } from '../components/PhotoFilmRoll';
 
@@ -106,15 +107,11 @@ export function useHeroAlbum(
   }, []);
 
   const publish = useCallback((id: string, next: FilmRollItem[]) => {
-    try {
-      const key = `coliflor_hero_images:${id}`;
-      if (next.length)
-        localStorage.setItem(
-          key,
-          JSON.stringify(next.filter((item) => item.url).map((item) => item.url)),
-        );
-      else localStorage.removeItem(key);
-    } catch {}
+    saveCachedHeroImages(
+      id,
+      next.map((item) => item.path),
+      next.map((item) => item.url),
+    );
     if (scopeRef.current !== id || !mountedRef.current) return;
     itemsRef.current = next;
     setItems(next);

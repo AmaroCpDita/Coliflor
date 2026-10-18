@@ -12,7 +12,6 @@ import {
   getTodayInTimezone,
   formatDate,
   getNowInTimezone,
-  compressImage,
 } from '../lib/utils';
 import type { CalendarEvent, EventCategory, StreakPhoto } from '../lib/types';
 import Lightbox from '../components/Lightbox';
@@ -119,21 +118,6 @@ function IconCamera() {
   );
 }
 
-const loadCache = () => {
-  try {
-    const e = localStorage.getItem('calendar_cache_events');
-    const p = localStorage.getItem('calendar_cache_photos');
-    return {
-      eventsMap: e ? new Map(JSON.parse(e)) : new Map(),
-      photosMap: p ? new Map(JSON.parse(p)) : new Map(),
-    };
-  } catch {
-    return { eventsMap: new Map(), photosMap: new Map() };
-  }
-};
-
-const calendarCache = loadCache();
-
 export default function Calendar() {
   const { couple, profile, partner, isMockMode } = useAuth();
   const now = getNowInTimezone();
@@ -141,12 +125,11 @@ export default function Calendar() {
   const [month, setMonth] = useState(now.month);
 
   // Events and photos maps for visible month
-  const [eventsMap, setEventsMap] = useState<Map<string, CalendarEvent[]>>(calendarCache.eventsMap);
-  const [photosMap, setPhotosMap] = useState<Map<string, DayPhotos>>(calendarCache.photosMap);
+  const [eventsMap, setEventsMap] = useState<Map<string, CalendarEvent[]>>(() => new Map());
+  const [photosMap, setPhotosMap] = useState<Map<string, DayPhotos>>(() => new Map());
 
   // Selected date modal state
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedDayPhotos, setSelectedDayPhotos] = useState<DayPhotos | null>(null);
   const [lightboxData, setLightboxData] = useState<{ url: string; name: string } | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -169,73 +152,35 @@ export default function Calendar() {
   const [editCategory, setEditCategory] = useState<EventCategory>('nos_vimos');
 
   const noteInputRef = useRef<HTMLTextAreaElement>(null);
+  const fetchIdRef = useRef(0);
+  const calendarScopeRef = useRef('');
   const today = getTodayInTimezone();
   const calendarDays = getCalendarDays(year, month);
   const monthName = getMonthName(year, month);
+  const selectedDayPhotos = selectedDate ? photosMap.get(selectedDate) || null : null;
+
+  useEffect(() => {
+    // Remove the former unscoped cache, which included expiring private photo URLs.
+    try {
+      localStorage.removeItem('calendar_cache_events');
+      localStorage.removeItem('calendar_cache_photos');
+    } catch {
+      // The calendar still works when browser storage is unavailable.
+    }
+  }, []);
 
   const partnerName = partner ? partner.display_name : 'Tu pareja';
   const myName = profile?.display_name || 'Tú';
 
-  // Temporario: Subir foto pasada
-  const [uploadingPast, setUploadingPast] = useState(false);
-  const tempFileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleTempUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !couple || !profile) return;
-
-    setUploadingPast(true);
-    setError('');
-
-    try {
-      const compressed = await compressImage(file, 1200, 0.7, false);
-      const storagePath = `${couple.id}/${selectedDate}/${profile.id}.jpg`;
-
-      const uploadPromise = supabase.storage.from('photos').upload(storagePath, compressed, {
-        contentType: 'image/jpeg',
-        upsert: true,
-      });
-
-      const uploadTimeout = new Promise<never>((_, reject) =>
-        setTimeout(
-          () =>
-            reject(
-              new Error(
-                'La subida tardó demasiado tiempo. Verifica tu conexión a internet o intenta nuevamente.',
-              ),
-            ),
-          25000,
-        ),
-      );
-
-      const { error: uploadError } = (await Promise.race([uploadPromise, uploadTimeout])) as {
-        data: any;
-        error: any;
-      };
-
-      if (uploadError) throw uploadError;
-
-      // Update the DB record to point to the real photo instead of recovery
-      const targetUserId = profile.id;
-      await supabase
-        .from('streak_photos')
-        .update({ storage_path: storagePath })
-        .eq('couple_id', couple.id)
-        .eq('photo_date', selectedDate)
-        .eq('user_id', targetUserId);
-
-      await fetchEventsAndPhotos();
-      alert('¡Foto subida con éxito!');
-    } catch (err: any) {
-      alert('Error al subir: ' + err.message);
-    } finally {
-      setUploadingPast(false);
-      if (tempFileInputRef.current) tempFileInputRef.current.value = '';
-    }
-  };
-
   const fetchEventsAndPhotos = useCallback(async () => {
     if (!couple || !profile) return;
+    const fetchId = ++fetchIdRef.current;
+    const scope = `${couple.id}:${year}:${month}:${profile.id}`;
+    if (calendarScopeRef.current !== scope) {
+      calendarScopeRef.current = scope;
+      setEventsMap(new Map());
+      setPhotosMap(new Map());
+    }
 
     if (isMockMode) {
       const mockEvts: CalendarEvent[] = [
@@ -287,7 +232,6 @@ export default function Calendar() {
         list.push(evt);
         map.set(evt.event_date, list);
       });
-      calendarCache.eventsMap = map;
       setEventsMap(map);
 
       // Mock photos
@@ -298,7 +242,6 @@ export default function Calendar() {
         partnerPhotoUrl:
           'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
       });
-      calendarCache.photosMap = pMap;
       setPhotosMap(pMap);
       return;
     }
@@ -310,20 +253,23 @@ export default function Calendar() {
     const lastDay = visibleDays[visibleDays.length - 1].date;
 
     try {
-      const [{ data: eventsData, error: mErr }, { data: photosData }] = await Promise.all([
-        supabase
-          .from('calendar_events')
-          .select('*')
-          .eq('couple_id', couple.id)
-          .gte('event_date', firstDay)
-          .lte('event_date', lastDay),
-        supabase
-          .from('streak_photos')
-          .select('*')
-          .eq('couple_id', couple.id)
-          .gte('photo_date', firstDay)
-          .lte('photo_date', lastDay),
-      ]);
+      const [{ data: eventsData, error: mErr }, { data: photosData, error: photosError }] =
+        await Promise.all([
+          supabase
+            .from('calendar_events')
+            .select('*')
+            .eq('couple_id', couple.id)
+            .gte('event_date', firstDay)
+            .lte('event_date', lastDay),
+          supabase
+            .from('streak_photos')
+            .select('*')
+            .eq('couple_id', couple.id)
+            .gte('photo_date', firstDay)
+            .lte('photo_date', lastDay),
+        ]);
+      if (fetchId !== fetchIdRef.current) return;
+      if (photosError) throw photosError;
 
       if (mErr && mErr.message.includes('calendar_events')) {
         setTableMissing(true);
@@ -338,9 +284,7 @@ export default function Calendar() {
           list.push(evt);
           map.set(evt.event_date, list);
         });
-        calendarCache.eventsMap = map;
         setEventsMap(map);
-        localStorage.setItem('calendar_cache_events', JSON.stringify(Array.from(map.entries())));
       }
 
       if (photosData) {
@@ -353,9 +297,7 @@ export default function Calendar() {
           pMap.set(p.photo_date, existing);
         }
 
-        calendarCache.photosMap = new Map(pMap);
         setPhotosMap(new Map(pMap));
-        localStorage.setItem('calendar_cache_photos', JSON.stringify(Array.from(pMap.entries())));
 
         // 2. Cargar las URLs de las fotos en paralelo (asíncrono) para no bloquear la interfaz
         await Promise.all(
@@ -385,14 +327,12 @@ export default function Calendar() {
           }),
         );
 
-        calendarCache.photosMap = new Map(pMap);
-        setPhotosMap(new Map(pMap));
-        localStorage.setItem('calendar_cache_photos', JSON.stringify(Array.from(pMap.entries())));
+        if (fetchId === fetchIdRef.current) setPhotosMap(new Map(pMap));
       }
     } catch {
-      setTableMissing(true);
+      if (fetchId === fetchIdRef.current) setError('No se pudo cargar el calendario.');
     } finally {
-      setLoading(false);
+      if (fetchId === fetchIdRef.current) setLoading(false);
     }
   }, [couple?.id, profile?.id, year, month, isMockMode, today]);
 
@@ -449,7 +389,6 @@ export default function Calendar() {
 
   const handleDayClick = (dateStr: string) => {
     setSelectedDate(dateStr);
-    setSelectedDayPhotos(photosMap.get(dateStr) || null);
     setTitle('');
     setNote('');
     setCategory('nos_vimos');
@@ -1336,16 +1275,6 @@ export default function Calendar() {
                               >
                                 Racha recuperada
                               </span>
-                              {selectedDate === '2026-09-07' && (
-                                <button
-                                  className="btn btn--primary btn--sm"
-                                  style={{ marginTop: '8px', padding: '4px 8px', fontSize: '10px' }}
-                                  onClick={() => tempFileInputRef.current?.click()}
-                                  disabled={uploadingPast}
-                                >
-                                  {uploadingPast ? 'Subiendo...' : 'Subir'}
-                                </button>
-                              )}
                             </div>
                           ) : selectedDayPhotos.myPhotoUrl ? (
                             <>
@@ -1365,16 +1294,6 @@ export default function Calendar() {
                           ) : (
                             <div className="photo-card__placeholder" style={{ zIndex: 2 }}>
                               <span style={{ opacity: 0.5, fontSize: '10px' }}>Sin foto</span>
-                              {selectedDate === '2026-09-07' && (
-                                <button
-                                  className="btn btn--primary btn--sm"
-                                  style={{ marginTop: '8px', padding: '4px 8px', fontSize: '10px' }}
-                                  onClick={() => tempFileInputRef.current?.click()}
-                                  disabled={uploadingPast}
-                                >
-                                  {uploadingPast ? 'Subiendo...' : 'Subir'}
-                                </button>
-                              )}
                             </div>
                           )}
                         </div>
@@ -1412,16 +1331,6 @@ export default function Calendar() {
                               >
                                 Racha recuperada
                               </span>
-                              {selectedDate === '2026-09-07' && (
-                                <button
-                                  className="btn btn--primary btn--sm"
-                                  style={{ marginTop: '8px', padding: '4px 8px', fontSize: '10px' }}
-                                  onClick={() => tempFileInputRef.current?.click()}
-                                  disabled={uploadingPast}
-                                >
-                                  {uploadingPast ? 'Subiendo...' : 'Subir'}
-                                </button>
-                              )}
                             </div>
                           ) : selectedDayPhotos.partnerPhotoUrl ? (
                             <>
@@ -1441,26 +1350,9 @@ export default function Calendar() {
                           ) : (
                             <div className="photo-card__placeholder" style={{ zIndex: 2 }}>
                               <span style={{ opacity: 0.5, fontSize: '10px' }}>Sin foto</span>
-                              {selectedDate === '2026-09-07' && (
-                                <button
-                                  className="btn btn--primary btn--sm"
-                                  style={{ marginTop: '8px', padding: '4px 8px', fontSize: '10px' }}
-                                  onClick={() => tempFileInputRef.current?.click()}
-                                  disabled={uploadingPast}
-                                >
-                                  {uploadingPast ? 'Subiendo...' : 'Subir'}
-                                </button>
-                              )}
                             </div>
                           )}
                         </div>
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp,image/*"
-                          ref={tempFileInputRef}
-                          style={{ display: 'none' }}
-                          onChange={handleTempUpload}
-                        />
                       </div>
                     </div>
                   </div>

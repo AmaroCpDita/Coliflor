@@ -9,6 +9,7 @@ import HeroPageTurn from '../components/HeroPageTurn';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { daysSince, generateInviteCode, parseHeroAlbumPaths } from '../lib/utils';
+import { readCachedHeroImages, saveCachedHeroImages } from '../lib/heroAlbumCache';
 import { supabase } from '../lib/supabase';
 import { sendPushNotification } from '../lib/push';
 import { getCelebration, Celebration, CelebrationType } from '../lib/celebrations';
@@ -322,15 +323,9 @@ export default function Home() {
   // Dynamic Hero Image Album (up to 20 images with 4s page-turn effect)
   const heroCoupleRef = useRef(couple?.id);
   const [heroImages, setHeroImages] = useState<string[]>(() => {
-    try {
-      const cached = couple?.id ? localStorage.getItem(`coliflor_hero_images:${couple.id}`) : null;
-      const parsed = JSON.parse(cached || '[]');
-      return Array.isArray(parsed)
-        ? parsed.filter((url): url is string => typeof url === 'string')
-        : [];
-    } catch {
-      return [];
-    }
+    return couple?.id
+      ? readCachedHeroImages(couple.id, parseHeroAlbumPaths(couple.hero_image_path))
+      : [];
   });
 
   useEffect(() => {
@@ -340,15 +335,13 @@ export default function Home() {
       setHeroImages([]);
       return;
     }
-    const key = `coliflor_hero_images:${couple.id}`;
     const paths = parseHeroAlbumPaths(couple.hero_image_path);
     if (!paths.length) {
-      try {
-        localStorage.removeItem(key);
-      } catch {}
+      saveCachedHeroImages(couple.id, [], []);
       setHeroImages([]);
       return;
     }
+    setHeroImages(readCachedHeroImages(couple.id, paths));
     let active = true;
     const refreshImages = async () => {
       try {
@@ -370,9 +363,7 @@ export default function Home() {
         );
         const valid = urls.filter((url): url is string => Boolean(url));
         if (!active || !valid.length) return;
-        try {
-          localStorage.setItem(key, JSON.stringify(valid));
-        } catch {}
+        saveCachedHeroImages(couple.id, paths, valid);
         setHeroImages(valid);
       } catch {
         // Keep the current photographs visible through a temporary network failure.

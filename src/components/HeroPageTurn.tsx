@@ -125,30 +125,50 @@ export default function HeroPageTurn({
   const goToPage = useCallback(
     async (direction: number) => {
       if (!hasMultiple || !currentImage || busyRef.current) return;
-      const toIndex = (safeIndex + direction + activeImages.length) % activeImages.length;
-      if (reducedMotion) {
-        setSelection({ key: playbackKey, index: toIndex });
-        return;
-      }
       busyRef.current = true;
       setIsPreparing(true);
       const version = albumVersionRef.current;
+      let startedTurn = false;
       try {
-        const [from, to] = await Promise.all([
-          loadImage(currentImage),
-          loadImage(activeImages[toIndex]),
-        ]);
-        if (version !== albumVersionRef.current) return;
-        setFallback(false);
-        setTurn({ from, to, toIndex, toUrl: activeImages[toIndex], direction });
-      } catch {
-        if (version === albumVersionRef.current) busyRef.current = false;
+        const from = await loadImage(currentImage).catch(() => null);
+        for (let step = 1; step < activeImages.length; step += 1) {
+          const toIndex =
+            (safeIndex + direction * step + activeImages.length) % activeImages.length;
+          try {
+            const to = await loadImage(activeImages[toIndex]);
+            if (version !== albumVersionRef.current) return;
+            if (!from || reducedMotion) {
+              setSelection({ key: playbackKey, index: toIndex });
+            } else {
+              setFallback(false);
+              setTurn({ from, to, toIndex, toUrl: activeImages[toIndex], direction });
+              startedTurn = true;
+            }
+            return;
+          } catch {
+            // A missing frame should not block the rest of the album.
+          }
+        }
       } finally {
-        if (version === albumVersionRef.current) setIsPreparing(false);
+        if (version === albumVersionRef.current) {
+          setIsPreparing(false);
+          if (!startedTurn) busyRef.current = false;
+        }
       }
     },
     [activeImages, currentImage, hasMultiple, loadImage, reducedMotion, safeIndex, playbackKey],
   );
+
+  useEffect(() => {
+    if (!currentImage || !hasMultiple) return;
+    let active = true;
+    void loadImage(currentImage).catch(() => {
+      if (active) void goToPage(1);
+    });
+    return () => {
+      active = false;
+    };
+  }, [currentImage, hasMultiple, loadImage, goToPage]);
 
   useLayoutEffect(() => {
     if (!turn) {
@@ -189,10 +209,10 @@ export default function HeroPageTurn({
   }, [turn, reducedMotion, playbackKey]);
 
   useEffect(() => {
-    if (!hasMultiple || isPaused || isPreparing || turn || reducedMotion) return;
+    if (!hasMultiple || isPaused || isPreparing || turn) return;
     const timer = setTimeout(() => void goToPage(1), intervalMs);
     return () => clearTimeout(timer);
-  }, [hasMultiple, intervalMs, isPaused, isPreparing, turn, reducedMotion, goToPage]);
+  }, [hasMultiple, intervalMs, isPaused, isPreparing, turn, goToPage]);
 
   useEffect(
     () => () => {
