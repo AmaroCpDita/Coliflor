@@ -235,6 +235,7 @@ export default function Streak() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [showRecovery, setShowRecovery] = useState(false);
+  const [recoveryDay, setRecoveryDay] = useState<HistoryDay | null>(null);
   const [recoveryStep, setRecoveryStep] = useState<'confirm' | 'photo' | 'uploading'>('confirm');
   const [recoveryPreviewFile, setRecoveryPreviewFile] = useState<File | null>(null);
   const [recoveryPreviewUrl, setRecoveryPreviewUrl] = useState<string | null>(null);
@@ -265,10 +266,6 @@ export default function Streak() {
   const recoveriesRemaining = couple ? MAX_RECOVERIES_PER_MONTH - couple.recoveries_used : 0;
   const dayComplete = todayPhotos.myPhoto !== null && todayPhotos.partnerPhoto !== null;
 
-  // Detect broken streak: trust backend current_streak as source of truth.
-  // The backend tracks streak correctly even after cleanup_old_photos runs.
-  const streakBroken = couple !== null && couple.current_streak === 0 && !yesterdayRecovered;
-
   // Detect who is missing photo for yesterday (for recovery).
   // Note: If cleanup already ran, both will be null — but if streak is broken
   // and we have partial data, use it to determine who missed.
@@ -279,6 +276,8 @@ export default function Streak() {
   // Yesterday is complete only if BOTH photos exist
   const yesterdayComplete =
     yesterdayPhotos.myPhoto !== null && yesterdayPhotos.partnerPhoto !== null;
+  const streakBroken =
+    couple !== null && couple.current_streak === 0 && !yesterdayComplete && !yesterdayRecovered;
 
   const fetchTodayPhotos = useCallback(async () => {
     if (!couple || !profile) return;
@@ -660,10 +659,10 @@ export default function Streak() {
   };
 
   // --- Recovery Flow ---
-  const handleStartRecovery = () => {
+  const handleStartRecovery = (day: HistoryDay) => {
+    setRecoveryDay(day);
     setShowRecovery(true);
-    // If I'm the one who missed, go to photo step; otherwise just confirm
-    setRecoveryStep(iMissedYesterday ? 'confirm' : 'confirm');
+    setRecoveryStep('confirm');
     setRecoveryPreviewFile(null);
     setRecoveryPreviewUrl(null);
     setRecoveryFlip(false);
@@ -679,10 +678,10 @@ export default function Streak() {
   };
 
   const handleUseRecovery = async () => {
-    if (!couple || !profile || usingRecovery) return;
+    if (!couple || !profile || !recoveryDay || usingRecovery) return;
 
-    // If I missed yesterday's photo, require photo upload first
-    if (iMissedYesterday && recoveryStep === 'confirm') {
+    // If I missed this day's photo, require photo upload first.
+    if (!recoveryDay.myPhoto && recoveryStep === 'confirm') {
       setRecoveryStep('photo');
       return;
     }
@@ -695,15 +694,15 @@ export default function Streak() {
       // Step 1: Apply recovery
       const { error: rpcError } = await supabase.rpc('use_streak_recovery', {
         p_couple_id: couple.id,
-        p_date: yesterday,
+        p_date: recoveryDay.date,
       });
 
       if (rpcError) throw rpcError;
 
       // Step 2: Upload recovery photo if I missed it
-      if (iMissedYesterday && recoveryPreviewFile) {
+      if (!recoveryDay.myPhoto && recoveryPreviewFile) {
         const compressed = await compressImage(recoveryPreviewFile, 1200, 0.7, recoveryFlip);
-        const storagePath = `${couple.id}/${yesterday}/${profile.id}.jpg`;
+        const storagePath = `${couple.id}/${recoveryDay.date}/${profile.id}.jpg`;
 
         const uploadPromise = supabase.storage.from('photos').upload(storagePath, compressed, {
           contentType: 'image/jpeg',
@@ -732,7 +731,7 @@ export default function Streak() {
         const { error: photoError } = await supabase.rpc('register_recovery_photo', {
           p_couple_id: couple.id,
           p_storage_path: storagePath,
-          p_photo_date: yesterday,
+          p_photo_date: recoveryDay.date,
         });
 
         if (photoError) console.warn('Recovery photo registration warning:', photoError);
@@ -755,6 +754,7 @@ export default function Streak() {
       setRecoveryPreviewFile(null);
       setRecoveryPreviewUrl(null);
       setShowRecovery(false);
+      setRecoveryDay(null);
       setRecoveryStep('confirm');
 
       await refreshProfile();
@@ -774,6 +774,7 @@ export default function Streak() {
     setRecoveryPreviewFile(null);
     setRecoveryPreviewUrl(null);
     setShowRecovery(false);
+    setRecoveryDay(null);
     setRecoveryStep('confirm');
     setError('');
   };
@@ -1005,21 +1006,10 @@ export default function Streak() {
                   ? `Solo ${partnerName} subió foto ayer. Te faltó la tuya.`
                   : `Solo tú subiste foto ayer. ${partnerName} no subió la suya.`}
             </p>
-            {recoveriesRemaining > 0 && (
-              <button
-                className="btn btn--full"
-                onClick={handleStartRecovery}
-                style={{
-                  background:
-                    'linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(251, 191, 36, 0.1))',
-                  border: '1px solid rgba(251, 191, 36, 0.4)',
-                  color: '#fbbf24',
-                  fontWeight: 700,
-                  fontSize: 'var(--font-size-sm)',
-                }}
-              >
-                🛡️ Usar comodín de recuperación ({recoveriesRemaining} restantes)
-              </button>
+            {recoveriesRemaining > 0 && !yesterdayComplete && (
+              <p className="text-center text-secondary" style={{ fontSize: 'var(--font-size-xs)' }}>
+                Toca un día faltante en la línea de días para recuperarlo.
+              </p>
             )}
           </div>
         )}
@@ -1355,43 +1345,28 @@ export default function Streak() {
           style={{ display: 'none' }}
         />
 
-        {/* Monthly Recoveries Box (only show if streak is NOT broken — otherwise the banner above handles it) */}
-        {!streakBroken && (
-          <div className="glass-card" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-            <div className="row row--between">
-              <div className="row row--gap-sm">
-                <span style={{ color: 'var(--color-warning)' }}>
-                  <IconShield />
-                </span>
-                <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
-                  Comodines disponibles
-                </span>
-              </div>
-              <span
-                style={{
-                  fontWeight: 700,
-                  color: 'var(--color-warning)',
-                  fontSize: 'var(--font-size-sm)',
-                }}
-              >
-                {recoveriesRemaining}/{MAX_RECOVERIES_PER_MONTH}
+        {/* Monthly recovery balance */}
+        <div className="glass-card" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+          <div className="row row--between">
+            <div className="row row--gap-sm">
+              <span style={{ color: 'var(--color-warning)' }}>
+                <IconShield />
+              </span>
+              <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
+                Comodines disponibles
               </span>
             </div>
-
-            {recoveriesRemaining > 0 &&
-              !showRecovery &&
-              !yesterdayComplete &&
-              !yesterdayRecovered && (
-                <button
-                  className="btn btn--ghost btn--sm btn--full"
-                  onClick={handleStartRecovery}
-                  style={{ marginTop: 'var(--space-sm)', fontSize: 'var(--font-size-xs)' }}
-                >
-                  Usar comodín para el día de ayer
-                </button>
-              )}
+            <span
+              style={{
+                fontWeight: 700,
+                color: 'var(--color-warning)',
+                fontSize: 'var(--font-size-sm)',
+              }}
+            >
+              {recoveriesRemaining}/{MAX_RECOVERIES_PER_MONTH}
+            </span>
           </div>
-        )}
+        </div>
 
         {/* 7-Day Timeline */}
         {history.length > 0 && (
@@ -1417,14 +1392,34 @@ export default function Streak() {
                 });
 
                 const canUpload = status === 'recovered' && !h.myPhoto;
+                const canRecover =
+                  !h.isRecovered &&
+                  status !== 'complete' &&
+                  recoveriesRemaining > 0 &&
+                  !showRecovery;
+                const canInteract = canUpload || canRecover;
 
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={h.date}
-                    className={`streak-timeline__day streak-timeline__day--${status}`}
-                    title={formatDate(h.date, 'long')}
-                    onClick={() => canUpload && handleTimelineDayClick(h)}
-                    style={{ cursor: canUpload ? 'pointer' : 'default' }}
+                    className={`streak-timeline__day streak-timeline__day--${status}${canInteract ? ' streak-timeline__day--actionable' : ''}`}
+                    title={
+                      canRecover
+                        ? `Recuperar el ${formatDate(h.date, 'long')}`
+                        : formatDate(h.date, 'long')
+                    }
+                    aria-label={
+                      canRecover
+                        ? `Recuperar la racha del ${formatDate(h.date, 'long')}`
+                        : canUpload
+                          ? `Subir foto del ${formatDate(h.date, 'long')}`
+                          : undefined
+                    }
+                    onClick={() =>
+                      canRecover ? handleStartRecovery(h) : canUpload && handleTimelineDayClick(h)
+                    }
+                    disabled={!canInteract}
                   >
                     <div className="streak-timeline__label">{dayName}</div>
                     <div className="streak-timeline__circle">
@@ -1438,6 +1433,7 @@ export default function Streak() {
                       )}
                     </div>
                     <div className="streak-timeline__num">{dayNum}</div>
+                    {canRecover && <div className="streak-timeline__action">Recuperar</div>}
                     {canUpload && (
                       <div
                         style={{
@@ -1450,7 +1446,7 @@ export default function Streak() {
                         📸
                       </div>
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -1528,11 +1524,11 @@ export default function Streak() {
                       className="text-secondary"
                       style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}
                     >
-                      {iMissedYesterday
-                        ? bothMissedOrUnknown
-                          ? 'Ambos faltaron ayer. Sube tu foto ahora para recuperar la racha.'
-                          : 'Te faltó la foto de ayer. Súbela ahora para recuperar la racha.'
-                        : `${partnerName} no subió foto ayer. ¿Usar un comodín para mantener la racha?`}
+                      {recoveryDay && !recoveryDay.myPhoto
+                        ? !recoveryDay.partnerPhoto
+                          ? `Ambos faltaron el ${formatDate(recoveryDay.date, 'medium')}. Sube tu foto para recuperar ese día.`
+                          : `Te faltó la foto del ${formatDate(recoveryDay.date, 'medium')}. Súbela para recuperar ese día.`
+                        : `${partnerName} no subió foto el ${recoveryDay ? formatDate(recoveryDay.date, 'medium') : ''}. ¿Usar un comodín para recuperarlo?`}
                     </p>
                   </div>
 
@@ -1557,8 +1553,8 @@ export default function Streak() {
                     onClick={handleUseRecovery}
                     disabled={usingRecovery}
                   >
-                    {iMissedYesterday
-                      ? 'Siguiente: Subir foto de ayer'
+                    {recoveryDay && !recoveryDay.myPhoto
+                      ? 'Siguiente: Subir foto'
                       : usingRecovery
                         ? 'Recuperando...'
                         : 'Confirmar recuperación'}
@@ -1573,12 +1569,13 @@ export default function Streak() {
                 <>
                   <div className="text-center">
                     <div style={{ fontSize: '32px', marginBottom: '8px' }}>📸</div>
-                    <h3>Sube tu foto de ayer</h3>
+                    <h3>Sube tu foto del día faltante</h3>
                     <p
                       className="text-secondary"
                       style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}
                     >
-                      Sube la foto que te faltó para el {formatDate(yesterday, 'medium')}
+                      Sube la foto que te faltó para el{' '}
+                      {recoveryDay && formatDate(recoveryDay.date, 'medium')}
                     </p>
                   </div>
 

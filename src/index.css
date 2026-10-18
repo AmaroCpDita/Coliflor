@@ -1260,6 +1260,28 @@ body:has(textarea:focus) .chat-input-bar {
   align-items: center;
   gap: 4px;
   flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.streak-timeline__day--actionable {
+  cursor: pointer;
+}
+
+.streak-timeline__day--actionable:focus-visible {
+  outline: 2px solid var(--color-warning);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.streak-timeline__action {
+  color: var(--color-warning);
+  font-size: 8px;
+  font-weight: 700;
 }
 
 .streak-timeline__label {
@@ -1308,6 +1330,11 @@ body:has(textarea:focus) .chat-input-bar {
   border-color: var(--color-text-tertiary);
   border-style: dashed;
   background: transparent;
+}
+
+.streak-timeline__day--actionable .streak-timeline__circle {
+  border-color: var(--color-warning);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.14);
 }
 
 /* ============================================================
