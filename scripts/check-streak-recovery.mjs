@@ -1,0 +1,88 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { PGlite } from '../tmp.local/sql-check/node_modules/@electric-sql/pglite/dist/index.js';
+
+const db = new PGlite();
+const person = '00000000-0000-0000-0000-000000000001';
+const partner = '00000000-0000-0000-0000-000000000002';
+const couple = '10000000-0000-0000-0000-000000000001';
+const date = '2026-10-18';
+
+await db.exec(`
+  CREATE ROLE anon;
+  CREATE ROLE authenticated;
+  CREATE SCHEMA auth;
+  CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$
+    SELECT nullif(current_setting('test.uid', true), '')::uuid
+  $$;
+  CREATE FUNCTION get_today_santiago() RETURNS date LANGUAGE sql AS $$
+    SELECT '${date}'::date
+  $$;
+  CREATE TABLE couples (
+    id uuid PRIMARY KEY, user1_id uuid, user2_id uuid,
+    current_streak int, max_streak int,
+    recoveries_used int DEFAULT 0, recoveries_reset_month date DEFAULT '2026-10-01'
+  );
+  CREATE TABLE streak_photos (couple_id uuid, user_id uuid, photo_date date);
+  CREATE TABLE streak_recoveries (
+    couple_id uuid, recovered_date date, used_by uuid,
+    UNIQUE (couple_id, recovered_date)
+  );
+  INSERT INTO couples (id, user1_id, user2_id, current_streak, max_streak)
+  VALUES ('${couple}', '${person}', '${partner}', 52, 52);
+  SET test.uid = '${person}';
+  INSERT INTO streak_photos (couple_id, user_id, photo_date)
+  SELECT '${couple}', users.id, days.day::date
+  FROM generate_series('${date}'::date - 30, '${date}'::date - 2, '1 day') AS days(day)
+  CROSS JOIN (VALUES ('${person}'::uuid), ('${partner}'::uuid)) AS users(id);
+`);
+
+const migration = (number, name) =>
+  readFileSync(`supabase/migrations/${number}_${name}.sql`, 'utf8');
+const count = async () =>
+  (await db.query(`SELECT current_streak FROM couples WHERE id = '${couple}'`)).rows[0]
+    .current_streak;
+const recover = async () =>
+  db.query(`SELECT use_streak_recovery('${couple}', '${date}'::date - 1)`);
+
+await db.exec(migration('027', 'recover_own_photo_only'));
+await recover();
+assert.equal(await count(), 30, 'Reproduces the old 31-day boundary bug');
+
+await db.exec(`
+  DELETE FROM streak_recoveries;
+  UPDATE couples SET current_streak = 52, recoveries_used = 0;
+`);
+await db.exec(migration('028', 'preserve_long_streak_on_recovery'));
+await recover();
+assert.equal(await count(), 53, 'Preserves the 52-day streak with today pending');
+
+await db.exec(`
+  DELETE FROM streak_recoveries;
+  UPDATE couples SET current_streak = 52, recoveries_used = 0;
+  INSERT INTO streak_photos (couple_id, user_id, photo_date)
+  VALUES ('${couple}', '${person}', '${date}'), ('${couple}', '${partner}', '${date}');
+`);
+await recover();
+assert.equal(await count(), 53, 'Preserves the long streak with today complete');
+
+await db.exec(`
+  DELETE FROM streak_recoveries;
+  DELETE FROM streak_photos;
+  UPDATE couples SET current_streak = 4, max_streak = 52, recoveries_used = 0;
+  INSERT INTO streak_photos (couple_id, user_id, photo_date)
+  SELECT '${couple}', users.id, days.day::date
+  FROM generate_series('${date}'::date - 5, '${date}'::date - 2, '1 day') AS days(day)
+  CROSS JOIN (VALUES ('${person}'::uuid), ('${partner}'::uuid)) AS users(id);
+`);
+await recover();
+assert.equal(await count(), 5, 'A short streak does not inherit an old record');
+
+await db.exec(`
+  DELETE FROM streak_recoveries;
+  INSERT INTO streak_photos (couple_id, user_id, photo_date)
+  VALUES ('${couple}', '${person}', '${date}'::date - 1);
+`);
+await assert.rejects(recover(), /You already uploaded your photo/);
+
+console.log('Streak recovery boundary checks passed.');
