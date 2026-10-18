@@ -486,8 +486,15 @@ export default function Streak() {
   }, [fetchTodayPhotos, fetchYesterdayPhotos, fetchHistory]);
 
   useEffect(() => {
+    if (couple?.id && !isMockMode) void refreshProfile();
+  }, [couple?.id, isMockMode, refreshProfile]);
+
+  useEffect(() => {
     const refreshVisiblePhotos = () => {
-      if (document.visibilityState === 'visible') void fetchTodayPhotos();
+      if (document.visibilityState === 'visible') {
+        void fetchTodayPhotos();
+        if (couple?.id && !isMockMode) void refreshProfile();
+      }
     };
     document.addEventListener('visibilitychange', refreshVisiblePhotos);
     const timer = setInterval(refreshVisiblePhotos, 50 * 60 * 1000);
@@ -495,7 +502,7 @@ export default function Streak() {
       document.removeEventListener('visibilitychange', refreshVisiblePhotos);
       clearInterval(timer);
     };
-  }, [fetchTodayPhotos]);
+  }, [couple?.id, fetchTodayPhotos, isMockMode, refreshProfile]);
 
   // Prevent accidental close during upload
   useEffect(() => {
