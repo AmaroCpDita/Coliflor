@@ -278,14 +278,18 @@ export function createCompanionJourney(
   if (!visits.length) return null;
   const homeMax = COMPANION_HOME.max;
   const homeAbi = COMPANION_HOME.abi;
-  let visit: Visit | undefined;
+  let maxVisit: Visit | undefined;
+  let abiVisit: Visit | undefined;
   let maxPath: Point[] = [];
   let abiPath: Point[] = [];
+  // Some outings are shared; on the others each dog follows its own curiosity.
+  const together = visitIndex % 5 === 0 || visitIndex % 5 === 3;
   for (let offset = 0; offset < visits.length; offset++) {
-    const selected = visits[(visitIndex + offset) % visits.length];
+    const maxSelected = visits[(visitIndex + offset) % visits.length];
+    const abiSelected = visits[(visitIndex + offset + (together ? 0 : 1)) % visits.length];
     const driftX = Math.sin(visitIndex * 1.73) * 2.2;
     const driftY = Math.cos(visitIndex * 2.11) * 1.1;
-    const varied =
+    const vary = (selected: Visit): Visit =>
       selected.kind === 'meadow' || selected.id === 'path-flowers'
         ? {
             ...selected,
@@ -296,21 +300,21 @@ export function createCompanionJourney(
             },
           }
         : selected;
-    const candidate =
-      isClear(varied.point, objects) && isClear(varied.abiPoint, objects) ? varied : selected;
-    const companionGoal = candidate.abiPoint;
-    const candidateMax = findCompanionPath(start.max, candidate.point, objects);
-    const candidateAbi = isClear(companionGoal, objects)
-      ? findCompanionPath(start.abi, companionGoal, objects)
-      : [];
+    const variedMax = vary(maxSelected);
+    const variedAbi = vary(abiSelected);
+    const candidateMaxVisit = isClear(variedMax.point, objects) ? variedMax : maxSelected;
+    const candidateAbiVisit = isClear(variedAbi.abiPoint, objects) ? variedAbi : abiSelected;
+    const candidateMax = findCompanionPath(start.max, candidateMaxVisit.point, objects);
+    const candidateAbi = findCompanionPath(start.abi, candidateAbiVisit.abiPoint, objects);
     if (candidateMax.length && candidateAbi.length) {
-      visit = candidate;
+      maxVisit = candidateMaxVisit;
+      abiVisit = candidateAbiVisit;
       maxPath = candidateMax;
       abiPath = candidateAbi;
       break;
     }
   }
-  if (!visit) return null;
+  if (!maxVisit || !abiVisit) return null;
   const moments: CompanionMoment[] = [
     {
       duration: 700 + (visitIndex % 3) * 220,
@@ -324,6 +328,7 @@ export function createCompanionJourney(
     startMax: Point,
     startAbi: Point,
     energetic = false,
+    staggered = false,
   ) => {
     const count = Math.max(maxPoints.length, abiPoints.length);
     let previousMax = startMax;
@@ -333,17 +338,29 @@ export function createCompanionJourney(
     for (let index = 0; index < count; index++) {
       const max = maxPoints[index] || previousMax;
       const abi = abiPoints[index] || previousAbi;
-      const travel = Math.max(distance(previousMax, max), distance(previousAbi, abi));
+      const maxTravel = distance(previousMax, max);
+      const abiTravel = distance(previousAbi, abi);
+      const travel = Math.max(maxTravel, abiTravel);
       const duration = energetic
         ? Math.max(1500, Math.min(3500, Math.round(travel * 140)))
         : Math.max(2100, Math.min(5200, Math.round(travel * 220)));
       const maxDuration = Math.round(duration * (0.9 + (index % 3) * 0.04));
       const abiDuration = Math.round(duration * (0.79 + ((index + visitIndex) % 3) * 0.07));
-      const abiDelay = 130 + ((index + visitIndex) % 3) * 105;
-      const maxCue = movingCue(max, previousMax, maxDuration, 0, energetic, maxFacing);
-      const abiCue = movingCue(abi, previousAbi, abiDuration, abiDelay, energetic, abiFacing);
+      const maxDelay = staggered && index === 0 && visitIndex % 2 === 1 ? 1600 : 0;
+      const abiDelay =
+        130 +
+        ((index + visitIndex) % 3) * 105 +
+        (staggered && index === 0 && visitIndex % 2 === 0 ? 1550 : 0);
+      const maxCue =
+        maxTravel < 0.5
+          ? stillCue(max, maxFacing, 'watch')
+          : movingCue(max, previousMax, maxDuration, maxDelay, energetic, maxFacing);
+      const abiCue =
+        abiTravel < 0.5
+          ? stillCue(abi, abiFacing, 'watch')
+          : movingCue(abi, previousAbi, abiDuration, abiDelay, energetic, abiFacing);
       moments.push({
-        duration: Math.max(maxDuration, abiDuration + abiDelay) + 320,
+        duration: Math.max(maxDuration + maxDelay, abiDuration + abiDelay) + 320,
         max: maxCue,
         abi: abiCue,
       });
@@ -353,10 +370,10 @@ export function createCompanionJourney(
       previousAbi = abi;
     }
   };
-  addLeg(maxPath, abiPath, start.max, start.abi);
+  addLeg(maxPath, abiPath, start.max, start.abi, false, !together);
   let maxEnd = maxPath[maxPath.length - 1];
   let abiEnd = abiPath[abiPath.length - 1];
-  const activity: CompanionPose =
+  const activityFor = (visit: Visit): CompanionPose =>
     visit.kind === 'water'
       ? 'drink'
       : visit.kind === 'treehouse'
@@ -364,49 +381,78 @@ export function createCompanionJourney(
         : visit.kind === 'meadow'
           ? 'play'
           : visit.activity || 'sniff';
+  const maxActivity = activityFor(maxVisit);
+  const abiActivity = activityFor(abiVisit);
   moments.push({
-    duration: (visit.kind === 'water' ? 3900 : 2700) + (visitIndex % 3) * 350,
-    max: stillCue(maxEnd, visit.facingRight ?? true, activity),
+    duration:
+      (maxVisit.kind === 'water' || abiVisit.kind === 'water' ? 3900 : 2700) +
+      (visitIndex % 3) * 350,
+    max: stillCue(maxEnd, maxVisit.facingRight ?? true, maxActivity),
     abi: stillCue(
       abiEnd,
-      visit.abiFacingRight ?? visit.facingRight ?? true,
-      visit.kind === 'treehouse' ? 'play' : activity,
+      abiVisit.abiFacingRight ?? abiVisit.facingRight ?? true,
+      abiVisit.kind === 'treehouse' ? 'play' : abiActivity,
     ),
   });
-  if (visit.kind === 'water')
+  if (maxVisit.kind === 'water' || abiVisit.kind === 'water')
     moments.push({
       duration: 1650,
-      max: stillCue(maxEnd, visit.facingRight ?? true, 'shake'),
-      abi: stillCue(abiEnd, visit.abiFacingRight ?? true, 'sit'),
+      max: stillCue(
+        maxEnd,
+        maxVisit.facingRight ?? true,
+        maxVisit.kind === 'water' ? 'shake' : 'watch',
+      ),
+      abi: stillCue(
+        abiEnd,
+        abiVisit.abiFacingRight ?? true,
+        abiVisit.kind === 'water' ? 'sit' : 'tilt',
+      ),
     });
-  if (visit.kind === 'treehouse')
+  if (maxVisit.kind === 'treehouse' || abiVisit.kind === 'treehouse')
     moments.push({
       duration: 3100,
-      max: stillCue(maxEnd, visit.facingRight ?? true, 'lie'),
-      abi: stillCue(abiEnd, visit.abiFacingRight ?? true, 'tilt'),
+      max: stillCue(
+        maxEnd,
+        maxVisit.facingRight ?? true,
+        maxVisit.kind === 'treehouse' ? 'lie' : 'sniff',
+      ),
+      abi: stillCue(abiEnd, abiVisit.abiFacingRight ?? true, 'tilt'),
     });
-  if (visit.kind === 'object')
+  if (maxVisit.kind === 'object' || abiVisit.kind === 'object')
     moments.push({
       duration: 1900 + (visitIndex % 2) * 500,
-      max: stillCue(maxEnd, visit.facingRight ?? true, activity === 'rest' ? 'lie' : 'sit'),
-      abi: stillCue(abiEnd, visit.abiFacingRight ?? true, 'watch'),
+      max: stillCue(
+        maxEnd,
+        maxVisit.facingRight ?? true,
+        maxVisit.kind === 'object' ? (maxActivity === 'rest' ? 'lie' : 'sit') : 'watch',
+      ),
+      abi: stillCue(
+        abiEnd,
+        abiVisit.abiFacingRight ?? true,
+        abiVisit.kind === 'object' ? 'watch' : 'tilt',
+      ),
     });
-  if (visit.kind === 'meadow') {
+  if (maxVisit.kind === 'meadow' || abiVisit.kind === 'meadow') {
     moments.push({
       duration: 1300,
-      max: stillCue(maxEnd, true, 'hop'),
-      abi: stillCue(abiEnd, false, 'tilt'),
+      max: stillCue(maxEnd, true, maxVisit.kind === 'meadow' ? 'hop' : 'watch'),
+      abi: stillCue(abiEnd, false, abiVisit.kind === 'meadow' ? 'tilt' : 'watch'),
     });
-    const chaseMax = findCompanionPath(maxEnd, { x: 47, y: 43 }, objects);
-    const chaseAbi = findCompanionPath(abiEnd, { x: 66, y: 44 }, objects);
-    if (chaseMax.length && chaseAbi.length) {
+    const chaseMax =
+      maxVisit.kind === 'meadow' ? findCompanionPath(maxEnd, { x: 47, y: 43 }, objects) : [];
+    const chaseAbi =
+      abiVisit.kind === 'meadow' ? findCompanionPath(abiEnd, { x: 66, y: 44 }, objects) : [];
+    if (
+      (maxVisit.kind !== 'meadow' || chaseMax.length) &&
+      (abiVisit.kind !== 'meadow' || chaseAbi.length)
+    ) {
       addLeg(chaseMax, chaseAbi, maxEnd, abiEnd, true);
-      maxEnd = chaseMax[chaseMax.length - 1];
-      abiEnd = chaseAbi[chaseAbi.length - 1];
+      if (chaseMax.length) maxEnd = chaseMax[chaseMax.length - 1];
+      if (chaseAbi.length) abiEnd = chaseAbi[chaseAbi.length - 1];
       moments.push({
         duration: 2450,
-        max: stillCue(maxEnd, true, 'pant'),
-        abi: stillCue(abiEnd, false, 'hop'),
+        max: stillCue(maxEnd, true, maxVisit.kind === 'meadow' ? 'pant' : 'watch'),
+        abi: stillCue(abiEnd, false, abiVisit.kind === 'meadow' ? 'hop' : 'watch'),
       });
     }
   }

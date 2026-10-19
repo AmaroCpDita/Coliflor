@@ -92,11 +92,16 @@ try {
   const fountainJourney = createCompanionJourney([{id:'fountain',item_id:'fountain',position_x:45,position_y:40,scale:1}], 'garden', 1);
   assert(fountainJourney.some(moment=>moment.max.pose==='drink'),'Placed water sources are recognized at their current position');
   const meadowJourney = createCompanionJourney([], 'forest', 2);
-  assert(meadowJourney.some(moment=>moment.max.pose==='run'&&moment.abi.pose==='run'),'They run together in the meadow');
+  assert(meadowJourney.some(moment=>moment.max.pose==='run'&&moment.abi.pose!=='run'),'Max can run while Abi explores elsewhere');
+  const flowersJourney = createCompanionJourney([], 'forest', 1);
+  assert(flowersJourney.some(moment=>moment.max.pose==='sniff'&&moment.abi.pose==='play'),'Max can explore the flowers while Abi plays in the meadow');
+  assert(flowersJourney.some(moment=>moment.max.pose==='walk'&&moment.max.delay>=1500),'On separate outings one dog sets off later');
+  const sharedMeadowJourney = createCompanionJourney([], 'forest', 5);
+  assert(sharedMeadowJourney.some(moment=>moment.max.pose==='run'&&moment.abi.pose==='run'),'They still run together on shared outings');
   for(const moment of pondJourney) for(const pet of ['max','abi']) assert(isWalkable(moment[pet]),'Every stop stays on walkable land');
   const treehouse = { id:'house', item_id:'treehouse', position_x:70, position_y:43, scale:1 };
   const houseJourney = createCompanionJourney([treehouse], 'forest', 1);
-  assert(houseJourney.some(moment=>moment.max.pose==='watch'&&moment.abi.pose==='play'),'The dogs visit the placed treehouse');
+  assert(houseJourney.some(moment=>moment.max.pose==='watch'&&moment.abi.pose==='sniff'),'Max can visit the placed treehouse while Abi explores the flowers');
   const movedHouseJourney = createCompanionJourney([{...treehouse,position_x:43,position_y:40}], 'forest', 1);
   const houseStop = houseJourney.find((moment,index)=>index>0&&moment.max.pose==='watch').max;
   const movedStop = movedHouseJourney.find((moment,index)=>index>0&&moment.max.pose==='watch').max;
@@ -106,7 +111,7 @@ try {
   assert.equal(rerouted[0].max.x,houseJourney[2].max.x,'A changed object replans from Max’s current destination');
   assert.equal(rerouted[0].abi.y,houseJourney[2].abi.y,'A changed object replans from Abi’s current destination');
   for(const moment of houseJourney) for(const pet of ['max','abi']) assert(isWalkable(moment[pet]),'Visits avoid the pond');
-  for(const journey of [pondJourney,houseJourney,meadowJourney]) for(let index=1;index<journey.length;index++) for(const pet of ['max','abi']) {
+  for(const journey of [pondJourney,houseJourney,meadowJourney,flowersJourney,sharedMeadowJourney]) for(let index=1;index<journey.length;index++) for(const pet of ['max','abi']) {
     const from=journey[index-1][pet], to=journey[index][pet];
     for(let sample=0;sample<=20;sample++) {
       const t=sample/20, point={x:from.x+(to.x-from.x)*t,y:from.y+(to.y-from.y)*t};
