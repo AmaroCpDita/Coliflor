@@ -709,6 +709,8 @@ export default function WorldScene({
         <WorldCompanions
           key={biomeId}
           companions={companions}
+          placedObjects={currentPlacedObjects}
+          biomeId={biomeId}
           timeOfDay={dayNight.phase}
           lightIntensity={dayNight.lightIntensity}
           isEditing={buildMode}

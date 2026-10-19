@@ -86,6 +86,37 @@ try {
   }
   for(const pose of ['sniff','watch','stretch','rest'])
     assert(COMPANION_MOMENTS.some(moment=>moment.max.pose===pose||moment.abi.pose===pose));
+  const { createCompanionJourney, isWalkable } = await server.ssrLoadModule('/src/features/our-world/engine/companionNavigation.ts');
+  const pondJourney = createCompanionJourney([], 'forest', 0);
+  assert(pondJourney.some(moment=>moment.max.pose==='drink'&&moment.abi.pose==='drink'),'Both dogs drink at the painted pond');
+  const fountainJourney = createCompanionJourney([{id:'fountain',item_id:'fountain',position_x:45,position_y:40,scale:1}], 'garden', 1);
+  assert(fountainJourney.some(moment=>moment.max.pose==='drink'),'Placed water sources are recognized at their current position');
+  const meadowJourney = createCompanionJourney([], 'forest', 2);
+  assert(meadowJourney.some(moment=>moment.max.pose==='run'&&moment.abi.pose==='run'),'They run together in the meadow');
+  for(const moment of pondJourney) for(const pet of ['max','abi']) assert(isWalkable(moment[pet]),'Every stop stays on walkable land');
+  const treehouse = { id:'house', item_id:'treehouse', position_x:70, position_y:43, scale:1 };
+  const houseJourney = createCompanionJourney([treehouse], 'forest', 1);
+  assert(houseJourney.some(moment=>moment.max.pose==='watch'&&moment.abi.pose==='play'),'The dogs visit the placed treehouse');
+  const movedHouseJourney = createCompanionJourney([{...treehouse,position_x:43,position_y:40}], 'forest', 1);
+  const houseStop = houseJourney.find((moment,index)=>index>0&&moment.max.pose==='watch').max;
+  const movedStop = movedHouseJourney.find((moment,index)=>index>0&&moment.max.pose==='watch').max;
+  assert.notDeepEqual({x:houseStop.x,y:houseStop.y},{x:movedStop.x,y:movedStop.y},'Moving the treehouse changes the next route');
+  const rerouted = createCompanionJourney([{...treehouse,position_x:43,position_y:40}], 'forest', 1,
+    {max:houseJourney[2].max,abi:houseJourney[2].abi});
+  assert.equal(rerouted[0].max.x,houseJourney[2].max.x,'A changed object replans from Max’s current destination');
+  assert.equal(rerouted[0].abi.y,houseJourney[2].abi.y,'A changed object replans from Abi’s current destination');
+  for(const moment of houseJourney) for(const pet of ['max','abi']) assert(isWalkable(moment[pet]),'Visits avoid the pond');
+  for(const journey of [pondJourney,houseJourney,meadowJourney]) for(let index=1;index<journey.length;index++) for(const pet of ['max','abi']) {
+    const from=journey[index-1][pet], to=journey[index][pet];
+    for(let sample=0;sample<=20;sample++) {
+      const t=sample/20, point={x:from.x+(to.x-from.x)*t,y:from.y+(to.y-from.y)*t};
+      assert(isWalkable(point),`The full walking segment stays on land: ${journey===houseJourney?'house':'pond'} ${pet} ${index} ${JSON.stringify(point)}`);
+      if(journey===houseJourney) {
+        const dx=(point.x-treehouse.position_x)/8.71,dy=(point.y-treehouse.position_y)/5.66;
+        assert(dx*dx+dy*dy>1,'The route avoids the treehouse footprint');
+      }
+    }
+  }
   assert(!CREATURES.some(creature=>creature.id==='max'||creature.id==='abi'),'Personal pets are not global level rewards');
   const hudProps = { worldState, dayNight, onOpenInventory() {}, onOpenMap() {}, onToggleBuild() {}, onClaimLevelRewards() {}, buildMode: false };
   for (const canClaimLevelRewards of [true, false]) {

@@ -21,7 +21,7 @@ export default function WorldCompanion({
   onInteract,
 }: Props) {
   const [reactionPose, setReactionPose] = useState<CompanionPose | null>(null);
-  const [moving, setMoving] = useState(cue.pose === 'walk');
+  const [moving, setMoving] = useState(cue.pose === 'walk' || cue.pose === 'run');
   const greetTimer = useRef<number | undefined>(undefined);
   const greetingCount = useRef(0);
   const targetRef = useRef({ x: cue.x, y: cue.y });
@@ -30,7 +30,7 @@ export default function WorldCompanion({
   useEffect(() => {
     const changed = targetRef.current.x !== cue.x || targetRef.current.y !== cue.y;
     targetRef.current = { x: cue.x, y: cue.y };
-    if (cue.pose !== 'walk' || paused || !changed) {
+    if ((cue.pose !== 'walk' && cue.pose !== 'run') || paused || !changed) {
       setMoving(false);
       return;
     }
@@ -46,17 +46,31 @@ export default function WorldCompanion({
   useEffect(() => {
     if (friendReaction === undefined) return;
     window.clearTimeout(greetTimer.current);
-    setReactionPose(friendReaction % 2 ? 'watch' : 'play');
+    setReactionPose(friendReaction % 2 ? 'tilt' : 'hop');
     greetTimer.current = window.setTimeout(() => setReactionPose(null), 1700);
   }, [friendReaction]);
-  const pose = reactionPose || (moving ? 'walk' : cue.pose === 'walk' ? 'idle' : cue.pose);
+  const pose =
+    reactionPose ||
+    (moving ? cue.pose : cue.pose === 'walk' || cue.pose === 'run' ? 'idle' : cue.pose);
+  const actionPose = [
+    'sit',
+    'tilt',
+    'pant',
+    'hop',
+    'lie',
+    'watch',
+    'sniff',
+    'drink',
+    'shake',
+  ].includes(pose);
   const greet = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     window.clearTimeout(greetTimer.current);
     const reactions: { pose: CompanionPose; action: string }[] = [
-      { pose: 'play', action: 'se alegra de verte' },
+      { pose: 'hop', action: 'salta para saludarte' },
+      { pose: 'tilt', action: 'inclina la cabeza para escucharte' },
+      { pose: 'pant', action: 'se alegra de verte' },
       { pose: 'stretch', action: 'se estira para que lo acaricies' },
-      { pose: 'watch', action: 'te mira con curiosidad' },
     ];
     const reaction = reactions[greetingCount.current++ % reactions.length];
     setReactionPose(reaction.pose);
@@ -78,8 +92,9 @@ export default function WorldCompanion({
         bottom: `${cue.y}%`,
         width: size,
         height: size,
-        transitionDuration: `${cue.duration}ms, ${cue.duration}ms, 1s`,
-        transitionDelay: `${cue.delay || 0}ms, ${cue.delay || 0}ms, 0ms`,
+        transform: `translateX(-50%) scale(${Math.max(0.7, 1 - Math.max(0, cue.y - 20) * 0.012)})`,
+        transitionDuration: `${cue.duration}ms, ${cue.duration}ms, ${cue.duration}ms, 1s`,
+        transitionDelay: `${cue.delay || 0}ms, ${cue.delay || 0}ms, ${cue.delay || 0}ms, 0ms`,
         zIndex: Math.floor((100 - cue.y) * 10),
         filter: `brightness(${0.65 + lightIntensity * 0.35})`,
       }}
@@ -92,7 +107,7 @@ export default function WorldCompanion({
         <span
           className="world-companion__sprite"
           aria-hidden="true"
-          style={{ backgroundImage: `url('${atlas.source}')` }}
+          style={{ backgroundImage: `url('${actionPose ? atlas.actionSource : atlas.source}')` }}
         />
       </span>
     </button>

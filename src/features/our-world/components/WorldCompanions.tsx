@@ -6,9 +6,14 @@ import {
   COMPANION_ROUTINES,
   pickNextCompanionRoutine,
 } from '../engine/companionMotion';
+import type { CompanionMoment } from '../engine/companionMotion';
+import { createCompanionJourney } from '../engine/companionNavigation';
+import type { PlacedObject } from '../types';
 import type { TimeOfDay } from '../types';
 interface Props {
   companions: WorldCompanionDef[];
+  placedObjects: PlacedObject[];
+  biomeId: string;
   timeOfDay: TimeOfDay;
   lightIntensity: number;
   isEditing: boolean;
@@ -16,12 +21,19 @@ interface Props {
 }
 export default function WorldCompanions({
   companions,
+  placedObjects,
+  biomeId,
   timeOfDay,
   lightIntensity,
   isEditing,
   onInteract,
 }: Props) {
   const [routine, setRoutine] = useState(0);
+  const [moments, setMoments] = useState<CompanionMoment[]>(
+    () => createCompanionJourney(placedObjects, biomeId, 0) || COMPANION_ROUTINES[0],
+  );
+  const [visitIndex, setVisitIndex] = useState(1);
+  const [activeVisitIndex, setActiveVisitIndex] = useState(0);
   const [step, setStep] = useState(0);
   const [nightSettled, setNightSettled] = useState(timeOfDay === 'night');
   const [interaction, setInteraction] = useState<{ actorId: string; serial: number } | null>(null);
@@ -29,7 +41,37 @@ export default function WorldCompanions({
   const [reducedMotion, setReducedMotion] = useState(false);
   const resting = timeOfDay === 'night';
   const wasResting = useRef(resting);
-  const current = COMPANION_ROUTINES[routine][step];
+  const objectSignature = placedObjects
+    .map(
+      (object) =>
+        `${object.id}:${object.item_id}:${object.position_x}:${object.position_y}:${object.scale}`,
+    )
+    .join('|');
+  const previousObjectSignature = useRef(objectSignature);
+  const current = moments[step] || COMPANION_HOME;
+  useEffect(() => {
+    if (previousObjectSignature.current === objectSignature) return;
+    if (resting || isEditing || hidden || reducedMotion) return;
+    previousObjectSignature.current = objectSignature;
+    const rerouted = createCompanionJourney(placedObjects, biomeId, activeVisitIndex, {
+      max: current.max,
+      abi: current.abi,
+    });
+    if (rerouted) {
+      setMoments(rerouted);
+      setStep(0);
+    }
+  }, [
+    objectSignature,
+    placedObjects,
+    biomeId,
+    activeVisitIndex,
+    current,
+    resting,
+    isEditing,
+    hidden,
+    reducedMotion,
+  ]);
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     const updateVisibility = () => setHidden(document.hidden);
@@ -44,10 +86,17 @@ export default function WorldCompanions({
     };
   }, []);
   useEffect(() => {
-    const enteredNight = !wasResting.current && resting;
+    const wasNight = wasResting.current;
+    const enteredNight = !wasNight && resting;
     wasResting.current = resting;
     if (!resting) {
+      if (!wasNight) return;
       setRoutine(0);
+      setMoments(
+        createCompanionJourney(placedObjects, biomeId, visitIndex) || COMPANION_ROUTINES[0],
+      );
+      setActiveVisitIndex(visitIndex);
+      setVisitIndex((index) => index + 1);
       setStep(0);
       setNightSettled(true);
       return;
@@ -68,10 +117,15 @@ export default function WorldCompanions({
   useEffect(() => {
     if (!companions.length || resting || isEditing || hidden || reducedMotion) return;
     const timer = window.setTimeout(() => {
-      if (step + 1 < COMPANION_ROUTINES[routine].length) {
+      if (step + 1 < moments.length) {
         setStep(step + 1);
       } else {
-        setRoutine(pickNextCompanionRoutine(routine));
+        const nextRoutine = pickNextCompanionRoutine(routine);
+        const journey = createCompanionJourney(placedObjects, biomeId, visitIndex);
+        setRoutine(nextRoutine);
+        setMoments(journey || COMPANION_ROUTINES[nextRoutine]);
+        setActiveVisitIndex(visitIndex);
+        setVisitIndex((index) => index + 1);
         setStep(0);
       }
     }, current.duration);
@@ -83,6 +137,10 @@ export default function WorldCompanions({
     hidden,
     reducedMotion,
     current.duration,
+    moments,
+    placedObjects,
+    biomeId,
+    visitIndex,
     routine,
     step,
   ]);

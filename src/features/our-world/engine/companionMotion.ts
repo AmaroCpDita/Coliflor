@@ -1,4 +1,19 @@
-export type CompanionPose = 'idle' | 'walk' | 'play' | 'rest' | 'sniff' | 'watch' | 'stretch';
+export type CompanionPose =
+  | 'idle'
+  | 'walk'
+  | 'run'
+  | 'play'
+  | 'rest'
+  | 'sniff'
+  | 'drink'
+  | 'watch'
+  | 'stretch'
+  | 'sit'
+  | 'tilt'
+  | 'pant'
+  | 'hop'
+  | 'lie'
+  | 'shake';
 
 export interface CompanionCue {
   x: number;
