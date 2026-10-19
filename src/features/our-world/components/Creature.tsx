@@ -32,10 +32,16 @@ export default function Creature({
   const maxY = habitat?.y[1] ?? 30;
   const [state, setState] = useState<CState>('appearing');
   const [x, setX] = useState(() => minX + Math.random() * (maxX - minX));
-  const [y] = useState(() => minY + Math.random() * (maxY - minY));
+  const [y, setY] = useState(() => minY + Math.random() * (maxY - minY));
   const [facingRight, setFacingRight] = useState(Math.random() > 0.5);
   const [opacity, setOpacity] = useState(0);
   const timerRef = useRef<number>(0);
+  const moveTimerRef = useRef<number>(0);
+  const lookTimerRef = useRef<number>(0);
+  const runawayTimerRef = useRef<number>(0);
+  const clickTimerRef = useRef<number>(0);
+  const reappearTimerRef = useRef<number>(0);
+  const runBehaviorRef = useRef<(() => void) | null>(null);
   const mountedRef = useRef(true);
 
   const assetDef = useMemo(() => getAssetDef(def.renderKey || 'default'), [def]);
@@ -73,6 +79,8 @@ export default function Creature({
 
     const runBehavior = () => {
       if (!mountedRef.current) return;
+      window.clearInterval(moveTimerRef.current);
+      window.clearTimeout(lookTimerRef.current);
 
       const next = chooseNextState();
       setState(next);
@@ -82,15 +90,16 @@ export default function Creature({
       if (next === 'walking' || next === 'running') {
         const speed = next === 'running' ? def.speed * 2 : def.speed;
         const direction = Math.random() > 0.5 ? 1 : -1;
+        const depthDirection = Math.random() > 0.5 ? 1 : -1;
         setFacingRight(direction > 0);
 
         const moveInterval = 50;
         const steps = Math.floor(duration / moveInterval);
         let step = 0;
 
-        const moveTimer = setInterval(() => {
+        moveTimerRef.current = window.setInterval(() => {
           if (!mountedRef.current) {
-            clearInterval(moveTimer);
+            window.clearInterval(moveTimerRef.current);
             return;
           }
           step++;
@@ -98,7 +107,8 @@ export default function Creature({
             const newX = prev + direction * speed * 0.1;
             return Math.max(minX, Math.min(maxX, newX));
           });
-          if (step >= steps) clearInterval(moveTimer);
+          setY((prev) => Math.max(minY, Math.min(maxY, prev + depthDirection * speed * 0.025)));
+          if (step >= steps) window.clearInterval(moveTimerRef.current);
         }, moveInterval);
       }
 
@@ -107,7 +117,7 @@ export default function Creature({
       }
 
       if (next === 'looking') {
-        setTimeout(() => {
+        lookTimerRef.current = window.setTimeout(() => {
           if (mountedRef.current) setFacingRight((prev) => !prev);
         }, duration * 0.5);
       }
@@ -122,6 +132,7 @@ export default function Creature({
         if (next === 'hiding' || next === 'disappearing') {
           // Reappear at new position
           setX(minX + Math.random() * (maxX - minX));
+          setY(minY + Math.random() * (maxY - minY));
           setOpacity(1);
           setState('appearing');
           timerRef.current = window.setTimeout(runBehavior, 1500);
@@ -130,6 +141,7 @@ export default function Creature({
         }
       }, duration);
     };
+    runBehaviorRef.current = runBehavior;
 
     const initialDelay = setTimeout(
       () => {
@@ -142,8 +154,14 @@ export default function Creature({
       mountedRef.current = false;
       clearTimeout(initialDelay);
       if (timerRef.current) clearTimeout(timerRef.current);
+      window.clearInterval(moveTimerRef.current);
+      window.clearTimeout(lookTimerRef.current);
+      window.clearInterval(runawayTimerRef.current);
+      window.clearTimeout(clickTimerRef.current);
+      window.clearTimeout(reappearTimerRef.current);
+      runBehaviorRef.current = null;
     };
-  }, [def, timeOfDay, chooseNextState, minX, maxX]);
+  }, [def, timeOfDay, chooseNextState, minX, maxX, minY, maxY]);
 
   const handleClick = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
@@ -153,30 +171,38 @@ export default function Creature({
         onInteract(def, rect.left + rect.width / 2, rect.top);
       }
       // Creature runs away
+      window.clearTimeout(timerRef.current);
+      window.clearInterval(moveTimerRef.current);
+      window.clearTimeout(lookTimerRef.current);
+      window.clearInterval(runawayTimerRef.current);
+      window.clearTimeout(clickTimerRef.current);
+      window.clearTimeout(reappearTimerRef.current);
       setState('running');
       const dir = Math.random() > 0.5 ? 1 : -1;
       setFacingRight(dir > 0);
-      const runaway = setInterval(() => {
+      runawayTimerRef.current = window.setInterval(() => {
         setX((prev) => {
           const newX = prev + dir * 0.8;
           if (newX < -5 || newX > 105) {
-            clearInterval(runaway);
+            window.clearInterval(runawayTimerRef.current);
             return prev;
           }
           return Math.max(minX, Math.min(maxX, newX));
         });
       }, 30);
-      setTimeout(() => {
-        clearInterval(runaway);
+      clickTimerRef.current = window.setTimeout(() => {
+        window.clearInterval(runawayTimerRef.current);
         setOpacity(0);
-        setTimeout(() => {
+        reappearTimerRef.current = window.setTimeout(() => {
           setX(minX + Math.random() * (maxX - minX));
+          setY(minY + Math.random() * (maxY - minY));
           setOpacity(1);
           setState('idle');
+          timerRef.current = window.setTimeout(() => runBehaviorRef.current?.(), 1200);
         }, 3000);
       }, 1500);
     },
-    [def, onInteract, minX, maxX],
+    [def, onInteract, minX, maxX, minY, maxY],
   );
 
   // Animation class based on state
@@ -198,7 +224,7 @@ export default function Creature({
         width: `${width}px`,
         height: `${height}px`,
         opacity: opacity * sleepingOpacity,
-        transition: 'left 0.5s ease, opacity 1s ease',
+        transition: 'left 0.5s ease, bottom 0.5s ease, opacity 1s ease',
         zIndex,
         cursor: 'pointer',
         filter: `brightness(${0.65 + lightIntensity * 0.35})`,

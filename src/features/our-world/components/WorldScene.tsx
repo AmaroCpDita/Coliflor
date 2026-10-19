@@ -540,7 +540,7 @@ export default function WorldScene({
 
   // Personal companion greeting, independent of progression rewards.
   const handleCompanionInteract = useCallback(
-    (pet: WorldCompanionDef, x: number, y: number) => {
+    (pet: WorldCompanionDef, x: number, y: number, action: string) => {
       if (burstRef.current && sceneRef.current) {
         const rect = sceneRef.current.getBoundingClientRect();
         burstRef.current(x - rect.left, y - rect.top, 'spark', 4, [
@@ -549,7 +549,7 @@ export default function WorldScene({
           '#ffffff',
         ]);
       }
-      showMessage(pet.name);
+      showMessage(`${pet.name} ${action}`);
     },
     [showMessage],
   );

@@ -464,7 +464,43 @@
 .world-companion--play .world-companion__sprite {
   animation: companionPlayFrames 1.8s steps(1, end) infinite;
 }
+.world-companion--sniff .world-companion__sprite {
+  background-position: 85.714286% 0;
+  animation: companionSniff 2.6s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+.world-companion--watch .world-companion__sprite {
+  background-position: 57.142857% 0;
+  animation: companionWatch 3.2s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+.world-companion--stretch .world-companion__sprite {
+  background-position: 85.714286% 0;
+  animation: companionStretch 2.4s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+.world-companion--walk .world-companion__shadow {
+  animation: companionStrideShadow 1.1s ease-in-out infinite;
+}
+.world-companion--walk::after {
+  content: '';
+  position: absolute;
+  left: 39%;
+  bottom: 8%;
+  width: 17%;
+  height: 5%;
+  border-radius: 50%;
+  background: rgba(233, 219, 176, 0.34);
+  filter: blur(5px);
+  opacity: 0;
+  pointer-events: none;
+  animation: companionPawDust 1.1s ease-out infinite;
+}
 .world-companion--paused .world-companion__sprite {
+  animation-play-state: paused;
+}
+.world-companion--paused .world-companion__shadow,
+.world-companion--paused::after {
   animation-play-state: paused;
 }
 @keyframes companionWalkFrames {
@@ -511,17 +547,71 @@
     transform: scaleY(0.985);
   }
 }
+@keyframes companionSniff {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  45% {
+    transform: scaleY(0.95) translateY(2%);
+  }
+}
+@keyframes companionWatch {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  35% {
+    transform: rotate(-2deg);
+  }
+  72% {
+    transform: rotate(2deg);
+  }
+}
+@keyframes companionStretch {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  48% {
+    transform: scale(1.04, 0.96);
+  }
+}
+@keyframes companionStrideShadow {
+  0%,
+  100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(0.86);
+  }
+}
+@keyframes companionPawDust {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+  30% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-16px, -6px) scale(1.5);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .world-companion {
     transition: none;
   }
-  .world-companion__sprite {
+  .world-companion__sprite,
+  .world-companion__shadow,
+  .world-companion::after {
     animation: none !important;
   }
 }
 
 .world-creature {
-  will-change: left, opacity;
+  will-change: left, bottom, opacity;
 }
 
 .creature--walking,

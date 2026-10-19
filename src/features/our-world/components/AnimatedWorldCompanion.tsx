@@ -1,26 +1,29 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { COMPANION_ANIMATION } from '../data/companion-animation';
 import type { WorldCompanionDef } from '../data/companions';
-import type { CompanionCue } from '../engine/companionMotion';
+import type { CompanionCue, CompanionPose } from '../engine/companionMotion';
 interface Props {
   def: WorldCompanionDef;
   cue: CompanionCue;
   paused: boolean;
+  friendReaction?: number;
   lightIntensity: number;
   isEditing: boolean;
-  onInteract: (def: WorldCompanionDef, screenX: number, screenY: number) => void;
+  onInteract: (def: WorldCompanionDef, screenX: number, screenY: number, action: string) => void;
 }
 export default function WorldCompanion({
   def,
   cue,
   paused,
+  friendReaction,
   lightIntensity,
   isEditing,
   onInteract,
 }: Props) {
-  const [greeting, setGreeting] = useState(false);
+  const [reactionPose, setReactionPose] = useState<CompanionPose | null>(null);
   const [moving, setMoving] = useState(cue.pose === 'walk');
   const greetTimer = useRef<number | undefined>(undefined);
+  const greetingCount = useRef(0);
   const targetRef = useRef({ x: cue.x, y: cue.y });
   const atlas = def.id === 'max' ? COMPANION_ANIMATION.max : COMPANION_ANIMATION.abi;
   const size = def.id === 'max' ? 160 : 96;
@@ -40,14 +43,26 @@ export default function WorldCompanion({
     };
   }, [cue.pose, cue.x, cue.y, cue.duration, cue.delay, paused]);
   useEffect(() => () => window.clearTimeout(greetTimer.current), []);
-  const pose = moving ? 'walk' : greeting ? 'play' : cue.pose === 'walk' ? 'idle' : cue.pose;
+  useEffect(() => {
+    if (friendReaction === undefined) return;
+    window.clearTimeout(greetTimer.current);
+    setReactionPose(friendReaction % 2 ? 'watch' : 'play');
+    greetTimer.current = window.setTimeout(() => setReactionPose(null), 1700);
+  }, [friendReaction]);
+  const pose = reactionPose || (moving ? 'walk' : cue.pose === 'walk' ? 'idle' : cue.pose);
   const greet = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     window.clearTimeout(greetTimer.current);
-    setGreeting(true);
-    greetTimer.current = window.setTimeout(() => setGreeting(false), 1800);
+    const reactions: { pose: CompanionPose; action: string }[] = [
+      { pose: 'play', action: 'se alegra de verte' },
+      { pose: 'stretch', action: 'se estira para que lo acaricies' },
+      { pose: 'watch', action: 'te mira con curiosidad' },
+    ];
+    const reaction = reactions[greetingCount.current++ % reactions.length];
+    setReactionPose(reaction.pose);
+    greetTimer.current = window.setTimeout(() => setReactionPose(null), 2200);
     const rect = event.currentTarget.getBoundingClientRect();
-    onInteract(def, rect.left + rect.width / 2, rect.top + rect.height / 3);
+    onInteract(def, rect.left + rect.width / 2, rect.top + rect.height / 3, reaction.action);
   };
   return (
     <button
@@ -55,7 +70,7 @@ export default function WorldCompanion({
       disabled={isEditing}
       onClick={greet}
       className={`world-companion world-companion--${pose}${paused ? ' world-companion--paused' : ''}`}
-      aria-label={def.name}
+      aria-label={`Acariciar a ${def.name}`}
       data-companion={def.id}
       data-pose={pose}
       style={{

@@ -53,8 +53,14 @@ try {
   assert.deepEqual(getWorldCompanions('7b8edae0-65da-44b7-a9b9-8073ecdd607e','forest').map(pet=>pet.name),['Max','Abi']);
   const companionScene = renderToStaticMarkup(React.createElement(Scene, { ...sceneProps, worldState: { ...worldState, level: 1, couple_id: '7b8edae0-65da-44b7-a9b9-8073ecdd607e' } }));
   assert.equal((companionScene.match(/data-companion=/g)||[]).length,2,'Both companions are available without altering progression or adding placed objects');
-  assert(companionScene.includes('aria-label="Max"') && companionScene.includes('aria-label="Abi"'));
+  assert(companionScene.includes('aria-label="Acariciar a Max"') && companionScene.includes('aria-label="Acariciar a Abi"'));
   assert(!companionScene.includes('Javiera') && !companionScene.includes('Amaro'));
+  const companionNight = renderToStaticMarkup(React.createElement(Scene, {
+    ...sceneProps,
+    worldState: { ...worldState, couple_id: '7b8edae0-65da-44b7-a9b9-8073ecdd607e' },
+    dayNight: { ...dayNight, phase: 'night' },
+  }));
+  assert.equal((companionNight.match(/data-pose="rest"/g) || []).length, 2, 'Both dogs rest at night');
   const welcomePreview = renderToStaticMarkup(React.createElement(Scene, {
     ...sceneProps, isWelcomePreview: true,
     worldState: { ...worldState, couple_id: '7b8edae0-65da-44b7-a9b9-8073ecdd607e' },
@@ -62,7 +68,7 @@ try {
   }));
   assert(!welcomePreview.includes('data-companion=') && !welcomePreview.includes('class="world-object') && !welcomePreview.includes('class="world-hud'), 'First-entry preview hides possessions, pets and controls even if the partner already played');
   assert(welcomePreview.includes('aria-hidden="true"') && welcomePreview.includes('inert=""'));
-  const { COMPANION_MOMENTS, clampCompanionPosition } = await server.ssrLoadModule('/src/features/our-world/engine/companionMotion.ts');
+  const { COMPANION_MOMENTS, COMPANION_ROUTINES, clampCompanionPosition, pickNextCompanionRoutine } = await server.ssrLoadModule('/src/features/our-world/engine/companionMotion.ts');
   for(const moment of COMPANION_MOMENTS) for(const pet of ['max','abi']) {
     const cue=moment[pet];
     assert.deepEqual(clampCompanionPosition(cue.x,cue.y),{x:cue.x,y:cue.y},'All routes stay inside the lower grass bank');
@@ -70,6 +76,16 @@ try {
   }
   assert(COMPANION_MOMENTS.some(moment=>moment.max.pose==='play'&&moment.abi.facingRight===false));
   assert(COMPANION_MOMENTS.some(moment=>moment.abi.pose==='play'&&moment.max.facingRight));
+  for(const routine of COMPANION_ROUTINES) {
+    assert.deepEqual(routine.at(0).max, routine.at(-1).max, 'Max returns home before a new routine');
+    assert.deepEqual(routine.at(0).abi, routine.at(-1).abi, 'Abi returns home before a new routine');
+  }
+  for(let index=0;index<COMPANION_ROUTINES.length;index++) {
+    assert.notEqual(pickNextCompanionRoutine(index, 0), index);
+    assert.notEqual(pickNextCompanionRoutine(index, .999), index);
+  }
+  for(const pose of ['sniff','watch','stretch','rest'])
+    assert(COMPANION_MOMENTS.some(moment=>moment.max.pose===pose||moment.abi.pose===pose));
   assert(!CREATURES.some(creature=>creature.id==='max'||creature.id==='abi'),'Personal pets are not global level rewards');
   const hudProps = { worldState, dayNight, onOpenInventory() {}, onOpenMap() {}, onToggleBuild() {}, onClaimLevelRewards() {}, buildMode: false };
   for (const canClaimLevelRewards of [true, false]) {
