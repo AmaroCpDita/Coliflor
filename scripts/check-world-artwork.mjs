@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { readFile, stat } from 'node:fs/promises';
+import { stat } from 'node:fs/promises';
 import sharp from 'sharp';
+import { optimizedArtwork } from '../src/features/our-world/data/optimized-artwork.ts';
 
-const generated = await readFile('src/features/our-world/data/optimized-artwork.ts', 'utf8');
-const manifest = JSON.parse(generated.slice(generated.indexOf(' = ') + 3).trim().replace(/;$/, ''));
+const manifest = optimizedArtwork;
 let originals = 0, delivery = 0, thumbnails = 0;
 for (const [source, entry] of Object.entries(manifest)) {
   const original = await sharp('public' + source).metadata();
