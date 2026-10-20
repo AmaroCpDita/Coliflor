@@ -85,4 +85,27 @@ await db.exec(`
 `);
 await assert.rejects(recover(), /You already uploaded your photo/);
 
+const affectedCouple = '7b8edae0-65da-44b7-a9b9-8073ecdd607e';
+await db.exec(`
+  INSERT INTO couples (id, user1_id, user2_id, current_streak, max_streak)
+  VALUES ('${affectedCouple}', '${person}', '${partner}', 31, 52);
+  INSERT INTO streak_photos (couple_id, user_id, photo_date)
+  SELECT '${affectedCouple}', users.id, days.day::date
+  FROM generate_series('${date}'::date - 30, '${date}'::date - 1, '1 day') AS days(day)
+  CROSS JOIN (VALUES ('${person}'::uuid), ('${partner}'::uuid)) AS users(id);
+`);
+const affectedCount = async () =>
+  (await db.query(`SELECT current_streak FROM couples WHERE id = '${affectedCouple}'`)).rows[0]
+    .current_streak;
+await db.exec(migration('029', 'restore_existing_long_streak'));
+assert.equal(await affectedCount(), 52, 'Repairs an already saved 31 when the recent streak is continuous');
+await db.exec(migration('029', 'restore_existing_long_streak'));
+assert.equal(await affectedCount(), 52, 'The repair is safe to replay');
+await db.exec(`
+  UPDATE couples SET current_streak = 31 WHERE id = '${affectedCouple}';
+  DELETE FROM streak_photos WHERE couple_id = '${affectedCouple}' AND photo_date = '${date}'::date - 5;
+`);
+await db.exec(migration('029', 'restore_existing_long_streak'));
+assert.equal(await affectedCount(), 31, 'A real gap must not inherit the old record');
+
 console.log('Streak recovery boundary checks passed.');
