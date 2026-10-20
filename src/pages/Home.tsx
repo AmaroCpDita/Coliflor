@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { daysSince, generateInviteCode, parseHeroAlbumPaths } from '../lib/utils';
 import { readCachedHeroImages, saveCachedHeroImages } from '../lib/heroAlbumCache';
+import { readyHeroAlbumImages } from '../lib/heroAlbumImages';
 import { supabase } from '../lib/supabase';
 import { sendPushNotification } from '../lib/push';
 import { getCelebration, Celebration, CelebrationType } from '../lib/celebrations';
@@ -321,32 +322,57 @@ export default function Home() {
   const [quizStatus, setQuizStatus] = useState('Nuevo');
 
   // Dynamic Hero Image Album (up to 20 images with 4s page-turn effect)
-  const heroCoupleRef = useRef(couple?.id);
-  const [heroImages, setHeroImages] = useState<string[]>(() => {
-    return couple?.id
-      ? readCachedHeroImages(couple.id, parseHeroAlbumPaths(couple.hero_image_path))
-      : [];
-  });
+  const heroPaths = useMemo(
+    () => parseHeroAlbumPaths(couple?.hero_image_path),
+    [couple?.hero_image_path],
+  );
+  const heroAlbumKey = JSON.stringify([couple?.id, heroPaths]);
+  const [heroAlbum, setHeroAlbum] = useState<{
+    key: string;
+    images: string[];
+    status: 'loading' | 'ready' | 'error';
+  }>({ key: '', images: [], status: 'loading' });
+  const [heroRetry, setHeroRetry] = useState(0);
+  const heroImages =
+    heroAlbum.key === heroAlbumKey && heroAlbum.status === 'ready' ? heroAlbum.images : [];
+  const heroReady =
+    !couple ||
+    isMockMode ||
+    !heroPaths.length ||
+    (heroAlbum.key === heroAlbumKey && heroAlbum.status === 'ready');
 
   useEffect(() => {
-    if (heroCoupleRef.current !== couple?.id) setHeroImages([]);
-    heroCoupleRef.current = couple?.id;
     if (!couple || isMockMode) {
-      setHeroImages([]);
       return;
     }
-    const paths = parseHeroAlbumPaths(couple.hero_image_path);
+    const paths = heroPaths;
     if (!paths.length) {
       saveCachedHeroImages(couple.id, [], []);
-      setHeroImages([]);
       return;
     }
-    setHeroImages(readCachedHeroImages(couple.id, paths));
     let active = true;
-    const refreshImages = async () => {
+    let signedPublished = false;
+    const publish = (images: string[]) => {
+      if (active && images.length)
+        setHeroAlbum((current) =>
+          current.key === heroAlbumKey &&
+          current.status === 'ready' &&
+          current.images.length > images.length
+            ? current
+            : { key: heroAlbumKey, images, status: 'ready' },
+        );
+    };
+    const cached = readCachedHeroImages(couple.id, paths);
+    const cachedReady = cached.length
+      ? readyHeroAlbumImages(cached).then((images) => {
+          if (images.length === cached.length && !signedPublished) publish(images);
+          return images.length === cached.length;
+        })
+      : Promise.resolve(false);
+    const refreshImages = async (): Promise<boolean> => {
       try {
         const { data } = await supabase.storage.from('photos').createSignedUrls(paths, 3600);
-        if (!active) return;
+        if (!active) return false;
         const urls = await Promise.all(
           paths.map(async (path) => {
             const signed = data?.find((item) => item.path === path)?.signedUrl;
@@ -362,14 +388,28 @@ export default function Home() {
           }),
         );
         const valid = urls.filter((url): url is string => Boolean(url));
-        if (!active || !valid.length) return;
-        saveCachedHeroImages(couple.id, paths, valid);
-        setHeroImages(valid);
+        if (!active || !valid.length) return false;
+        const ready = await readyHeroAlbumImages(valid);
+        if (!active || !ready.length) return false;
+        if (ready.length === paths.length) {
+          saveCachedHeroImages(couple.id, paths, ready);
+          signedPublished = true;
+        }
+        publish(ready);
+        return true;
       } catch {
-        // Keep the current photographs visible through a temporary network failure.
+        return false;
       }
     };
-    void refreshImages();
+    const signedReady = refreshImages();
+    void Promise.all([cachedReady, signedReady]).then(([cacheWorked, signedWorked]) => {
+      if (active && !cacheWorked && !signedWorked)
+        setHeroAlbum((current) =>
+          current.key === heroAlbumKey && current.status === 'ready'
+            ? current
+            : { key: heroAlbumKey, images: [], status: 'error' },
+        );
+    });
     // Refresh private URLs before their one-hour expiry, including after sleep.
     const timer = setInterval(() => void refreshImages(), 50 * 60 * 1000);
     const onVisible = () => {
@@ -381,7 +421,7 @@ export default function Home() {
       clearInterval(timer);
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [couple?.hero_image_path, couple?.id, isMockMode]);
+  }, [heroAlbumKey, heroRetry, couple?.id, isMockMode]);
 
   // Sync mySentNote when couple changes
   useEffect(() => {
@@ -515,6 +555,32 @@ export default function Home() {
     }
     setSavingNote(false);
   };
+
+  if (!heroReady) {
+    const failed = heroAlbum.key === heroAlbumKey && heroAlbum.status === 'error';
+    return (
+      <PageTransition className="page page--centered">
+        <div
+          className="glass-card text-center stack stack--md animate-fade-in"
+          style={{ padding: 'var(--space-xl) var(--space-lg)', minWidth: '280px' }}
+        >
+          <span style={{ color: 'var(--color-accent)', fontSize: '32px' }} aria-hidden="true">
+            ♥
+          </span>
+          <p className="text-secondary" role="status">
+            {failed
+              ? 'No pudimos cargar las fotos del álbum.'
+              : 'Preparando las fotos del álbum...'}
+          </p>
+          {failed && (
+            <button className="btn btn--primary" onClick={() => setHeroRetry((value) => value + 1)}>
+              Reintentar
+            </button>
+          )}
+        </div>
+      </PageTransition>
+    );
+  }
 
   return (
     <PageTransition className="page" style={{ paddingBottom: '150px', position: 'relative' }}>
