@@ -88,19 +88,25 @@ await assert.rejects(recover(), /You already uploaded your photo/);
 const affectedCouple = '7b8edae0-65da-44b7-a9b9-8073ecdd607e';
 await db.exec(`
   INSERT INTO couples (id, user1_id, user2_id, current_streak, max_streak)
-  VALUES ('${affectedCouple}', '${person}', '${partner}', 31, 52);
+  VALUES ('${affectedCouple}', '${person}', '${partner}', 32, 52);
   INSERT INTO streak_photos (couple_id, user_id, photo_date)
   SELECT '${affectedCouple}', users.id, days.day::date
-  FROM generate_series('${date}'::date - 30, '${date}'::date - 1, '1 day') AS days(day)
+  FROM generate_series('${date}'::date - 54, '${date}'::date - 1, '1 day') AS days(day)
   CROSS JOIN (VALUES ('${person}'::uuid), ('${partner}'::uuid)) AS users(id);
 `);
 const affectedCount = async () =>
   (await db.query(`SELECT current_streak FROM couples WHERE id = '${affectedCouple}'`)).rows[0]
     .current_streak;
 await db.exec(migration('029', 'restore_existing_long_streak'));
-assert.equal(await affectedCount(), 52, 'Repairs an already saved 31 when the recent streak is continuous');
+assert.equal(await affectedCount(), 54, 'Restores the exact 54-day run from retained photos');
 await db.exec(migration('029', 'restore_existing_long_streak'));
-assert.equal(await affectedCount(), 52, 'The repair is safe to replay');
+assert.equal(await affectedCount(), 54, 'The repair is safe to replay');
+await db.exec(`
+  UPDATE couples SET current_streak = 31, max_streak = 52 WHERE id = '${affectedCouple}';
+  DELETE FROM streak_photos WHERE couple_id = '${affectedCouple}' AND photo_date < '${date}'::date - 30;
+`);
+await db.exec(migration('029', 'restore_existing_long_streak'));
+assert.equal(await affectedCount(), 52, 'Uses the old record when older photo metadata was pruned');
 await db.exec(`
   UPDATE couples SET current_streak = 31 WHERE id = '${affectedCouple}';
   DELETE FROM streak_photos WHERE couple_id = '${affectedCouple}' AND photo_date = '${date}'::date - 5;
