@@ -6,28 +6,39 @@ export function loadHeroAlbumImage(url: string): Promise<HTMLImageElement> {
   const cached = decodedImages.get(url);
   if (cached) return cached;
   const loading = new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
     let finished = false;
     const timer = window.setTimeout(() => finish(new Error('Image timed out')), IMAGE_TIMEOUT_MS);
-    const finish = (error?: Error) => {
+    const finish = (error?: Error, image?: HTMLImageElement) => {
       if (finished) return;
       finished = true;
       window.clearTimeout(timer);
-      image.onload = null;
-      image.onerror = null;
       if (error) reject(error);
-      else resolve(image);
+      else resolve(image!);
     };
-    image.onload = () => {
-      if (image.decode)
-        void image.decode().then(
-          () => finish(),
-          () => finish(new Error('Image decode failed')),
-        );
-      else finish();
+    const start = (forCanvas: boolean) => {
+      const image = new Image();
+      if (forCanvas) image.crossOrigin = 'anonymous';
+      image.onload = () => {
+        if (finished) return;
+        if (image.decode)
+          void image.decode().then(
+            () => finish(undefined, image),
+            () =>
+              image.naturalWidth > 0
+                ? finish(undefined, image)
+                : finish(new Error('Image decode failed')),
+          );
+        else finish(undefined, image);
+      };
+      image.onerror = () => {
+        if (finished) return;
+        // An image can still be displayed when its host blocks canvas access.
+        if (forCanvas) start(false);
+        else finish(new Error('Image failed to load'));
+      };
+      image.src = url;
     };
-    image.onerror = () => finish(new Error('Image failed to load'));
-    image.src = url;
+    start(true);
   });
   decodedImages.set(url, loading);
   void loading.catch(() => {

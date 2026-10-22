@@ -3,6 +3,7 @@
 // ============================================================
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import PageTransition from '../components/PageTransition';
 import HeroPageTurn from '../components/HeroPageTurn';
@@ -143,6 +144,40 @@ function IconGoldHeart({ size = 20 }: { size?: number }) {
 }
 
 const DEFAULT_DEDICATION = '¡Escribe aquí tu primera notita! Ámame mucho y dime cosas bonitas 💛';
+
+function HeroLoadingOverlay({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return createPortal(
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 10000,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--color-bg-primary)',
+      }}
+    >
+      <div
+        className="glass-card text-center stack stack--md animate-fade-in"
+        style={{ padding: 'var(--space-xl) var(--space-lg)', minWidth: '280px' }}
+      >
+        <span style={{ color: 'var(--color-accent)', fontSize: '32px' }} aria-hidden="true">
+          ♥
+        </span>
+        <p className="text-secondary" role="status">
+          {message}
+        </p>
+        {onRetry && (
+          <button className="btn btn--primary" onClick={onRetry}>
+            Reintentar
+          </button>
+        )}
+      </div>
+    </div>,
+    document.body,
+  );
+}
 
 export default function Home() {
   const navigate = useNavigate();
@@ -333,13 +368,17 @@ export default function Home() {
     status: 'loading' | 'ready' | 'error';
   }>({ key: '', images: [], status: 'loading' });
   const [heroRetry, setHeroRetry] = useState(0);
+  const [visibleHeroFrame, setVisibleHeroFrame] = useState('');
   const heroImages =
     heroAlbum.key === heroAlbumKey && heroAlbum.status === 'ready' ? heroAlbum.images : [];
+  const heroFrameKey = JSON.stringify([heroAlbumKey, heroImages]);
+  const heroFrameReady = !heroImages.length || visibleHeroFrame === heroFrameKey;
   const heroReady =
-    !couple ||
-    isMockMode ||
-    !heroPaths.length ||
-    (heroAlbum.key === heroAlbumKey && heroAlbum.status === 'ready');
+    !profile?.couple_id ||
+    (Boolean(couple) &&
+      (isMockMode ||
+        !heroPaths.length ||
+        (heroAlbum.key === heroAlbumKey && heroAlbum.status === 'ready')));
 
   useEffect(() => {
     if (!couple || isMockMode) {
@@ -353,7 +392,7 @@ export default function Home() {
     let active = true;
     let signedPublished = false;
     const publish = (images: string[]) => {
-      if (active && images.length)
+      if (active && images.length === paths.length)
         setHeroAlbum((current) =>
           current.key === heroAlbumKey &&
           current.status === 'ready' &&
@@ -388,13 +427,11 @@ export default function Home() {
           }),
         );
         const valid = urls.filter((url): url is string => Boolean(url));
-        if (!active || !valid.length) return false;
+        if (!active || valid.length !== paths.length) return false;
         const ready = await readyHeroAlbumImages(valid);
-        if (!active || !ready.length) return false;
-        if (ready.length === paths.length) {
-          saveCachedHeroImages(couple.id, paths, ready);
-          signedPublished = true;
-        }
+        if (!active || ready.length !== paths.length) return false;
+        saveCachedHeroImages(couple.id, paths, ready);
+        signedPublished = true;
         publish(ready);
         return true;
       } catch {
@@ -557,33 +594,33 @@ export default function Home() {
   };
 
   if (!heroReady) {
-    const failed = heroAlbum.key === heroAlbumKey && heroAlbum.status === 'error';
+    const coupleMissing = Boolean(profile?.couple_id && !couple);
+    const failed =
+      coupleMissing || (heroAlbum.key === heroAlbumKey && heroAlbum.status === 'error');
     return (
-      <PageTransition className="page page--centered">
-        <div
-          className="glass-card text-center stack stack--md animate-fade-in"
-          style={{ padding: 'var(--space-xl) var(--space-lg)', minWidth: '280px' }}
-        >
-          <span style={{ color: 'var(--color-accent)', fontSize: '32px' }} aria-hidden="true">
-            ♥
-          </span>
-          <p className="text-secondary" role="status">
-            {failed
-              ? 'No pudimos cargar las fotos del álbum.'
-              : 'Preparando las fotos del álbum...'}
-          </p>
-          {failed && (
-            <button className="btn btn--primary" onClick={() => setHeroRetry((value) => value + 1)}>
-              Reintentar
-            </button>
-          )}
-        </div>
-      </PageTransition>
+      <HeroLoadingOverlay
+        message={
+          failed
+            ? coupleMissing
+              ? 'No pudimos cargar tu espacio de pareja.'
+              : 'No pudimos cargar las fotos del álbum.'
+            : 'Preparando las fotos del álbum...'
+        }
+        onRetry={
+          failed
+            ? () => {
+                if (coupleMissing) void refreshProfile();
+                else setHeroRetry((value) => value + 1);
+              }
+            : undefined
+        }
+      />
     );
   }
 
   return (
     <PageTransition className="page" style={{ paddingBottom: '150px', position: 'relative' }}>
+      {!heroFrameReady && <HeroLoadingOverlay message="Preparando las fotos del álbum..." />}
       {/* Spectacular Dynamic Backgrounds */}
       {celebration?.type === 'aniversario' && (
         <div
@@ -707,6 +744,14 @@ export default function Home() {
           intervalMs={4000}
           isCelebrating={isCelebrating}
           celebrationType={celebration?.type}
+          onCurrentImageReady={() => setVisibleHeroFrame(heroFrameKey)}
+          onCurrentImageError={() =>
+            setHeroAlbum((current) =>
+              current.key === heroAlbumKey
+                ? { key: heroAlbumKey, images: [], status: 'error' }
+                : current,
+            )
+          }
         >
           <div className="hero-story-identity" aria-hidden="true">
             <span>{myName.charAt(0)}</span>

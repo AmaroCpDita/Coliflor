@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import { createPageCurl } from './heroPageCurl';
+import { loadHeroAlbumImage } from '../lib/heroAlbumImages';
 import {
   heroPhotoIdentity,
   heroPlaybackKey,
@@ -18,6 +19,8 @@ interface HeroPageTurnProps {
   children: React.ReactNode;
   celebrationType?: string | null;
   isCelebrating?: boolean;
+  onCurrentImageReady?: () => void;
+  onCurrentImageError?: () => void;
 }
 
 interface PageTurn {
@@ -38,6 +41,8 @@ export default function HeroPageTurn({
   children,
   celebrationType,
   isCelebrating,
+  onCurrentImageReady,
+  onCurrentImageError,
 }: HeroPageTurnProps) {
   const [turn, setTurn] = useState<PageTurn | null>(null);
   const [isPreparing, setIsPreparing] = useState(false);
@@ -72,19 +77,7 @@ export default function HeroPageTurn({
   const loadImage = useCallback((url: string) => {
     const cached = loadedImagesRef.current.get(url);
     if (cached) return cached;
-    const promise = new Promise<HTMLImageElement>((resolve, reject) => {
-      const image = new Image();
-      image.crossOrigin = 'anonymous';
-      image.onload = () => resolve(image);
-      image.onerror = () => {
-        // Some image hosts disallow canvas access but can still display photos.
-        const plainImage = new Image();
-        plainImage.onload = () => resolve(plainImage);
-        plainImage.onerror = reject;
-        plainImage.src = url;
-      };
-      image.src = url;
-    });
+    const promise = loadHeroAlbumImage(url);
     loadedImagesRef.current.set(url, promise);
     void promise.catch(() => {
       if (loadedImagesRef.current.get(url) === promise) loadedImagesRef.current.delete(url);
@@ -282,7 +275,15 @@ export default function HeroPageTurn({
       <div className="hero-album-background" aria-hidden="true">
         {/* The destination stays underneath the curl, including its final frame. */}
         {currentImage && (
-          <img className="hero-album-photo" src={turn ? turn.toUrl : currentImage} alt="" />
+          <img
+            className="hero-album-photo"
+            src={turn ? turn.toUrl : currentImage}
+            alt=""
+            loading="eager"
+            fetchPriority="high"
+            onLoad={onCurrentImageReady}
+            onError={onCurrentImageError}
+          />
         )}
         {turn && fallback && (
           <img className="hero-album-photo hero-album-fallback" src={turn.from.src} alt="" />
