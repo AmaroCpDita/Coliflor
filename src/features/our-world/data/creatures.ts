@@ -6,31 +6,6 @@ import type { CreatureDef } from '../types';
 
 export const CREATURES: CreatureDef[] = [
   {
-    id: 'rabbit',
-    type: 'rabbit',
-    name: 'Conejo del Bosque',
-    emoji: '🐰',
-    rarity: 'common',
-    requiredLevel: 5,
-    renderKey: 'rabbit',
-    width: 5,
-    height: 4,
-    activeTime: ['morning', 'day', 'evening'],
-    speed: 1.5,
-    behaviors: {
-      idle: 40,
-      walking: 30,
-      looking: 15,
-      eating: 10,
-      sleeping: 0,
-      running: 3,
-      hiding: 2,
-      appearing: 0,
-      disappearing: 0,
-    },
-    biomes: ['forest', 'garden'],
-  },
-  {
     id: 'butterfly',
     type: 'butterfly',
     name: 'Mariposa',

@@ -29,7 +29,7 @@ export const BIOMES: BiomeDef[] = [
       'stone_small',
       'basic_flower',
     ],
-    creatures: ['rabbit', 'squirrel', 'butterfly', 'bird', 'fox', 'deer', 'owl'],
+    creatures: ['squirrel', 'butterfly', 'bird', 'fox', 'deer', 'owl'],
     particles: {
       morning: [
         {
@@ -176,7 +176,7 @@ export const BIOMES: BiomeDef[] = [
       'stone_bench',
       'garden_arch',
     ],
-    creatures: ['rabbit', 'butterfly', 'bird', 'squirrel'],
+    creatures: ['butterfly', 'bird', 'squirrel'],
     particles: {
       morning: [
         {

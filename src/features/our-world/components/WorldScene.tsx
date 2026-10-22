@@ -115,6 +115,7 @@ export default function WorldScene({
   const [buildMode, setBuildMode] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [selectedPlacedObject, setSelectedPlacedObject] = useState<PlacedObject | null>(null);
+  const [pendingSelectionId, setPendingSelectionId] = useState<string | null>(null);
   const [interactMessage, setInteractMessage] = useState<string | null>(null);
   const [cameraScale, setCameraScale] = useState(1);
   const [cameraOffset, setCameraOffset] = useState({ x: 0, y: 0 });
@@ -192,6 +193,15 @@ export default function WorldScene({
           : { ...object, position_x: position.x, position_y: position.y };
       });
   }, [placedObjects, biomeId]);
+
+  useEffect(() => {
+    if (!pendingSelectionId) return;
+    const placed = currentPlacedObjects.find((object) => object.id === pendingSelectionId);
+    if (placed) {
+      setSelectedPlacedObject(placed);
+      setPendingSelectionId(null);
+    }
+  }, [currentPlacedObjects, pendingSelectionId]);
 
   // Only persisted placements are visible. Rewards stay in inventory until placed.
   const displayedObjects = isWelcomePreview
@@ -577,28 +587,49 @@ export default function WorldScene({
   };
 
   // Handle item selection from inventory
-  const handleSelectItemInBiome = async (item: InventoryItem, destination: string) => {
-    if (savingRef.current || !getPlacementDef(item.item_id)?.biomes?.includes(destination)) return;
+  const placeInventoryItem = async (item: InventoryItem, destination: string) => {
+    if (savingRef.current) return;
     setInventorySelectionError(null);
     savingRef.current = true;
     setIsSaving(true);
     try {
-      const result = await onSwitchBiome?.(destination);
+      if (destination !== biomeId) {
+        const switched = await onSwitchBiome?.(destination);
+        if (!switched?.success) {
+          setInventorySelectionError(switched?.error || 'No se pudo abrir este bioma.');
+          return;
+        }
+      }
+      const position = clampWorldPosition(item.item_id, 50, 35);
+      const result = await onPlaceItem(
+        destination,
+        item.item_type,
+        item.item_id,
+        position.x,
+        position.y,
+      );
       if (!result?.success) {
-        setInventorySelectionError(result?.error || 'No se pudo abrir este bioma.');
+        setInventorySelectionError(result?.error || 'No se pudo colocar el objeto.');
         return;
       }
-      setSelectedItem(item);
+      setSelectedItem(null);
       setSelectedPlacedObject(null);
       setMovePreview(null);
+      setPendingSelectionId(result.object_id || null);
       setShowInventory(false);
       setBuildMode(true);
+      showMessage('Objeto colocado en el centro. Usa las flechas para moverlo.');
     } catch {
-      setInventorySelectionError('No se pudo abrir este bioma. Inténtalo de nuevo.');
+      setInventorySelectionError('No se pudo colocar el objeto. Inténtalo de nuevo.');
     } finally {
       savingRef.current = false;
       setIsSaving(false);
     }
+  };
+
+  const handleSelectItemInBiome = (item: InventoryItem, destination: string) => {
+    if (!getPlacementDef(item.item_id)?.biomes?.includes(destination)) return;
+    void placeInventoryItem(item, destination);
   };
 
   const handleSelectItem = useCallback(
@@ -610,14 +641,10 @@ export default function WorldScene({
         return;
       }
       if (def?.placeable && item.quantity > 0) {
-        setSelectedItem(item);
-        setSelectedPlacedObject(null);
-        setMovePreview(null);
-        setShowInventory(false);
-        setBuildMode(true);
+        void placeInventoryItem(item, biomeId);
       }
     },
-    [biomeId, showMessage],
+    [biomeId, showMessage, placeInventoryItem],
   );
 
   if (!biome) return null;

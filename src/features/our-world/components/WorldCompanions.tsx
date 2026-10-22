@@ -6,10 +6,10 @@ import {
   COMPANION_ROUTINES,
   pickNextCompanionRoutine,
 } from '../engine/companionMotion';
-import type { CompanionMoment } from '../engine/companionMotion';
+import type { CompanionCue, CompanionMoment } from '../engine/companionMotion';
 import { createCompanionJourney } from '../engine/companionNavigation';
-import type { PlacedObject } from '../types';
-import type { TimeOfDay } from '../types';
+import type { PlacedObject, TimeOfDay } from '../types';
+
 interface Props {
   companions: WorldCompanionDef[];
   placedObjects: PlacedObject[];
@@ -19,27 +19,38 @@ interface Props {
   isEditing: boolean;
   onInteract: (pet: WorldCompanionDef, x: number, y: number, action: string) => void;
 }
-export default function WorldCompanions({
-  companions,
+
+interface WalkerProps extends Omit<Props, 'companions'> {
+  pet: WorldCompanionDef;
+  friendReaction?: number;
+}
+
+function CompanionWalker({
+  pet,
   placedObjects,
   biomeId,
   timeOfDay,
   lightIntensity,
   isEditing,
+  friendReaction,
   onInteract,
-}: Props) {
-  const [routine, setRoutine] = useState(0);
+}: WalkerProps) {
+  const dog = pet.id === 'max' ? 'max' : 'abi';
+  const initialVisit = 0;
+  const initialRoutine = dog === 'max' ? 0 : 1;
+  const [routine, setRoutine] = useState(initialRoutine);
   const [moments, setMoments] = useState<CompanionMoment[]>(
-    () => createCompanionJourney(placedObjects, biomeId, 0) || COMPANION_ROUTINES[0],
+    () =>
+      createCompanionJourney(placedObjects, biomeId, initialVisit) ||
+      COMPANION_ROUTINES[initialRoutine],
   );
-  const [visitIndex, setVisitIndex] = useState(1);
-  const [activeVisitIndex, setActiveVisitIndex] = useState(0);
+  const [visitIndex, setVisitIndex] = useState(initialVisit + 1);
+  const [activeVisitIndex, setActiveVisitIndex] = useState(initialVisit);
   const [step, setStep] = useState(0);
-  const [nightSettled, setNightSettled] = useState(timeOfDay === 'night');
-  const [interaction, setInteraction] = useState<{ actorId: string; serial: number } | null>(null);
+  const resting = timeOfDay === 'night';
+  const [nightSettled, setNightSettled] = useState(resting);
   const [hidden, setHidden] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const resting = timeOfDay === 'night';
   const wasResting = useRef(resting);
   const objectSignature = placedObjects
     .map(
@@ -49,13 +60,16 @@ export default function WorldCompanions({
     .join('|');
   const previousObjectSignature = useRef(objectSignature);
   const current = moments[step] || COMPANION_HOME;
+  const activeCue = current[dog];
+  const homeCue = COMPANION_HOME[dog];
+
   useEffect(() => {
     if (previousObjectSignature.current === objectSignature) return;
     if (resting || isEditing || hidden || reducedMotion) return;
     previousObjectSignature.current = objectSignature;
     const rerouted = createCompanionJourney(placedObjects, biomeId, activeVisitIndex, {
-      max: current.max,
-      abi: current.abi,
+      max: dog === 'max' ? activeCue : COMPANION_HOME.max,
+      abi: dog === 'abi' ? activeCue : COMPANION_HOME.abi,
     });
     if (rerouted) {
       setMoments(rerouted);
@@ -66,12 +80,14 @@ export default function WorldCompanions({
     placedObjects,
     biomeId,
     activeVisitIndex,
-    current,
+    activeCue,
+    dog,
     resting,
     isEditing,
     hidden,
     reducedMotion,
   ]);
+
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     const updateVisibility = () => setHidden(document.hidden);
@@ -85,15 +101,16 @@ export default function WorldCompanions({
       media.removeEventListener('change', updateMotion);
     };
   }, []);
+
   useEffect(() => {
     const wasNight = wasResting.current;
-    const enteredNight = !wasNight && resting;
     wasResting.current = resting;
     if (!resting) {
       if (!wasNight) return;
-      setRoutine(0);
+      setRoutine(initialRoutine);
       setMoments(
-        createCompanionJourney(placedObjects, biomeId, visitIndex) || COMPANION_ROUTINES[0],
+        createCompanionJourney(placedObjects, biomeId, visitIndex) ||
+          COMPANION_ROUTINES[initialRoutine],
       );
       setActiveVisitIndex(visitIndex);
       setVisitIndex((index) => index + 1);
@@ -105,46 +122,82 @@ export default function WorldCompanions({
       setNightSettled(true);
       return;
     }
-    if (!enteredNight) return;
-    setNightSettled(false);
-    const timer = window.setTimeout(() => {
-      setNightSettled(true);
-      setRoutine(0);
-      setStep(0);
-    }, 2900);
-    return () => window.clearTimeout(timer);
+    if (!wasNight) {
+      setNightSettled(false);
+      const timer = window.setTimeout(
+        () => {
+          setNightSettled(true);
+          setStep(0);
+        },
+        dog === 'max' ? 2900 : 3400,
+      );
+      return () => window.clearTimeout(timer);
+    }
   }, [resting, reducedMotion]);
+
   useEffect(() => {
-    if (!companions.length || resting || isEditing || hidden || reducedMotion) return;
-    const timer = window.setTimeout(() => {
-      if (step + 1 < moments.length) {
-        setStep(step + 1);
-      } else {
-        const nextRoutine = pickNextCompanionRoutine(routine);
-        const journey = createCompanionJourney(placedObjects, biomeId, visitIndex);
-        setRoutine(nextRoutine);
-        setMoments(journey || COMPANION_ROUTINES[nextRoutine]);
-        setActiveVisitIndex(visitIndex);
-        setVisitIndex((index) => index + 1);
-        setStep(0);
-      }
-    }, current.duration);
+    if (resting || isEditing || hidden || reducedMotion) return;
+    const timer = window.setTimeout(
+      () => {
+        if (step + 1 < moments.length) {
+          setStep(step + 1);
+        } else {
+          const nextRoutine = pickNextCompanionRoutine(routine);
+          setRoutine(nextRoutine);
+          setMoments(
+            createCompanionJourney(placedObjects, biomeId, visitIndex) ||
+              COMPANION_ROUTINES[nextRoutine],
+          );
+          setActiveVisitIndex(visitIndex);
+          setVisitIndex((index) => index + 1);
+          setStep(0);
+        }
+      },
+      (activeCue.duration > 0
+        ? activeCue.duration + (activeCue.delay || 0) + 320
+        : current.duration) + (dog === 'abi' ? 360 : 0),
+    );
     return () => window.clearTimeout(timer);
   }, [
-    companions.length,
     resting,
     isEditing,
     hidden,
     reducedMotion,
     current.duration,
+    activeCue,
     moments,
     placedObjects,
     biomeId,
     visitIndex,
     routine,
     step,
+    dog,
   ]);
 
+  const cue: CompanionCue = resting
+    ? {
+        ...homeCue,
+        pose: nightSettled || reducedMotion ? 'rest' : 'walk',
+        duration: nightSettled || reducedMotion ? 0 : dog === 'max' ? 2600 : 3100,
+        facingRight: activeCue.x === homeCue.x ? homeCue.facingRight : activeCue.x < homeCue.x,
+      }
+    : activeCue;
+
+  return (
+    <WorldCompanion
+      def={pet}
+      cue={{ ...cue, pose: !resting && (isEditing || hidden || reducedMotion) ? 'idle' : cue.pose }}
+      paused={isEditing || hidden || reducedMotion}
+      friendReaction={friendReaction}
+      lightIntensity={lightIntensity}
+      isEditing={isEditing}
+      onInteract={onInteract}
+    />
+  );
+}
+
+export default function WorldCompanions({ companions, onInteract, ...props }: Props) {
+  const [interaction, setInteraction] = useState<{ actorId: string; serial: number } | null>(null);
   const handleInteract = (pet: WorldCompanionDef, x: number, y: number, action: string) => {
     setInteraction((previous) => ({ actorId: pet.id, serial: (previous?.serial || 0) + 1 }));
     onInteract(pet, x, y, action);
@@ -152,35 +205,15 @@ export default function WorldCompanions({
 
   return (
     <>
-      {companions.map((pet) => {
-        const key = pet.id === 'max' ? 'max' : 'abi';
-        const activeCue = current[key];
-        const homeCue = COMPANION_HOME[key];
-        const cue = resting
-          ? {
-              ...homeCue,
-              pose: nightSettled || reducedMotion ? ('rest' as const) : ('walk' as const),
-              duration: nightSettled || reducedMotion ? 0 : 2600,
-              facingRight:
-                activeCue.x === homeCue.x ? homeCue.facingRight : activeCue.x < homeCue.x,
-            }
-          : activeCue;
-        return (
-          <WorldCompanion
-            key={pet.id}
-            def={pet}
-            cue={{
-              ...cue,
-              pose: !resting && (isEditing || hidden || reducedMotion) ? 'idle' : cue.pose,
-            }}
-            paused={isEditing || hidden || reducedMotion}
-            friendReaction={interaction?.actorId !== pet.id ? interaction?.serial : undefined}
-            lightIntensity={lightIntensity}
-            isEditing={isEditing}
-            onInteract={handleInteract}
-          />
-        );
-      })}
+      {companions.map((pet) => (
+        <CompanionWalker
+          key={pet.id}
+          {...props}
+          pet={pet}
+          friendReaction={interaction?.actorId !== pet.id ? interaction?.serial : undefined}
+          onInteract={handleInteract}
+        />
+      ))}
     </>
   );
 }

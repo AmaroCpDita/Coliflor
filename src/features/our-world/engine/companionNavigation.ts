@@ -282,11 +282,9 @@ export function createCompanionJourney(
   let abiVisit: Visit | undefined;
   let maxPath: Point[] = [];
   let abiPath: Point[] = [];
-  // Some outings are shared; on the others each dog follows its own curiosity.
-  const together = visitIndex % 5 === 0 || visitIndex % 5 === 3;
   for (let offset = 0; offset < visits.length; offset++) {
     const maxSelected = visits[(visitIndex + offset) % visits.length];
-    const abiSelected = visits[(visitIndex + offset + (together ? 0 : 1)) % visits.length];
+    const abiSelected = visits[(visitIndex + offset + 1) % visits.length];
     const driftX = Math.sin(visitIndex * 1.73) * 2.2;
     const driftY = Math.cos(visitIndex * 2.11) * 1.1;
     const vary = (selected: Visit): Visit =>
@@ -370,7 +368,7 @@ export function createCompanionJourney(
       previousAbi = abi;
     }
   };
-  addLeg(maxPath, abiPath, start.max, start.abi, false, !together);
+  addLeg(maxPath, abiPath, start.max, start.abi, false, true);
   let maxEnd = maxPath[maxPath.length - 1];
   let abiEnd = abiPath[abiPath.length - 1];
   const activityFor = (visit: Visit): CompanionPose =>
