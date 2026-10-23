@@ -15,7 +15,23 @@ import AppErrorBoundary from './components/AppErrorBoundary';
 const Setup = lazy(() => import('./pages/Setup'));
 const Home = lazy(() => import('./pages/Home'));
 const Calendar = lazy(() => import('./pages/Calendar'));
-const Streak = lazy(() => import('./pages/Streak'));
+const STREAK_RELOAD_KEY = 'coliflor:streak-chunk-reload';
+const Streak = lazy(async () => {
+  try {
+    const page = await import('./pages/Streak');
+    sessionStorage.removeItem(STREAK_RELOAD_KEY);
+    return page;
+  } catch (error) {
+    // An open PWA can still point at a chunk removed by a newer deployment.
+    // Reload once to fetch the current entry point, then surface persistent errors.
+    if (!sessionStorage.getItem(STREAK_RELOAD_KEY)) {
+      sessionStorage.setItem(STREAK_RELOAD_KEY, '1');
+      window.location.reload();
+      return new Promise<never>(() => {});
+    }
+    throw error;
+  }
+});
 const Quiz = lazy(() => import('./pages/Quiz'));
 const Messages = lazy(() => import('./pages/Messages'));
 const Settings = lazy(() => import('./pages/Settings'));
