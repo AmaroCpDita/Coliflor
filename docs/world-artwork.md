@@ -1,5 +1,29 @@
 # Garden artwork
 
+## Secret Garden biome (2026-10-22)
+
+The second biome uses its own day and night landscapes:
+`public/assets/world/secret-garden-day-v1.png` and
+`public/assets/world/secret-garden-night-v1.png`. Its waterfall sits high on the
+left, the stone path approaches from the right, and an open irregular lawn leaves
+room for player placements and companion movement. This differs from the forest's
+left-hand trail and lower-right pond. The two landscapes share a composition for
+the day/night crossfade. Delivery WebP files are 840 × 1493 pixels at quality 70,
+and are fetched only when the garden is visited; the PNG masters are kept for
+future artwork revisions.
+
+## Remaining biome landscapes (2026-10-22)
+
+The Beach, Magical Glade and Snowy Mountain each have paired day/night PNG masters
+in `public/assets/world/`, named `secret-beach-*`, `magical-glade-*` and
+`snowy-mountain-*`. The beach leaves a wide sand cove beneath the shoreline;
+the glade reserves its grassy center inside the tree arch; the mountain keeps
+the central snowfield open. Each has room for large placed objects. Their WebP
+delivery images are 840 × 1493 pixels at quality 70, referenced only by the
+active biome's CSS selectors. They remain outside the PWA precache and are
+fetched when the biome is visited. The local development map includes a
+read-only preview toggle for all five biomes and shows real unlock progress.
+
 Generated using the built-in `imagegen` tool from the visual reference `Captura de pantalla 2026-10-02 144608.png`. The light/pink interface was deliberately preserved. Original artwork remains available; current artwork is in `public/assets/world/`:
 
 - `garden-empty-v3.png`: natural portrait terrain without buildings, lanterns, bench, bridge, fences or foreground trees. Rewards are placed separately by the player.

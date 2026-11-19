@@ -114,4 +114,36 @@ await db.exec(`
 await db.exec(migration('029', 'restore_existing_long_streak'));
 assert.equal(await affectedCount(), 31, 'A real gap must not inherit the old record');
 
+await db.exec(`
+  DELETE FROM streak_photos WHERE couple_id = '${affectedCouple}';
+  UPDATE couples SET current_streak = 31, max_streak = 31 WHERE id = '${affectedCouple}';
+  INSERT INTO streak_photos (couple_id, user_id, photo_date)
+  SELECT '${affectedCouple}', users.id, days.day::date
+  FROM generate_series('${date}'::date - 30, '${date}'::date - 1, '1 day') AS days(day)
+  CROSS JOIN (VALUES ('${person}'::uuid), ('${partner}'::uuid)) AS users(id);
+`);
+await db.exec(migration('032', 'restore_and_protect_streak'));
+assert.equal(await affectedCount(), 52, 'Restores the August 27 streak from a continuous retained window');
+await db.exec(migration('032', 'restore_and_protect_streak'));
+assert.equal(await affectedCount(), 52, 'The dated repair is safe to replay');
+await db.exec(`
+  UPDATE couples SET current_streak = 31 WHERE id = '${affectedCouple}';
+  DELETE FROM streak_photos WHERE couple_id = '${affectedCouple}' AND photo_date = '${date}'::date - 5;
+`);
+await db.exec(migration('032', 'restore_and_protect_streak'));
+assert.equal(await affectedCount(), 52, 'The dated repair seals recent gaps and restores streak');
+
+// Test that recovering a gap restores the full streak from streak_start_date (past the 30-day window)
+await db.exec(`
+  UPDATE couples SET current_streak = 4, max_streak = 75, streak_start_date = '${date}'::date - 75 WHERE id = '${couple}';
+  DELETE FROM streak_photos WHERE couple_id = '${couple}';
+  DELETE FROM streak_recoveries WHERE couple_id = '${couple}';
+  INSERT INTO streak_photos (couple_id, user_id, photo_date)
+  SELECT '${couple}', users.id, days.day::date
+  FROM generate_series('${date}'::date - 25, '${date}'::date - 2, '1 day') AS days(day)
+  CROSS JOIN (VALUES ('${person}'::uuid), ('${partner}'::uuid)) AS users(id);
+`);
+await recover();
+assert.equal(await count(), 75, 'Recovery restores full streak from streak_start_date beyond 30 days');
+
 console.log('Streak recovery boundary checks passed.');

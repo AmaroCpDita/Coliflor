@@ -19,6 +19,7 @@ export interface Couple {
   user1_id: string;
   user2_id: string;
   relationship_start: string; // date string YYYY-MM-DD
+  streak_start_date?: string; // date string YYYY-MM-DD
   current_streak: number;
   max_streak: number;
   recoveries_used: number;

@@ -15,9 +15,17 @@ type Visit = {
   abiFacingRight?: boolean;
 };
 
-// Percent coordinates follow the painted ground. The pond occupies the lower right.
-export function isWalkable(point: Point): boolean {
+// Percent coordinates rise from the bottom of the painted landscape.
+export function isWalkable(point: Point, biomeId = 'forest'): boolean {
   const { x, y } = point;
+  if (biomeId === 'garden') {
+    // The garden's broad central lawn is bordered by flowers and the right-hand willow.
+    return x >= 16 && x <= 82 && y >= 17 && y <= 52;
+  }
+  if (biomeId === 'beach') return x >= 15 && x <= 85 && y >= 17 && y <= 52;
+  if (biomeId === 'magical') return x >= 17 && x <= 83 && y >= 17 && y <= 52;
+  if (biomeId === 'mountain') return x >= 14 && x <= 86 && y >= 17 && y <= 52;
+  // The forest pond occupies the lower right.
   if (x < 13 || x > 86 || y < 17 || y > 49) return false;
   if (y < 23 && x > 68 - (y - 17) * 1.2) return false;
   if (y >= 23 && y < 32 && x > 61 - (y - 23) * 0.1) return false;
@@ -36,8 +44,8 @@ function obstacleRadius(object: PlacedObject): number {
   return radius;
 }
 
-function isClear(point: Point, objects: PlacedObject[]): boolean {
-  if (!isWalkable(point)) return false;
+function isClear(point: Point, objects: PlacedObject[], biomeId: string): boolean {
+  if (!isWalkable(point, biomeId)) return false;
   return objects.every((object) => {
     const radius = obstacleRadius(object);
     const dx = (point.x - object.position_x) / radius;
@@ -60,8 +68,13 @@ const nodePoint = (col: number, row: number): Point => ({
 });
 const nodeKey = (col: number, row: number) => `${col},${row}`;
 
-export function findCompanionPath(from: Point, to: Point, objects: PlacedObject[]): Point[] {
-  if (!isClear(to, objects)) return [];
+export function findCompanionPath(
+  from: Point,
+  to: Point,
+  objects: PlacedObject[],
+  biomeId = 'forest',
+): Point[] {
+  if (!isClear(to, objects, biomeId)) return [];
   const nearest = (point: Point) => ({
     col: Math.max(0, Math.min(COLS - 1, Math.round((point.x - 13) / GRID_X))),
     row: Math.max(0, Math.min(ROWS - 1, Math.round((point.y - 17) / GRID_Y))),
@@ -74,7 +87,7 @@ export function findCompanionPath(from: Point, to: Point, objects: PlacedObject[
   }));
   const startCandidates = grid.filter(({ col, row }) => {
     const point = nodePoint(col, row);
-    return isClear(point, objects) && segmentIsClear(from, point, objects);
+    return isClear(point, objects, biomeId) && segmentIsClear(from, point, objects, biomeId);
   });
   startCandidates.sort(
     (a, b) => distance(nodePoint(a.col, a.row), from) - distance(nodePoint(b.col, b.row), from),
@@ -82,7 +95,7 @@ export function findCompanionPath(from: Point, to: Point, objects: PlacedObject[
   const start = startCandidates[0] || startNode;
   const candidates = grid.filter(({ col, row }) => {
     const point = nodePoint(col, row);
-    return isClear(point, objects) && segmentIsClear(point, to, objects);
+    return isClear(point, objects, biomeId) && segmentIsClear(point, to, objects, biomeId);
   });
   candidates.sort(
     (a, b) => distance(nodePoint(a.col, a.row), to) - distance(nodePoint(b.col, b.row), to),
@@ -113,7 +126,7 @@ export function findCompanionPath(from: Point, to: Point, objects: PlacedObject[
       }
       path.unshift(nodePoint(start.col, start.row));
       path.push(to);
-      return simplifyPath(from, path, objects);
+      return simplifyPath(from, path, objects, biomeId);
     }
     open.delete(key);
     const [col, row] = key.split(',').map(Number);
@@ -131,7 +144,10 @@ export function findCompanionPath(from: Point, to: Point, objects: PlacedObject[
       const nextRow = row + dr;
       if (nextCol < 0 || nextCol >= COLS || nextRow < 0 || nextRow >= ROWS) continue;
       const point = nodePoint(nextCol, nextRow);
-      if (!isClear(point, objects) || !segmentIsClear(nodePoint(col, row), point, objects))
+      if (
+        !isClear(point, objects, biomeId) ||
+        !segmentIsClear(nodePoint(col, row), point, objects, biomeId)
+      )
         continue;
       const nextKey = nodeKey(nextCol, nextRow);
       const tentative = (costs.get(key) ?? Infinity) + distance(nodePoint(col, row), point);
@@ -145,21 +161,30 @@ export function findCompanionPath(from: Point, to: Point, objects: PlacedObject[
   return [];
 }
 
-function segmentIsClear(a: Point, b: Point, objects: PlacedObject[]): boolean {
+function segmentIsClear(a: Point, b: Point, objects: PlacedObject[], biomeId: string): boolean {
   const samples = Math.ceil(distance(a, b) / 1.2);
   for (let index = 1; index <= samples; index++) {
     const t = index / samples;
-    if (!isClear({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }, objects)) return false;
+    if (!isClear({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }, objects, biomeId))
+      return false;
   }
   return true;
 }
 
-function simplifyPath(from: Point, path: Point[], objects: PlacedObject[]): Point[] {
+function simplifyPath(
+  from: Point,
+  path: Point[],
+  objects: PlacedObject[],
+  biomeId: string,
+): Point[] {
   const result: Point[] = [];
   let origin = from;
   for (let index = 0; index < path.length;) {
     let furthest = index;
-    while (furthest + 1 < path.length && segmentIsClear(origin, path[furthest + 1], objects))
+    while (
+      furthest + 1 < path.length &&
+      segmentIsClear(origin, path[furthest + 1], objects, biomeId)
+    )
       furthest++;
     result.push(path[furthest]);
     origin = path[furthest];
@@ -170,7 +195,7 @@ function simplifyPath(from: Point, path: Point[], objects: PlacedObject[]): Poin
 
 function visitsForWorld(objects: PlacedObject[], biomeId: string): Visit[] {
   const visits: Visit[] = [];
-  if (biomeId === 'forest' || biomeId === 'garden') {
+  if (biomeId === 'forest') {
     visits.push({
       id: 'painted-pond',
       kind: 'water',
@@ -180,6 +205,47 @@ function visitsForWorld(objects: PlacedObject[], biomeId: string): Visit[] {
       abiFacingRight: true,
     });
   }
+  if (biomeId === 'garden') {
+    visits.push(
+      {
+        id: 'waterfall-grove',
+        kind: 'meadow',
+        point: { x: 28, y: 43 },
+        abiPoint: { x: 38, y: 46 },
+        facingRight: false,
+        activity: 'watch',
+      },
+      {
+        id: 'flowering-willow',
+        kind: 'object',
+        point: { x: 69, y: 34 },
+        abiPoint: { x: 75, y: 40 },
+        facingRight: true,
+        activity: 'sniff',
+      },
+    );
+  }
+  const otherLandmarks: Record<string, Array<{ id: string; point: Point; abiPoint: Point }>> = {
+    beach: [
+      { id: 'shoreline', point: { x: 32, y: 45 }, abiPoint: { x: 44, y: 47 } },
+      { id: 'coastal-flowers', point: { x: 69, y: 34 }, abiPoint: { x: 76, y: 40 } },
+    ],
+    magical: [
+      { id: 'crystal-grove', point: { x: 29, y: 43 }, abiPoint: { x: 40, y: 46 } },
+      { id: 'moonflowers', point: { x: 69, y: 34 }, abiPoint: { x: 75, y: 40 } },
+    ],
+    mountain: [
+      { id: 'birch-view', point: { x: 28, y: 44 }, abiPoint: { x: 41, y: 46 } },
+      { id: 'icefall-view', point: { x: 69, y: 36 }, abiPoint: { x: 76, y: 42 } },
+    ],
+  };
+  visits.push(
+    ...(otherLandmarks[biomeId] || []).map((landmark) => ({
+      ...landmark,
+      kind: 'object' as const,
+      activity: 'watch' as const,
+    })),
+  );
   const priority = (itemId: string) =>
     itemId === 'treehouse' ? 0 : ['fountain', 'birdbath'].includes(itemId) ? 1 : 2;
   for (const object of [...objects].sort((a, b) => priority(a.item_id) - priority(b.item_id))) {
@@ -197,7 +263,7 @@ function visitsForWorld(objects: PlacedObject[], biomeId: string): Visit[] {
       { x: object.position_x, y: object.position_y - radius * 0.65 },
       { x: object.position_x - radius * 0.8, y: object.position_y - radius * 0.65 },
       { x: object.position_x - radius * 0.8, y: object.position_y + radius * 0.65 },
-    ].filter((point) => isClear(point, objects));
+    ].filter((point) => isClear(point, objects, biomeId));
     const pairs = candidates.flatMap((maxPoint) =>
       candidates
         .filter((abiPoint) => distance(maxPoint, abiPoint) >= 10)
@@ -229,18 +295,18 @@ function visitsForWorld(objects: PlacedObject[], biomeId: string): Visit[] {
   }
   visits.push(
     {
-      id: 'path-flowers',
+      id: biomeId === 'garden' ? 'garden-flowers' : 'path-flowers',
       kind: 'object',
-      point: { x: 42, y: 34 },
-      abiPoint: { x: 52, y: 36 },
+      point: biomeId === 'garden' ? { x: 35, y: 31 } : { x: 42, y: 34 },
+      abiPoint: biomeId === 'garden' ? { x: 53, y: 37 } : { x: 52, y: 36 },
       facingRight: false,
       activity: 'sniff',
     },
     {
       id: 'open-meadow',
       kind: 'meadow',
-      point: { x: 58, y: 42 },
-      abiPoint: { x: 70, y: 44 },
+      point: biomeId === 'garden' ? { x: 52, y: 26 } : { x: 58, y: 42 },
+      abiPoint: biomeId === 'garden' ? { x: 72, y: 31 } : { x: 70, y: 44 },
       facingRight: true,
     },
   );
@@ -288,7 +354,9 @@ export function createCompanionJourney(
     const driftX = Math.sin(visitIndex * 1.73) * 2.2;
     const driftY = Math.cos(visitIndex * 2.11) * 1.1;
     const vary = (selected: Visit): Visit =>
-      selected.kind === 'meadow' || selected.id === 'path-flowers'
+      selected.kind === 'meadow' ||
+      selected.id === 'path-flowers' ||
+      selected.id === 'garden-flowers'
         ? {
             ...selected,
             point: { x: selected.point.x + driftX, y: selected.point.y + driftY },
@@ -300,10 +368,12 @@ export function createCompanionJourney(
         : selected;
     const variedMax = vary(maxSelected);
     const variedAbi = vary(abiSelected);
-    const candidateMaxVisit = isClear(variedMax.point, objects) ? variedMax : maxSelected;
-    const candidateAbiVisit = isClear(variedAbi.abiPoint, objects) ? variedAbi : abiSelected;
-    const candidateMax = findCompanionPath(start.max, candidateMaxVisit.point, objects);
-    const candidateAbi = findCompanionPath(start.abi, candidateAbiVisit.abiPoint, objects);
+    const candidateMaxVisit = isClear(variedMax.point, objects, biomeId) ? variedMax : maxSelected;
+    const candidateAbiVisit = isClear(variedAbi.abiPoint, objects, biomeId)
+      ? variedAbi
+      : abiSelected;
+    const candidateMax = findCompanionPath(start.max, candidateMaxVisit.point, objects, biomeId);
+    const candidateAbi = findCompanionPath(start.abi, candidateAbiVisit.abiPoint, objects, biomeId);
     if (candidateMax.length && candidateAbi.length) {
       maxVisit = candidateMaxVisit;
       abiVisit = candidateAbiVisit;
@@ -437,9 +507,23 @@ export function createCompanionJourney(
       abi: stillCue(abiEnd, false, abiVisit.kind === 'meadow' ? 'tilt' : 'watch'),
     });
     const chaseMax =
-      maxVisit.kind === 'meadow' ? findCompanionPath(maxEnd, { x: 47, y: 43 }, objects) : [];
+      maxVisit.kind === 'meadow'
+        ? findCompanionPath(
+            maxEnd,
+            biomeId === 'garden' ? { x: 41, y: 26 } : { x: 47, y: 43 },
+            objects,
+            biomeId,
+          )
+        : [];
     const chaseAbi =
-      abiVisit.kind === 'meadow' ? findCompanionPath(abiEnd, { x: 66, y: 44 }, objects) : [];
+      abiVisit.kind === 'meadow'
+        ? findCompanionPath(
+            abiEnd,
+            biomeId === 'garden' ? { x: 68, y: 24 } : { x: 66, y: 44 },
+            objects,
+            biomeId,
+          )
+        : [];
     if (
       (maxVisit.kind !== 'meadow' || chaseMax.length) &&
       (abiVisit.kind !== 'meadow' || chaseAbi.length)
@@ -454,8 +538,8 @@ export function createCompanionJourney(
       });
     }
   }
-  const returnMax = findCompanionPath(maxEnd, homeMax, objects);
-  const returnAbi = findCompanionPath(abiEnd, homeAbi, objects);
+  const returnMax = findCompanionPath(maxEnd, homeMax, objects, biomeId);
+  const returnAbi = findCompanionPath(abiEnd, homeAbi, objects, biomeId);
   if (!returnMax.length || !returnAbi.length) return null;
   addLeg(returnMax, returnAbi, maxEnd, abiEnd);
   moments.push(COMPANION_HOME);

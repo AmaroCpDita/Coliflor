@@ -265,7 +265,10 @@ export default function Streak() {
     return d.toISOString().split('T')[0];
   })();
 
-  const recoveriesRemaining = couple ? MAX_RECOVERIES_PER_MONTH - couple.recoveries_used : 0;
+  const currentMonth = `${today.slice(0, 7)}-01`;
+  const recoveriesUsedThisMonth =
+    couple?.recoveries_reset_month === currentMonth ? couple.recoveries_used : 0;
+  const recoveriesRemaining = couple ? MAX_RECOVERIES_PER_MONTH - recoveriesUsedThisMonth : 0;
   const dayComplete = todayPhotos.myPhoto !== null && todayPhotos.partnerPhoto !== null;
 
   // Detect who is missing photo for yesterday (for recovery).
@@ -278,8 +281,7 @@ export default function Streak() {
   // Yesterday is complete only if BOTH photos exist
   const yesterdayComplete =
     yesterdayPhotos.myPhoto !== null && yesterdayPhotos.partnerPhoto !== null;
-  const streakBroken =
-    couple !== null && couple.current_streak === 0 && !yesterdayComplete && !yesterdayRecovered;
+  const streakBroken = couple !== null && !yesterdayComplete && !yesterdayRecovered;
 
   const fetchTodayPhotos = useCallback(async () => {
     if (!couple || !profile) return;

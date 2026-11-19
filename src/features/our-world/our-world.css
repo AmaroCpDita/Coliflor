@@ -39,11 +39,37 @@
 .world-scene__landscape {
   background: center / cover no-repeat;
 }
-.world-scene__landscape--day {
+.world-scene__terrain--forest .world-scene__landscape--day {
   background-image: url('/assets/world/optimized/garden-empty-v3.webp');
 }
-.world-scene__landscape--night {
+.world-scene__terrain--forest .world-scene__landscape--night {
   background-image: url('/assets/world/optimized/garden-night-v1.webp');
+}
+.world-scene__terrain--garden .world-scene__landscape--day {
+  background-image: url('/assets/world/optimized/secret-garden-day-v1.webp');
+}
+.world-scene__terrain--garden .world-scene__landscape--night {
+  background-image: url('/assets/world/optimized/secret-garden-night-v1.webp');
+}
+.world-scene__terrain--beach .world-scene__landscape--day {
+  background-image: url('/assets/world/optimized/secret-beach-day-v1.webp');
+}
+.world-scene__terrain--beach .world-scene__landscape--night {
+  background-image: url('/assets/world/optimized/secret-beach-night-v1.webp');
+}
+.world-scene__terrain--magical .world-scene__landscape--day {
+  background-image: url('/assets/world/optimized/magical-glade-day-v1.webp');
+}
+.world-scene__terrain--magical .world-scene__landscape--night {
+  background-image: url('/assets/world/optimized/magical-glade-night-v1.webp');
+}
+.world-scene__terrain--mountain .world-scene__landscape--day {
+  background-image: url('/assets/world/optimized/snowy-mountain-day-v1.webp');
+}
+.world-scene__terrain--mountain .world-scene__landscape--night {
+  background-image: url('/assets/world/optimized/snowy-mountain-night-v1.webp');
+}
+.world-scene__landscape--night {
   transition: opacity 3s ease;
 }
 
@@ -1528,6 +1554,97 @@
 }
 
 /* --- World Map --- */
+.world-scene__preview-shield {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+}
+
+.world-scene__preview-banner {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  z-index: 31;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 14px;
+  background: rgba(17, 23, 31, 0.88);
+  color: #fff;
+  font-size: 12px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.24);
+}
+
+.world-scene__preview-banner button,
+.world-map__preview-toggle {
+  border: 1px solid var(--color-accent, #e5c573);
+  border-radius: 10px;
+  padding: 7px 10px;
+  background: rgba(229, 197, 115, 0.14);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.world-map__preview-toggle {
+  width: 100%;
+}
+
+.world-map__preview-controls {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.world-map__preview-controls small {
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  text-align: center;
+}
+
+.world-map__progress {
+  margin-bottom: 14px;
+}
+
+.world-map__progress-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.world-map__progress-label strong {
+  color: var(--color-text-primary);
+}
+
+.world-map__progress-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(229, 197, 115, 0.16);
+}
+
+.world-map__progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent, #e5c573);
+  transition: width 0.3s ease;
+}
+
+.world-map__progress-next {
+  margin: 6px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 10px;
+}
+
 .world-map-backdrop {
   position: fixed;
   top: 0;

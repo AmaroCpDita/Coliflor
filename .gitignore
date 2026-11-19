@@ -1,4 +1,9 @@
-# Logs
+# Mobile builds
+*.apk
+*.ipa
+Payload/
+ios/build/
+ios/DerivedData/
 logs
 *.log
 npm-debug.log*

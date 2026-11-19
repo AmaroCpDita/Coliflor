@@ -25,6 +25,6 @@ try {
   assert.equal(getDailyQuiz(after).questions.length,0,'Exhaustion never cycles old questions');
   assert.equal(getDailyQuiz('2030-01-01').questions.length,0);
   assert.equal(getDailyQuiz('2026-10-03').questions.length,5,'Today remains compatible with existing answers');
-  assert.equal(ids.size,150);
-  console.log('Quiz series passed: 30 dates, 150 unique prompts/IDs, stable pairs and no recycling at exhaustion.');
+  assert.equal(ids.size, NEW_QUIZZES.length * 5);
+  console.log(`Quiz series passed: ${NEW_QUIZZES.length} dates, ${ids.size} unique prompts/IDs, stable pairs and no recycling at exhaustion.`);
 } finally { await server.close(); }

@@ -111,6 +111,8 @@ export default function WorldScene({
   const [showWorldHelp, setShowWorldHelp] = useState(false);
   const [inventorySelectionError, setInventorySelectionError] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [localPreviewEnabled, setLocalPreviewEnabled] = useState(false);
+  const [previewBiomeId, setPreviewBiomeId] = useState<string | null>(null);
   const [showForest, setShowForest] = useState(false);
   const [buildMode, setBuildMode] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
@@ -162,7 +164,12 @@ export default function WorldScene({
     ((x: number, y: number, type: ParticleType, count: number, colors: string[]) => void) | null
   >(null);
 
-  const biomeId = isWelcomePreview ? 'forest' : worldState?.current_biome || 'forest';
+  const isLocalPreview = import.meta.env.DEV && localPreviewEnabled && previewBiomeId !== null;
+  const biomeId = isWelcomePreview
+    ? 'forest'
+    : isLocalPreview
+      ? previewBiomeId || 'forest'
+      : worldState?.current_biome || 'forest';
   const biome = useMemo(() => getBiomeDef(biomeId), [biomeId]);
   const level = worldState?.level || 1;
   const companions = isWelcomePreview ? [] : getWorldCompanions(worldState?.couple_id, biomeId);
@@ -359,22 +366,24 @@ export default function WorldScene({
   // Particle configs for current biome/time
   const particleConfigs = useMemo(() => {
     if (!biome) return [];
-    // Flowers belong to player placements; omit decorative petals drifting in the sky.
+    // Only the flowering garden gets a few ambient petals; placed plants remain separate.
     return (biome.particles[dayNight.phase] || [])
-      .filter((config) => config.type !== 'petal')
+      .filter((config) => biome.id === 'garden' || config.type !== 'petal')
       .map((config) =>
-        config.type === 'firefly'
-          ? {
-              ...config,
-              count: dayNight.phase === 'night' ? 12 : 7,
-              area: [15, 85, 50, 88] as [number, number, number, number],
-              size: [1.5, 3] as [number, number],
-              glow: 5,
-              opacity: [0.25, 0.7] as [number, number],
-            }
-          : config.type === 'star'
-            ? { ...config, count: 10, glow: 1 }
-            : config,
+        config.type === 'petal'
+          ? { ...config, count: Math.min(config.count, 6) }
+          : config.type === 'firefly'
+            ? {
+                ...config,
+                count: dayNight.phase === 'night' ? 12 : 7,
+                area: [15, 85, 50, 88] as [number, number, number, number],
+                size: [1.5, 3] as [number, number],
+                glow: 5,
+                opacity: [0.25, 0.7] as [number, number],
+              }
+            : config.type === 'star'
+              ? { ...config, count: 10, glow: 1 }
+              : config,
       );
   }, [biome, dayNight.phase]);
 
@@ -439,7 +448,7 @@ export default function WorldScene({
     hasDragged.current = false;
     if (
       (e.target as HTMLElement).closest(
-        'button, .world-hud, .world-build-controls, .world-scene__build-indicator, .world-scene__build-menu, .world-inventory-backdrop, .world-map-backdrop, .world-reward-backdrop',
+        'button, .world-hud, .world-build-controls, .world-scene__build-indicator, .world-scene__build-menu, .world-scene__preview-shield, .world-inventory-backdrop, .world-map-backdrop, .world-reward-backdrop',
       )
     )
       return;
@@ -566,6 +575,15 @@ export default function WorldScene({
 
   // Handle biome switch
   const handleSelectBiome = async (newBiomeId: string) => {
+    if (import.meta.env.DEV && localPreviewEnabled) {
+      setPreviewBiomeId(newBiomeId);
+      setShowMap(false);
+      setBuildMode(false);
+      setSelectedItem(null);
+      setSelectedPlacedObject(null);
+      setMovePreview(null);
+      return;
+    }
     if (savingRef.current) return;
     savingRef.current = true;
     setIsSaving(true);
@@ -698,26 +716,17 @@ export default function WorldScene({
         }}
       >
         {/* One continuous landscape, registered to the same coordinates as objects. */}
-        {biomeId === 'garden' || biomeId === 'forest' ? (
-          <div className="world-scene__terrain" aria-hidden="true">
-            {nightLandscapeOpacity < 1 && (
-              <div className="world-scene__landscape world-scene__landscape--day" />
-            )}
-            {nightLandscapeOpacity > 0 && (
-              <div
-                className="world-scene__landscape world-scene__landscape--night"
-                style={{ opacity: nightLandscapeOpacity }}
-              />
-            )}
-          </div>
-        ) : (
-          <div
-            className="world-scene__ground"
-            style={{ background: biome.groundGradient, height: '80%' }}
-          >
-            <div className="world-scene__grass" />
-          </div>
-        )}
+        <div className={`world-scene__terrain world-scene__terrain--${biomeId}`} aria-hidden="true">
+          {nightLandscapeOpacity < 1 && (
+            <div className="world-scene__landscape world-scene__landscape--day" />
+          )}
+          {nightLandscapeOpacity > 0 && (
+            <div
+              className="world-scene__landscape world-scene__landscape--night"
+              style={{ opacity: nightLandscapeOpacity }}
+            />
+          )}
+        </div>
 
         {/* Placed Objects */}
         {displayedObjects.map((obj) => (
@@ -740,7 +749,7 @@ export default function WorldScene({
           biomeId={biomeId}
           timeOfDay={dayNight.phase}
           lightIntensity={dayNight.lightIntensity}
-          isEditing={buildMode}
+          isEditing={buildMode || isLocalPreview}
           onInteract={handleCompanionInteract}
         />
         {creatures.map((creature) => (
@@ -752,9 +761,13 @@ export default function WorldScene({
             lightIntensity={dayNight.lightIntensity}
             onInteract={handleCreatureInteract}
             habitat={
-              biomeId === 'forest' || biomeId === 'garden'
+              biomeId === 'forest'
                 ? { x: [30, 59], y: [32, 39] }
-                : undefined
+                : biomeId === 'garden'
+                  ? { x: [30, 70], y: [31, 44] }
+                  : biomeId === 'magical' || biomeId === 'mountain'
+                    ? { x: [29, 70], y: [29, 44] }
+                    : undefined
             }
           />
         ))}
@@ -822,7 +835,7 @@ export default function WorldScene({
       )}
 
       {/* HUD */}
-      {!isWelcomePreview && (
+      {!isWelcomePreview && !isLocalPreview && (
         <WorldHUD
           worldState={worldState}
           dayNight={dayNight}
@@ -873,6 +886,17 @@ export default function WorldScene({
             false
           }
         />
+      )}
+
+      {isLocalPreview && (
+        <>
+          <div className="world-scene__preview-shield" aria-hidden="true" />
+          <div className="world-scene__preview-banner">
+            <span>Vista previa local · {biome?.name}</span>
+            <button onClick={() => setShowMap(true)}>Mapa</button>
+            <button onClick={() => setPreviewBiomeId(null)}>Salir</button>
+          </div>
+        </>
       )}
 
       {/* Panels */}
@@ -960,6 +984,16 @@ export default function WorldScene({
         onClose={() => setShowMap(false)}
         worldState={worldState}
         onSelectBiome={handleSelectBiome}
+        currentBiomeId={biomeId}
+        localPreviewEnabled={localPreviewEnabled}
+        onToggleLocalPreview={
+          import.meta.env.DEV
+            ? () => {
+                setLocalPreviewEnabled((enabled) => !enabled);
+                setPreviewBiomeId(null);
+              }
+            : undefined
+        }
       />
 
       {/* Reward Modal */}
