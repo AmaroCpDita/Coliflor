@@ -44,6 +44,51 @@ export function getNowInTimezone(): {
 }
 
 /**
+ * Get the real-time countdown to midnight in the configured timezone.
+ */
+export function getTimeUntilMidnightInTimezone(): {
+  hours: number;
+  minutes: number;
+  seconds: number;
+  totalSeconds: number;
+  formatted: string;
+  isUrgent: boolean;
+} {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: TIMEZONE,
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: false,
+  }).formatToParts(now);
+
+  const get = (type: string) => parseInt(parts.find((p) => p.type === type)?.value || '0', 10);
+  const h = get('hour');
+  const m = get('minute');
+  const s = get('second');
+
+  const secondsPassed = h * 3600 + m * 60 + s;
+  const totalSeconds = Math.max(0, 86400 - secondsPassed);
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const formatted = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+
+  return {
+    hours,
+    minutes,
+    seconds,
+    totalSeconds,
+    formatted,
+    isUrgent: hours < 4,
+  };
+}
+
+/**
  * Calculate days between a start date and today.
  */
 export function daysSince(startDate: string): number {

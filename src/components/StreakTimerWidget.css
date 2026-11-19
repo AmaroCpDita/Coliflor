@@ -1,0 +1,400 @@
+/* ============================================================
+   Coliflor — Duolingo-style Streak Timer Widget CSS
+   ============================================================ */
+
+.duo-streak-widget {
+  position: relative;
+  border-radius: 24px;
+  padding: 20px;
+  margin: 16px 0;
+  overflow: hidden;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.4),
+    0 4px 0 rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+/* --- STATE: ACTIVE (RACHA ACTIVADA) --- */
+.duo-streak-widget--active {
+  background: linear-gradient(145deg, #1f1a14 0%, #2e2010 40%, #1c1813 100%);
+  border-color: rgba(251, 146, 60, 0.4);
+  box-shadow:
+    0 12px 30px -5px rgba(234, 88, 12, 0.25),
+    0 5px 0 #9a3412;
+}
+
+.duo-streak-widget--active::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.25) 0%, transparent 70%);
+  pointer-events: none;
+  animation: duoPulseGlow 3s ease-in-out infinite alternate;
+}
+
+/* --- STATE: PENDING / IN DANGER --- */
+.duo-streak-widget--pending {
+  background: linear-gradient(145deg, #181926 0%, #221a24 50%, #151620 100%);
+  border-color: rgba(229, 197, 115, 0.25);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.45),
+    0 4px 0 rgba(0, 0, 0, 0.4);
+}
+
+.duo-streak-widget--urgent {
+  background: linear-gradient(145deg, #261517 0%, #36171d 50%, #1f1215 100%);
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow:
+    0 12px 30px -5px rgba(239, 68, 68, 0.3),
+    0 5px 0 #991b1b;
+  animation: duoEmergencyBorder 2.5s infinite;
+}
+
+/* Header row */
+.duo-streak-widget__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.duo-streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.duo-streak-badge--active {
+  background: #ea580c;
+  color: #fff;
+  border: 1px solid #ff782e;
+}
+
+.duo-streak-badge--pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.duo-streak-badge--urgent {
+  background: #dc2626;
+  color: #fff;
+  border: 1px solid #ef4444;
+  animation: duoUrgentPulse 1.2s infinite;
+}
+
+/* Streak Main Numbers */
+.duo-streak-main-display {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.duo-streak-flame-container {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.duo-streak-widget--active .duo-streak-flame-container {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.35));
+  border: 1px solid rgba(249, 115, 22, 0.5);
+}
+
+.duo-streak-flame-icon {
+  font-size: 34px;
+  animation: duoFlameDance 1.8s infinite ease-in-out;
+  display: inline-block;
+  transform-origin: bottom center;
+}
+
+.duo-streak-info {
+  flex: 1;
+}
+
+.duo-streak-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  margin-bottom: 2px;
+}
+
+.duo-streak-count {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.duo-streak-count span.days-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+/* Timer Clock Display (Boxes) */
+.duo-countdown-grid {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 16px 0;
+}
+
+.duo-timer-box {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 14px;
+  padding: 10px 4px 6px 4px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 2px 0 rgba(255, 255, 255, 0.05);
+}
+
+.duo-streak-widget--urgent .duo-timer-box {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(30, 8, 12, 0.6);
+}
+
+.duo-timer-digits {
+  font-family:
+    'SF Pro Display',
+    -apple-system,
+    system-ui,
+    monospace;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.duo-timer-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-tertiary);
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+.duo-timer-sep {
+  font-size: 20px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.2);
+  margin-top: -8px;
+}
+
+/* Partner Status Badges / Checklist */
+.duo-partner-status-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.duo-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.duo-status-pill--done {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+}
+
+.duo-status-pill--waiting {
+  background: rgba(234, 179, 8, 0.08);
+  border-color: rgba(234, 179, 8, 0.25);
+  color: #facc15;
+}
+
+.duo-status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.duo-status-pill--done .duo-status-icon {
+  background: #22c55e;
+  color: #fff;
+}
+
+.duo-status-pill--waiting .duo-status-icon {
+  background: #eab308;
+  color: #000;
+}
+
+/* Duolingo Chunky 3D Action Button */
+.duo-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: all 0.1s ease;
+  user-select: none;
+}
+
+.duo-action-btn--primary {
+  background: #f97316;
+  color: #fff;
+  box-shadow: 0 4px 0 #c2410c;
+}
+
+.duo-action-btn--primary:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #c2410c;
+}
+
+.duo-action-btn--urgent {
+  background: #ef4444;
+  color: #fff;
+  box-shadow: 0 4px 0 #b91c1c;
+}
+
+.duo-action-btn--urgent:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #b91c1c;
+}
+
+.duo-action-btn--success {
+  background: #22c55e;
+  color: #fff;
+  box-shadow: 0 4px 0 #15803d;
+}
+
+.duo-action-btn--success:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #15803d;
+}
+
+.duo-notif-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.duo-notif-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-accent);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  text-decoration: underline;
+}
+
+.duo-notif-btn:hover {
+  color: #fff;
+}
+
+/* Animations */
+@keyframes duoFlameDance {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.08) rotate(-4deg);
+  }
+  50% {
+    transform: scale(0.96) rotate(3deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes duoPulseGlow {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 0.7;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes duoUrgentPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+@keyframes duoEmergencyBorder {
+  0%,
+  100% {
+    border-color: rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    border-color: rgba(239, 68, 68, 0.85);
+    box-shadow:
+      0 12px 30px -5px rgba(239, 68, 68, 0.5),
+      0 5px 0 #991b1b;
+  }
+}

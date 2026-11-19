@@ -5,12 +5,18 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import NotificationCenter from './NotificationCenter';
 import { useNotificationInbox } from '../hooks/useNotificationInbox';
 import { isActivityNotification } from '../lib/notifications';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { Message } from '../lib/types';
+import {
+  requestNotificationPermission,
+  checkNotificationPermission,
+} from '../lib/localNotifications';
 
 function IconHome({ active }: { active: boolean }) {
   return (
@@ -366,6 +372,23 @@ export default function Layout() {
       }
     }
   }, [profile?.id]);
+
+  // Native Mobile Local Notifications & App State Lifecycle
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      requestNotificationPermission();
+
+      const listenerPromise = App.addListener('appStateChange', (state) => {
+        if (state.isActive) {
+          checkNotificationPermission();
+        }
+      });
+
+      return () => {
+        listenerPromise.then((handle) => handle.remove());
+      };
+    }
+  }, []);
 
   // Keep the inbox in sync without altering the underlying chat history.
   const fetchActivityLogs = useCallback(async () => {

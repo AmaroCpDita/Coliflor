@@ -12,6 +12,12 @@ import { getTodayInTimezone, compressImage, formatDate, formatTime } from '../li
 import { MAX_RECOVERIES_PER_MONTH } from '../lib/types';
 import type { StreakPhoto, StreakRecovery } from '../lib/types';
 import Lightbox from '../components/Lightbox';
+import { sendPushNotification } from '../lib/push';
+import {
+  triggerStreakSecuredNotification,
+  cancelStreakDangerReminders,
+} from '../lib/localNotifications';
+import StreakTimerWidget from '../components/StreakTimerWidget';
 
 // --- SVG Icons ---
 function IconFlameLarge({
@@ -668,6 +674,17 @@ export default function Streak() {
           sender_id: profile.id,
           content: pushContent,
         });
+
+        // 100% functional push notification to partner
+        if (partner?.id) {
+          sendPushNotification(partner.id, 'Coliflor 🔥', pushContent);
+        }
+
+        // Native notification management
+        if (hasPartnerPhoto) {
+          triggerStreakSecuredNotification(couple.current_streak + 1);
+          cancelStreakDangerReminders();
+        }
       } catch {
         // Ignore notification fallback
       }
@@ -1143,17 +1160,20 @@ export default function Streak() {
           </span>
         </div>
 
-        {/* Day Completed Badge */}
-        {dayComplete && (
-          <div className="glass-card glass-card--accent text-center animate-scale-in">
-            <div className="row row--center row--gap-sm">
-              <IconCheck />
-              <span style={{ fontWeight: 600, color: 'var(--color-success)' }}>
-                Día completado por ambos
-              </span>
-            </div>
-          </div>
-        )}
+        {/* Duolingo-style Streak Timer Widget */}
+        <StreakTimerWidget
+          streakCount={couple.current_streak}
+          myPhotoUploaded={Boolean(todayPhotos.myPhoto)}
+          partnerPhotoUploaded={Boolean(todayPhotos.partnerPhoto)}
+          partnerName={partner?.display_name || 'Tu pareja'}
+          onUploadClick={() => {
+            if (todayPhotos.myPhoto) {
+              uploadInputRef.current?.click();
+            } else {
+              fileInputRef.current?.click();
+            }
+          }}
+        />
 
         {/* Image Preview Before Upload */}
         {previewUrl ? (
