@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "optimize:world": "node scripts/optimize-world-artwork.mjs",
     "animate:companions": "node scripts/build-companion-animation.mjs",
+    "publish:update": "node scripts/publish-update.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "prepare": "husky"
   },

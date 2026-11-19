@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { formatDate } from '../lib/utils';
+import { UpdateCheckButton } from '../components/common/UpdateNotifier';
 
 function IconUser() {
   return (
@@ -420,6 +421,9 @@ export default function Settings() {
             {error}
           </div>
         )}
+
+        {/* App Updates Section (AntiAgg-style) */}
+        <UpdateCheckButton />
 
         {/* Sign Out */}
         <button className="btn btn--secondary btn--full btn--lg" onClick={signOut}>

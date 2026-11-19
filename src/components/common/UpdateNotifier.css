@@ -1,0 +1,314 @@
+/* ============================================================
+   Coliflor — App Update Notifier Styles (AntiAgg-style)
+   ============================================================ */
+
+.update-notifier-container {
+  position: fixed;
+  bottom: 84px;
+  right: 16px;
+  left: 16px;
+  max-width: 440px;
+  margin: 0 auto;
+  z-index: 9999;
+  animation: slideUpNotifier 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 640px) {
+  .update-notifier-container {
+    left: auto;
+    right: 24px;
+    bottom: 24px;
+  }
+}
+
+.update-notifier-card {
+  position: relative;
+  border-radius: 24px;
+  background: rgba(18, 19, 26, 0.96);
+  border: 1px solid rgba(229, 197, 115, 0.4);
+  box-shadow:
+    0 16px 40px -8px rgba(0, 0, 0, 0.6),
+    0 0 24px rgba(229, 197, 115, 0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 16px 18px;
+  color: var(--color-text-primary, #fff);
+  overflow: hidden;
+}
+
+.update-notifier-card__glow-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #e5c573 0%, #fb923c 50%, #4ade80 100%);
+}
+
+.update-notifier-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.update-notifier-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.update-notifier-pill {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent, #e5c573);
+}
+
+.update-notifier-version {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.update-notifier-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary, #fff);
+  margin-top: 2px;
+}
+
+.update-notifier-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary, #a1a1aa);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.update-notifier-close-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.update-notifier-changelog {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-secondary, #d4d4d8);
+  margin-bottom: 14px;
+}
+
+.update-notifier-changelog span.label {
+  display: block;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent, #e5c573);
+  margin-bottom: 4px;
+}
+
+.update-notifier-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.update-notifier-btn-install {
+  flex: 1;
+  padding: 11px 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #e5c573 0%, #cba54b 100%);
+  color: #0d0e12;
+  font-size: 12px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(229, 197, 115, 0.25);
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+  user-select: none;
+}
+
+.update-notifier-btn-install:active {
+  transform: scale(0.97);
+}
+
+.update-notifier-btn-install:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.update-notifier-btn-later {
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-secondary, #d4d4d8);
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.update-notifier-btn-later:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* Settings Check Button Box */
+.update-settings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(22, 23, 32, 0.7);
+  border: 1px solid var(--color-border);
+  margin-top: 10px;
+}
+
+@media (min-width: 640px) {
+  .update-settings-card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.update-settings-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.update-settings-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.update-settings-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.update-settings-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-secondary);
+}
+
+.update-settings-desc {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.update-settings-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.update-settings-status-text {
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.update-settings-status-text--ok {
+  color: #4ade80;
+}
+
+.update-settings-status-text--error {
+  color: var(--color-text-tertiary);
+}
+
+.update-settings-btn-action {
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #e5c573 0%, #cba54b 100%);
+  color: #0d0e12;
+  font-size: 12px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(229, 197, 115, 0.25);
+  animation: pulseButton 2s infinite;
+}
+
+.update-settings-btn-check {
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.update-settings-btn-check:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+@keyframes slideUpNotifier {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulseButton {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes spinIcon {
+  100% {
+    transform: rotate(360deg);
+  }
+}

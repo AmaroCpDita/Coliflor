@@ -17,6 +17,7 @@ import {
   requestNotificationPermission,
   checkNotificationPermission,
 } from '../lib/localNotifications';
+import { UpdateNotifier } from './common/UpdateNotifier';
 
 function IconHome({ active }: { active: boolean }) {
   return (
@@ -674,6 +675,9 @@ export default function Layout() {
       )}
 
       <Outlet context={{ openNotifCenter, hasUnread }} />
+
+      {/* Global In-App Update Notifier (Checks Vercel for new APK/IPA) */}
+      <UpdateNotifier />
 
       {/* Floating Dock Nav */}
       {!isKeyboardOpen && (
