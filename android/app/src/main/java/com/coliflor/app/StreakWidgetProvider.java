@@ -16,8 +16,8 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Coliflor Native Android Home Screen Widget (Duolingo-style)
- * Displays live streak counter and countdown until midnight on the phone's desktop.
+ * Coliflor Native Android Home Screen Widget (Duolingo-style Illustrated Mascot)
+ * Swaps 3D Coliflor mascot artwork based on streak state (Active, Pending, Urgent).
  */
 public class StreakWidgetProvider extends AppWidgetProvider {
 
@@ -34,10 +34,8 @@ public class StreakWidgetProvider extends AppWidgetProvider {
         int streakCount = prefs.getInt(KEY_STREAK_COUNT, 0);
         boolean completedToday = prefs.getBoolean(KEY_COMPLETED_TODAY, false);
         String lastDate = prefs.getString(KEY_LAST_UPDATE_DATE, "");
-        String partnerName = prefs.getString(KEY_PARTNER_NAME, "Tu pareja");
 
         String todayStr = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-        // If a new day has arrived, reset completedToday
         if (!todayStr.equals(lastDate)) {
             completedToday = false;
         }
@@ -51,29 +49,32 @@ public class StreakWidgetProvider extends AppWidgetProvider {
         long diffMs = midnight.getTimeInMillis() - now.getTimeInMillis();
         long hoursLeft = Math.max(0, diffMs / (1000 * 60 * 60));
         long minutesLeft = Math.max(0, (diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        boolean isUrgent = !completedToday && hoursLeft < 4;
 
         for (int appWidgetId : appWidgetIds) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_streak);
 
-            String daysLabel = streakCount == 1 ? "1 día de racha" : streakCount + " días de racha";
+            views.setTextViewText(R.id.widget_streak_number, String.valueOf(streakCount));
+            views.setTextViewText(R.id.widget_streak_label, streakCount == 1 ? "DÍA" : "DÍAS");
 
             if (completedToday) {
-                views.setTextViewText(R.id.widget_streak_title, "🔥 " + daysLabel);
-                views.setTextViewText(R.id.widget_streak_subtitle, "✓ ¡Racha activada hoy!");
-                views.setTextColor(R.id.widget_streak_subtitle, Color.parseColor("#4ADE80"));
-                views.setTextViewText(R.id.widget_btn_action, "VER");
-                views.setInt(R.id.widget_btn_action, "setBackgroundResource", R.drawable.widget_btn_done_bg);
+                views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_active);
+                views.setTextViewText(R.id.widget_status_pill, "✓ ACTIVA");
+                views.setTextColor(R.id.widget_status_pill, Color.parseColor("#BBF7D0"));
+                views.setInt(R.id.widget_status_pill, "setBackgroundResource", R.drawable.widget_pill_active);
+            } else if (isUrgent) {
+                views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_urgent);
+                String timeText = hoursLeft > 0
+                        ? "🚨 " + hoursLeft + "h " + minutesLeft + "m"
+                        : "🚨 " + minutesLeft + "m";
+                views.setTextViewText(R.id.widget_status_pill, timeText);
+                views.setTextColor(R.id.widget_status_pill, Color.parseColor("#FECACA"));
+                views.setInt(R.id.widget_status_pill, "setBackgroundResource", R.drawable.widget_pill_urgent);
             } else {
-                views.setTextViewText(R.id.widget_streak_title, "🔥 " + daysLabel);
-                String timeLeftText = "⏳ Quedan " + hoursLeft + "h " + minutesLeft + "m hoy";
-                views.setTextViewText(R.id.widget_streak_subtitle, timeLeftText);
-                if (hoursLeft < 4) {
-                    views.setTextColor(R.id.widget_streak_subtitle, Color.parseColor("#EF4444"));
-                } else {
-                    views.setTextColor(R.id.widget_streak_subtitle, Color.parseColor("#E5C573"));
-                }
-                views.setTextViewText(R.id.widget_btn_action, "SUBIR");
-                views.setInt(R.id.widget_btn_action, "setBackgroundResource", R.drawable.widget_btn_action_bg);
+                views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_pending);
+                views.setTextViewText(R.id.widget_status_pill, "⏳ " + hoursLeft + "h " + minutesLeft + "m");
+                views.setTextColor(R.id.widget_status_pill, Color.parseColor("#FDE68A"));
+                views.setInt(R.id.widget_status_pill, "setBackgroundResource", R.drawable.widget_pill_pending);
             }
 
             // PendingIntent to launch app directly on click
@@ -87,15 +88,13 @@ public class StreakWidgetProvider extends AppWidgetProvider {
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
             );
 
-            views.setOnClickPendingIntent(R.id.widget_btn_action, pendingIntent);
-            views.setOnClickPendingIntent(R.id.widget_info_container, pendingIntent);
-
+            views.setOnClickPendingIntent(R.id.widget_root, pendingIntent);
             appWidgetManager.updateAppWidget(appWidgetId, views);
         }
     }
 
     /**
-     * Helper to update widget data from anywhere (Capacitor plugin or background worker).
+     * Helper to update widget data from Capacitor plugin.
      */
     public static void updateData(Context context, int streakCount, boolean completedToday, String partnerName) {
         String todayStr = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());

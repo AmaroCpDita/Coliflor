@@ -2,28 +2,32 @@
 // Coliflor — Interactive Android Home Screen Widget Previewer
 // ============================================================
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './WidgetPreview.css';
 
-type WidgetStyle = 'bar' | 'card';
-type WidgetState = 'completed' | 'pending' | 'urgent';
+type WidgetSize = 'square' | 'large';
+type WidgetState = 'active' | 'pending' | 'urgent';
+
+const ARTWORK_MAP: Record<WidgetState, string> = {
+  active: '/assets/widget/coliflor-active.webp',
+  pending: '/assets/widget/coliflor-pending.webp',
+  urgent: '/assets/widget/coliflor-urgent.webp',
+};
 
 export default function WidgetPreview() {
-  const [style, setStyle] = useState<WidgetStyle>('bar');
-  const [widgetState, setWidgetState] = useState<WidgetState>('pending');
+  const [size, setSize] = useState<WidgetSize>('square');
+  const [widgetState, setWidgetState] = useState<WidgetState>('active');
   const [streakDays, setStreakDays] = useState<number>(34);
-  const [partnerName, setPartnerName] = useState<string>('Dita');
-  const [accentColor, setAccentColor] = useState<string>('#E5C573');
   const [clickedFeedback, setClickedFeedback] = useState<string | null>(null);
 
-  const isCompleted = widgetState === 'completed';
-  const isUrgent = widgetState === 'urgent';
-
   const handleWidgetClick = () => {
-    setClickedFeedback('🚀 ¡Abriendo Coliflor en la sección de Racha!');
-    setTimeout(() => setClickedFeedback(null), 2500);
+    setClickedFeedback('🚀 ¡Abriendo Coliflor directo en tu Racha!');
+    setTimeout(() => setClickedFeedback(null), 2200);
   };
+
+  const pillText =
+    widgetState === 'active' ? '✓ ACTIVA' : widgetState === 'urgent' ? '🚨 45m' : '⏳ 5h 45m';
 
   return (
     <div className="widget-preview-page">
@@ -41,10 +45,10 @@ export default function WidgetPreview() {
         >
           ← Volver a Coliflor
         </Link>
-        <h1>Simulador del Widget de Pantalla de Inicio</h1>
+        <h1>Widget Nativo de Coliflor</h1>
         <p>
-          Así es exactamente como se ve el widget nativo en el escritorio de tu celular (fuera de la
-          app). Modifica los controles para probar diferentes estados y diseños.
+          Así se ve el nuevo widget ilustrado en 3D con la mascota Coliflor en la pantalla de inicio
+          de tu celular (fuera de la app), cambiando de emoción igual que Duolingo.
         </p>
       </div>
 
@@ -54,108 +58,77 @@ export default function WidgetPreview() {
           <div className="phone-wallpaper" />
           <div className="phone-wallpaper-overlay" />
 
-          {/* Android Status Bar */}
           <div className="phone-status-bar">
             <span>22:15</span>
             <div className="phone-punchhole" />
             <span>📶 5G 🔋 88%</span>
           </div>
 
-          {/* Home Screen Area */}
           <div className="phone-desktop">
-            {/* Clock Widget */}
             <div className="phone-clock-widget">
               <div className="phone-clock-time">22:15</div>
               <div className="phone-clock-date">Lunes, 23 de Noviembre</div>
             </div>
 
-            {/* THE WIDGET SLOT */}
-            <div className="widget-slot" onClick={handleWidgetClick}>
-              {style === 'bar' ? (
-                // Style 1: Horizontal Bar
-                <div
-                  className="android-widget-bar"
-                  style={{
-                    borderColor: isCompleted ? '#4ade80' : isUrgent ? '#ef4444' : accentColor,
-                  }}
-                >
-                  <div className="android-widget-left">
-                    <div className="android-widget-icon">🔥</div>
-                    <div className="android-widget-titles">
-                      <div className="android-widget-title">{streakDays} días de racha</div>
-                      <div
-                        className="android-widget-subtitle"
-                        style={{
-                          color: isCompleted ? '#4ade80' : isUrgent ? '#ef4444' : accentColor,
-                        }}
-                      >
-                        {isCompleted
-                          ? '✓ ¡Racha activada hoy!'
-                          : isUrgent
-                            ? '🚨 ¡Quedan 45m para salvarla!'
-                            : '⏳ Quedan 5h 45m hoy'}
-                      </div>
-                    </div>
+            {/* WIDGET ON HOME SCREEN */}
+            <div className="widget-desktop-row">
+              <div
+                className={`coliflor-native-widget coliflor-native-widget--${size}`}
+                onClick={handleWidgetClick}
+              >
+                <img
+                  src={ARTWORK_MAP[widgetState]}
+                  alt="Mascota Coliflor"
+                  className="coliflor-native-widget__art"
+                />
+                <div className="coliflor-native-widget__scrim" />
+
+                <div className="coliflor-native-widget__top">
+                  <div className="coliflor-native-widget__count-wrap">
+                    <span className="coliflor-native-widget__number">{streakDays}</span>
+                    <span className="coliflor-native-widget__unit">
+                      {streakDays === 1 ? 'DÍA' : 'DÍAS'}
+                    </span>
                   </div>
 
-                  <button
-                    className={`android-widget-btn ${
-                      isCompleted ? 'android-widget-btn--done' : 'android-widget-btn--action'
-                    }`}
+                  <span
+                    className={`coliflor-native-widget__pill coliflor-native-widget__pill--${widgetState}`}
                   >
-                    {isCompleted ? 'VER' : 'SUBIR'}
-                  </button>
+                    {pillText}
+                  </span>
                 </div>
-              ) : (
-                // Style 2: Duolingo Square Card
-                <div
-                  className={`android-widget-card ${
-                    isCompleted ? 'android-widget-card--done' : ''
-                  }`}
-                  style={{
-                    borderColor: isCompleted ? '#4ade80' : isUrgent ? '#ef4444' : accentColor,
-                  }}
-                >
-                  <div className="android-widget-card-flame">🔥</div>
-                  <div className="android-widget-card-count">{streakDays}</div>
-                  <div
-                    style={{
-                      fontSize: '10px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
-                      color: '#a1a1aa',
-                      fontWeight: 800,
-                    }}
-                  >
-                    Días Juntos
-                  </div>
+              </div>
 
-                  <div
-                    className="android-widget-card-status"
-                    style={{
-                      color: isCompleted ? '#4ade80' : isUrgent ? '#ef4444' : accentColor,
-                    }}
-                  >
-                    {isCompleted
-                      ? '✓ Racha activada hoy'
-                      : isUrgent
-                        ? '🚨 Quedan 45m'
-                        : '⏳ Falta tu foto'}
+              {size === 'square' && (
+                <div className="phone-side-icons">
+                  <div className="phone-app-icon">
+                    <div className="phone-app-badge" style={{ background: '#25D366' }}>
+                      💬
+                    </div>
+                    <span className="phone-app-label">WhatsApp</span>
                   </div>
-
-                  <button
-                    className={`android-widget-btn ${
-                      isCompleted ? 'android-widget-btn--done' : 'android-widget-btn--action'
-                    }`}
-                    style={{ width: '100%' }}
-                  >
-                    {isCompleted ? 'VER FOTOS' : 'SUBIR AHORA'}
-                  </button>
+                  <div className="phone-app-icon">
+                    <div className="phone-app-badge" style={{ background: '#1DB954' }}>
+                      🎵
+                    </div>
+                    <span className="phone-app-label">Spotify</span>
+                  </div>
+                  <div className="phone-app-icon">
+                    <div className="phone-app-badge" style={{ background: '#FF2D55' }}>
+                      📸
+                    </div>
+                    <span className="phone-app-label">Fotos</span>
+                  </div>
+                  <div className="phone-app-icon">
+                    <div className="phone-app-badge" style={{ background: '#E5C573' }}>
+                      🌸
+                    </div>
+                    <span className="phone-app-label">Coliflor</span>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Click Toast Simulator */}
             {clickedFeedback && (
               <div
                 style={{
@@ -166,44 +139,41 @@ export default function WidgetPreview() {
                   fontSize: '11px',
                   fontWeight: 600,
                   textAlign: 'center',
-                  margin: '0 auto',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  animation: 'slideUpNotifier 0.2s ease',
+                  margin: '0 auto 8px',
+                  border: '1px solid rgba(229,197,115,0.35)',
                 }}
               >
                 {clickedFeedback}
               </div>
             )}
 
-            {/* Desktop Icons */}
             <div className="phone-app-grid">
               <div className="phone-app-icon">
-                <div className="phone-app-badge" style={{ background: '#25D366' }}>
-                  💬
+                <div className="phone-app-badge" style={{ background: '#3b82f6' }}>
+                  🌤️
                 </div>
-                <span className="phone-app-label">WhatsApp</span>
+                <span className="phone-app-label">Clima</span>
               </div>
               <div className="phone-app-icon">
-                <div className="phone-app-badge" style={{ background: '#1DB954' }}>
-                  🎵
+                <div className="phone-app-badge" style={{ background: '#8b5cf6' }}>
+                  📅
                 </div>
-                <span className="phone-app-label">Spotify</span>
+                <span className="phone-app-label">Calendario</span>
               </div>
               <div className="phone-app-icon">
-                <div className="phone-app-badge" style={{ background: '#FF2D55' }}>
-                  📸
+                <div className="phone-app-badge" style={{ background: '#f97316' }}>
+                  📝
                 </div>
-                <span className="phone-app-label">Fotos</span>
+                <span className="phone-app-label">Notas</span>
               </div>
               <div className="phone-app-icon">
-                <div className="phone-app-badge" style={{ background: '#E5C573' }}>
-                  🌸
+                <div className="phone-app-badge" style={{ background: '#475569' }}>
+                  ⚙️
                 </div>
-                <span className="phone-app-label">Coliflor</span>
+                <span className="phone-app-label">Ajustes</span>
               </div>
             </div>
 
-            {/* Bottom Dock */}
             <div className="phone-dock">
               <span>📞</span>
               <span>💬</span>
@@ -216,43 +186,46 @@ export default function WidgetPreview() {
         {/* CONTROLS PANEL */}
         <div className="controls-panel">
           <div className="controls-section">
-            <span className="controls-label">1. Estilo del Widget</span>
-            <div className="controls-btn-group">
-              <button
-                className={`controls-btn ${style === 'bar' ? 'controls-btn--active' : ''}`}
-                onClick={() => setStyle('bar')}
+            <span className="controls-label">1. Estados de la Mascota Coliflor</span>
+            <div className="states-gallery">
+              <div
+                className={`state-thumb ${widgetState === 'active' ? 'state-thumb--active' : ''}`}
+                onClick={() => setWidgetState('active')}
               >
-                Barra Clásica (3x1)
-              </button>
-              <button
-                className={`controls-btn ${style === 'card' ? 'controls-btn--active' : ''}`}
-                onClick={() => setStyle('card')}
+                <img src={ARTWORK_MAP.active} alt="Racha Activada" />
+                <span>✓ Activada</span>
+              </div>
+              <div
+                className={`state-thumb ${widgetState === 'pending' ? 'state-thumb--active' : ''}`}
+                onClick={() => setWidgetState('pending')}
               >
-                Tarjeta Duolingo (2x2)
-              </button>
+                <img src={ARTWORK_MAP.pending} alt="Esperando Foto" />
+                <span>⏳ Pendiente</span>
+              </div>
+              <div
+                className={`state-thumb ${widgetState === 'urgent' ? 'state-thumb--active' : ''}`}
+                onClick={() => setWidgetState('urgent')}
+              >
+                <img src={ARTWORK_MAP.urgent} alt="Últimas Horas" />
+                <span>🚨 Urgente</span>
+              </div>
             </div>
           </div>
 
           <div className="controls-section">
-            <span className="controls-label">2. Estado de la Racha</span>
-            <div className="controls-btn-group" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+            <span className="controls-label">2. Tamaño en el Escritorio</span>
+            <div className="controls-btn-group">
               <button
-                className={`controls-btn ${widgetState === 'completed' ? 'controls-btn--active' : ''}`}
-                onClick={() => setWidgetState('completed')}
+                className={`controls-btn ${size === 'square' ? 'controls-btn--active' : ''}`}
+                onClick={() => setSize('square')}
               >
-                ✓ Activada
+                Cuadrado (2×2)
               </button>
               <button
-                className={`controls-btn ${widgetState === 'pending' ? 'controls-btn--active' : ''}`}
-                onClick={() => setWidgetState('pending')}
+                className={`controls-btn ${size === 'large' ? 'controls-btn--active' : ''}`}
+                onClick={() => setSize('large')}
               >
-                ⏳ Pendiente
-              </button>
-              <button
-                className={`controls-btn ${widgetState === 'urgent' ? 'controls-btn--active' : ''}`}
-                onClick={() => setWidgetState('urgent')}
-              >
-                🚨 Urgente
+                Grande (3×3)
               </button>
             </div>
           </div>
@@ -271,57 +244,23 @@ export default function WidgetPreview() {
             </div>
           </div>
 
-          <div className="controls-section">
-            <span className="controls-label">4. Color de Acento</span>
-            <div className="controls-btn-group" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-              <button
-                className="controls-btn"
-                style={{ background: '#E5C573', color: '#000' }}
-                onClick={() => setAccentColor('#E5C573')}
-              >
-                Oro
-              </button>
-              <button
-                className="controls-btn"
-                style={{ background: '#FB923C', color: '#000' }}
-                onClick={() => setAccentColor('#FB923C')}
-              >
-                Fuego
-              </button>
-              <button
-                className="controls-btn"
-                style={{ background: '#F43F5E', color: '#fff' }}
-                onClick={() => setAccentColor('#F43F5E')}
-              >
-                Amor
-              </button>
-              <button
-                className="controls-btn"
-                style={{ background: '#A855F7', color: '#fff' }}
-                onClick={() => setAccentColor('#A855F7')}
-              >
-                Místico
-              </button>
-            </div>
-          </div>
-
           <div
             style={{
-              marginTop: '24px',
+              marginTop: '16px',
               padding: '14px',
               borderRadius: '14px',
-              background: 'rgba(255,255,255,0.04)',
+              background: 'rgba(229, 197, 115, 0.08)',
+              border: '1px solid rgba(229, 197, 115, 0.2)',
               fontSize: '12px',
-              color: '#a1a1aa',
+              color: '#d4d4d8',
               lineHeight: 1.5,
             }}
           >
-            💡 <strong>¿Cómo funciona?</strong>
+            ✨ <strong>Ya integrado en el APK nativo de Android:</strong>
             <br />
-            Este simulador refleja exactamente los componentes del layout XML nativo de Android (
-            <code style={{ color: '#e5c573' }}>widget_streak.xml</code>). Cualquier detalle que
-            quieras cambiar (texto, tamaño del fuego, bordes, colores, etc.), solo dime y lo
-            ajustamos de inmediato.
+            Las 3 ilustraciones ya están compiladas dentro de{' '}
+            <code style={{ color: '#e5c573' }}>drawable-nodpi/</code> con esquinas redondeadas
+            suaves para que se vea exactamente igual en tu teléfono.
           </div>
         </div>
       </div>
