@@ -186,7 +186,7 @@ export default function WidgetPreview() {
         {/* CONTROLS PANEL */}
         <div className="controls-panel">
           <div className="controls-section">
-            <span className="controls-label">1. Estados de la Mascota Coliflor</span>
+            <span className="controls-label">1. Estados del Picaflor</span>
             <div className="states-gallery">
               <div
                 className={`state-thumb ${widgetState === 'active' ? 'state-thumb--active' : ''}`}
