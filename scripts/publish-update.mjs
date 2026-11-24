@@ -98,4 +98,39 @@ execSync('npm run build', { cwd: rootDir, stdio: 'inherit' });
 console.log('\n🔄 Sincronizando con Android nativo (npx cap sync android)...');
 execSync('npx cap sync android', { cwd: rootDir, stdio: 'inherit' });
 
+// 6. Build Android APK locally if gradlew exists
+const gradlewBat = path.join(rootDir, 'android', 'gradlew.bat');
+if (fs.existsSync(gradlewBat)) {
+  try {
+    console.log('\n🤖 Intentando compilar APK nativo de Android...');
+    const javaHome = "C:\\Program Files\\Android\\Android Studio\\jbr";
+    const androidHome = process.env.LOCALAPPDATA + "\\Android\\Sdk";
+    const env = {
+      ...process.env,
+      ...(fs.existsSync(javaHome) ? { JAVA_HOME: javaHome } : {}),
+      ...(fs.existsSync(androidHome) ? { ANDROID_HOME: androidHome } : {}),
+    };
+    execSync(`"${gradlewBat}" assembleDebug`, { cwd: path.join(rootDir, 'android'), env, stdio: 'inherit' });
+
+    const builtApkPath = path.join(rootDir, 'android', 'app', 'build', 'outputs', 'apk', 'debug', 'app-debug.apk');
+    if (fs.existsSync(builtApkPath)) {
+      const rootApkPath = path.join(rootDir, 'Coliflor.apk');
+      const publicApkPath = path.join(rootDir, 'public', 'Coliflor.apk');
+      const distApkPath = path.join(rootDir, 'dist', 'Coliflor.apk');
+
+      fs.copyFileSync(builtApkPath, rootApkPath);
+      fs.copyFileSync(builtApkPath, publicApkPath);
+      if (fs.existsSync(path.join(rootDir, 'dist'))) {
+        fs.copyFileSync(builtApkPath, distApkPath);
+      }
+      const stat = fs.statSync(builtApkPath);
+      const sizeMb = (stat.size / (1024 * 1024)).toFixed(1) + ' MB';
+      console.log(`\n🎉 ¡APK v${newVersion} generado con éxito! Tamaño: ${sizeMb}`);
+      console.log(`📁 Ubicación: ${publicApkPath}`);
+    }
+  } catch (err) {
+    console.log('ℹ Compilación local de Android omitida (se compilará en GitHub Actions).');
+  }
+}
+
 console.log(`\n🎉 ¡Versión v${newVersion} lista para desplegar en Vercel y compilar en GitHub Actions!`);

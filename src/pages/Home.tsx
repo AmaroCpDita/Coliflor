@@ -18,7 +18,7 @@ import { getCelebration, Celebration, CelebrationType } from '../lib/celebration
 import Fireworks from '../components/Fireworks';
 import CelebrationBanner from '../components/CelebrationBanner';
 import CelebrationModal from '../components/CelebrationModal';
-import StreakTimerWidget from '../components/StreakTimerWidget';
+import { syncStreakToHomeScreenWidget } from '../lib/streakWidgetBridge';
 
 function IconFlame() {
   return (
@@ -385,6 +385,8 @@ export default function Home() {
     if (!couple || isMockMode) {
       return;
     }
+    syncStreakToHomeScreenWidget(couple.current_streak || 0, false, partnerName || 'Tu pareja');
+    syncStreakToHomeScreenWidget(couple.current_streak || 0, false, partnerName || 'Tu pareja');
     const paths = heroPaths;
     if (!paths.length) {
       saveCachedHeroImages(couple.id, [], []);
@@ -771,9 +773,6 @@ export default function Home() {
             </div>
           </div>
         </HeroPageTurn>
-
-        {/* Duolingo-style Streak Timer Widget */}
-        <StreakTimerWidget />
 
         {/* Section: HOY */}
         <div className="stack stack--sm" style={{ marginTop: '16px' }}>

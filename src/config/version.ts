@@ -5,20 +5,22 @@ export interface AppVersionInfo {
   changelog?: string;
   apkUrl?: string;
   ipaUrl?: string;
-  fallbackApkUrl?: string;
-  fallbackIpaUrl?: string;
+  supabaseApkUrl?: string;
+  supabaseIpaUrl?: string;
   apkSize?: string;
 }
 
 export const CURRENT_APP_VERSION: AppVersionInfo = {
   version: '1.0.0',
   versionCode: 1,
-  releaseDate: '2026-11-19',
-  changelog: 'Versión base inicial de Coliflor.',
+  releaseDate: '2026-11-23',
+  changelog: 'Versión base inicial de Coliflor con widget nativo y notificaciones.',
   apkUrl: 'https://coliflor.vercel.app/Coliflor.apk',
   ipaUrl: 'https://coliflor.vercel.app/Coliflor.ipa',
-  fallbackApkUrl: 'https://github.com/AmaroCpDita/Coliflor/releases/latest/download/Coliflor.apk',
-  fallbackIpaUrl: 'https://github.com/AmaroCpDita/Coliflor/releases/latest/download/Coliflor.ipa',
+  supabaseApkUrl:
+    'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/photos/Coliflor.apk',
+  supabaseIpaUrl:
+    'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/photos/Coliflor.ipa',
   apkSize: '14 MB',
 };
 

@@ -17,7 +17,7 @@ import {
   triggerStreakSecuredNotification,
   cancelStreakDangerReminders,
 } from '../lib/localNotifications';
-import StreakTimerWidget from '../components/StreakTimerWidget';
+import { syncStreakToHomeScreenWidget } from '../lib/streakWidgetBridge';
 
 // --- SVG Icons ---
 function IconFlameLarge({
@@ -350,6 +350,14 @@ export default function Streak() {
       if (requestId !== todayPhotoRequestRef.current) return;
       setMyPhotoUrl(myUrl?.data?.signedUrl ?? null);
       setPartnerPhotoUrl(partnerUrl?.data?.signedUrl ?? null);
+
+      if (couple) {
+        syncStreakToHomeScreenWidget(
+          couple.current_streak,
+          Boolean(myPhoto && partnerPhoto),
+          partner?.display_name || 'Tu pareja',
+        );
+      }
     }
   }, [couple?.id, profile?.id, today, isMockMode]);
 
@@ -1160,20 +1168,17 @@ export default function Streak() {
           </span>
         </div>
 
-        {/* Duolingo-style Streak Timer Widget */}
-        <StreakTimerWidget
-          streakCount={couple.current_streak}
-          myPhotoUploaded={Boolean(todayPhotos.myPhoto)}
-          partnerPhotoUploaded={Boolean(todayPhotos.partnerPhoto)}
-          partnerName={partner?.display_name || 'Tu pareja'}
-          onUploadClick={() => {
-            if (todayPhotos.myPhoto) {
-              uploadInputRef.current?.click();
-            } else {
-              fileInputRef.current?.click();
-            }
-          }}
-        />
+        {/* Day Completed Badge */}
+        {dayComplete && (
+          <div className="glass-card glass-card--accent text-center animate-scale-in">
+            <div className="row row--center row--gap-sm">
+              <IconCheck />
+              <span style={{ fontWeight: 600, color: 'var(--color-success)' }}>
+                Día completado por ambos
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Image Preview Before Upload */}
         {previewUrl ? (

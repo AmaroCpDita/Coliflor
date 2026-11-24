@@ -174,10 +174,10 @@ export const UpdateNotifier: React.FC = () => {
 
     const targetUrl = isIos
       ? remoteUpdate.ipaUrl ||
-        remoteUpdate.fallbackIpaUrl ||
+        remoteUpdate.supabaseIpaUrl ||
         'https://coliflor.vercel.app/Coliflor.ipa'
       : remoteUpdate.apkUrl ||
-        remoteUpdate.fallbackApkUrl ||
+        remoteUpdate.supabaseApkUrl ||
         'https://coliflor.vercel.app/Coliflor.apk';
 
     const fileName = isIos ? 'Coliflor.ipa' : 'Coliflor.apk';
@@ -309,10 +309,10 @@ export const UpdateCheckButton: React.FC = () => {
     if (!foundVersion) return;
     const targetUrl = isIos
       ? foundVersion.ipaUrl ||
-        foundVersion.fallbackIpaUrl ||
+        foundVersion.supabaseIpaUrl ||
         'https://coliflor.vercel.app/Coliflor.ipa'
       : foundVersion.apkUrl ||
-        foundVersion.fallbackApkUrl ||
+        foundVersion.supabaseApkUrl ||
         'https://coliflor.vercel.app/Coliflor.apk';
 
     const link = document.createElement('a');
