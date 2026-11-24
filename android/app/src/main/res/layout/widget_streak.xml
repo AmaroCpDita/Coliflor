@@ -1,218 +1,231 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@drawable/widget_card_active"
-    android:padding="12dp">
+    android:background="@drawable/widget_card_active">
 
-    <!-- Top Row: Flower Vector + Coliflor (Left) + House Vector + Nuestro Mundo (Right) -->
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    <!-- Integrated Large Pokémon-style Picaflor Mascot anchored to Left Half -->
+    <ImageView
+        android:id="@+id/widget_bg_art"
+        android:layout_width="162dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginStart="2dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/widget_coliflor_active"
+        android:contentDescription="@string/app_name" />
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <ImageView
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:src="@drawable/ic_widget_flower"
-                android:contentDescription="@null" />
-
-            <TextView
-                android:id="@+id/widget_brand"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:text="Coliflor"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/widget_btn_world"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp"
-            android:background="@drawable/widget_pill_active">
-
-            <ImageView
-                android:layout_width="12dp"
-                android:layout_height="12dp"
-                android:src="@drawable/ic_widget_home"
-                android:contentDescription="@null" />
-
-            <TextView
-                android:id="@+id/widget_btn_world_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
-                android:text="Nuestro mundo"
-                android:textColor="#E2FBE8"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-    </RelativeLayout>
-
-    <!-- Middle Row: Pokemon-style Picaflor (Left) + Streak Info (Right) -->
+    <!-- Foreground Functional UI Layered Cleanly Over the Card -->
     <LinearLayout
-        android:id="@+id/widget_info_container"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingTop="2dp"
-        android:paddingBottom="2dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="12dp">
 
-        <ImageView
-            android:id="@+id/widget_bg_art"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.46"
-            android:scaleType="fitCenter"
-            android:src="@drawable/widget_coliflor_active"
-            android:contentDescription="@string/app_name" />
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.54"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:paddingStart="4dp">
-
-            <TextView
-                android:id="@+id/widget_eyebrow"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="NUESTRA RACHA"
-                android:textColor="#A7F3D0"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.08" />
+        <!-- Top Row: Brand (Left) + Nuestro Mundo Button (Right) -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="2dp">
+                android:gravity="center_vertical">
 
                 <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_widget_flame"
+                    android:layout_width="17dp"
+                    android:layout_height="17dp"
+                    android:src="@drawable/ic_widget_flower"
                     android:contentDescription="@null" />
 
                 <TextView
-                    android:id="@+id/widget_streak_number"
+                    android:id="@+id/widget_brand"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
-                    android:text="37 días"
+                    android:text="Coliflor"
                     android:textColor="#FFFFFF"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:includeFontPadding="false" />
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/widget_status_pill_bg"
+                android:id="@+id/widget_btn_world"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingStart="11dp"
-                android:paddingEnd="11dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp"
                 android:background="@drawable/widget_pill_active">
 
                 <ImageView
-                    android:id="@+id/widget_status_icon"
-                    android:layout_width="13dp"
-                    android:layout_height="13dp"
-                    android:src="@drawable/ic_widget_check"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/ic_widget_home"
                     android:contentDescription="@null" />
 
                 <TextView
-                    android:id="@+id/widget_status_pill"
+                    android:id="@+id/widget_btn_world_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
-                    android:text="Activa"
-                    android:textColor="#BBF7D0"
+                    android:text="Nuestro mundo"
+                    android:textColor="#E2FBE8"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <!-- Middle Row: Right-aligned Streak Counter + Status Pill + Remaining Time -->
+        <LinearLayout
+            android:id="@+id/widget_info_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Spacer over integrated bird on left -->
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.45" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.55"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/widget_eyebrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="NUESTRA RACHA"
+                    android:textColor="#A7F3D0"
+                    android:textSize="9.5sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="2dp">
+
+                    <ImageView
+                        android:layout_width="21dp"
+                        android:layout_height="21dp"
+                        android:src="@drawable/ic_widget_flame"
+                        android:contentDescription="@null" />
+
+                    <TextView
+                        android:id="@+id/widget_streak_number"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="37 días"
+                        android:textColor="#FFFFFF"
+                        android:textSize="23sp"
+                        android:textStyle="bold"
+                        android:includeFontPadding="false" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/widget_status_pill_bg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="11dp"
+                    android:paddingEnd="11dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
+                    android:background="@drawable/widget_pill_active">
+
+                    <ImageView
+                        android:id="@+id/widget_status_icon"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:src="@drawable/ic_widget_check"
+                        android:contentDescription="@null" />
+
+                    <TextView
+                        android:id="@+id/widget_status_pill"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:text="Activa"
+                        android:textColor="#BBF7D0"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Prominent Remaining Time Line -->
+                <TextView
+                    android:id="@+id/widget_time_remaining"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Quedan 5h 45m"
+                    android:textColor="#FFFFFF"
                     android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
+        </LinearLayout>
+
+        <!-- Bottom Footer Bar: Next Day + Progress Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/widget_footer_bg"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp">
+
+            <ImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:src="@drawable/ic_widget_calendar"
+                android:contentDescription="@null" />
 
             <TextView
-                android:id="@+id/widget_tagline"
+                android:id="@+id/widget_next_day"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="¡Otro día juntos!"
-                android:textColor="#D1FAE5"
-                android:textSize="11sp"
-                android:textStyle="italic" />
+                android:layout_marginStart="6dp"
+                android:text="Próximo día: Día 38"
+                android:textColor="#E4E4E7"
+                android:textSize="9.5sp"
+                android:textStyle="bold" />
+
+            <ProgressBar
+                android:id="@+id/widget_progress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="7dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:max="100"
+                android:progress="100"
+                android:progressDrawable="@drawable/widget_progress_active" />
         </LinearLayout>
+
     </LinearLayout>
 
-    <!-- Bottom Footer Bar: Calendar Vector + Next Day + Progress Bar -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:background="@drawable/widget_footer_bg"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp">
-
-        <ImageView
-            android:layout_width="12dp"
-            android:layout_height="12dp"
-            android:src="@drawable/ic_widget_calendar"
-            android:contentDescription="@null" />
-
-        <TextView
-            android:id="@+id/widget_next_day"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:text="Próximo día de racha: Día 38"
-            android:textColor="#E4E4E7"
-            android:textSize="9.5sp"
-            android:textStyle="bold" />
-
-        <ProgressBar
-            android:id="@+id/widget_progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="0dp"
-            android:layout_height="7dp"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            android:max="100"
-            android:progress="100"
-            android:progressDrawable="@drawable/widget_progress_active" />
-    </LinearLayout>
-
-</LinearLayout>
+</FrameLayout>

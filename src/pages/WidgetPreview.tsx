@@ -2,13 +2,13 @@
 // Coliflor — Interactive 4x2 Pokémon-Style Cozy Picaflor Widget Previewer
 // ============================================================
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getTimeUntilMidnightInTimezone } from '../lib/utils';
 import './WidgetPreview.css';
 
 type WidgetState = 'active' | 'pending' | 'urgent';
 
-// Crisp Custom Vector Icons (Zero System Emojis!)
 function SvgFlower({ color = '#E6FFF4' }: { color?: string }) {
   return (
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
@@ -67,14 +67,6 @@ function SvgStatusIcon({ state }: { state: WidgetState }) {
   );
 }
 
-function SvgHeart({ color }: { color: string }) {
-  return (
-    <svg width="11" height="11" viewBox="0 0 24 24" fill={color}>
-      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-    </svg>
-  );
-}
-
 function SvgCalendar() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="#D4D4D8">
@@ -88,36 +80,28 @@ const STATE_CONFIG: Record<
   {
     art: string;
     pill: string;
-    tagline: string;
-    heartColor: string;
     flowerColor: string;
     progress: number;
     label: string;
   }
 > = {
   active: {
-    art: '/assets/widget/picaflor-active-v2.webp',
+    art: '/assets/widget/picaflor-active-v3.webp',
     pill: 'Activa',
-    tagline: '¡Otro día juntos!',
-    heartColor: '#86EFAC',
     flowerColor: '#D1FAE5',
     progress: 100,
     label: 'Activa',
   },
   pending: {
-    art: '/assets/widget/picaflor-pending-v2.webp',
-    pill: 'Pendiente · 5h 45m',
-    tagline: '¿Volvemos a volar?',
-    heartColor: '#C4B5FD',
+    art: '/assets/widget/picaflor-pending-v3.webp',
+    pill: 'Pendiente',
     flowerColor: '#EDE9FE',
     progress: 62,
     label: 'Pendiente',
   },
   urgent: {
-    art: '/assets/widget/picaflor-urgent-v2.webp',
-    pill: 'Urgente · 45m',
-    tagline: '¡Todavía estamos a tiempo!',
-    heartColor: '#FCA5A5',
+    art: '/assets/widget/picaflor-urgent-v3.webp',
+    pill: 'Urgente',
     flowerColor: '#FECACA',
     progress: 18,
     label: 'Urgente',
@@ -125,11 +109,29 @@ const STATE_CONFIG: Record<
 };
 
 export default function WidgetPreview() {
-  const [widgetState, setWidgetState] = useState<WidgetState>('active');
+  const [widgetState, setWidgetState] = useState<WidgetState>('pending');
   const [streakDays, setStreakDays] = useState<number>(37);
+  const [timeLeft, setTimeLeft] = useState(getTimeUntilMidnightInTimezone());
   const [clickedFeedback, setClickedFeedback] = useState<string | null>(null);
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTimeLeft(getTimeUntilMidnightInTimezone());
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
   const cfg = STATE_CONFIG[widgetState];
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const liveClock = `${pad(timeLeft.hours)}h ${pad(timeLeft.minutes)}m ${pad(timeLeft.seconds)}s`;
+  const urgentClock = `00h 44m ${pad(timeLeft.seconds)}s`;
+
+  const timeLine =
+    widgetState === 'active'
+      ? `Siguiente día en ${liveClock}`
+      : widgetState === 'urgent'
+        ? `Quedan ${urgentClock}`
+        : `Quedan ${liveClock}`;
 
   const handleCardClick = () => {
     setClickedFeedback('Abriendo tu Racha en Coliflor...');
@@ -160,8 +162,8 @@ export default function WidgetPreview() {
         </Link>
         <h1>Widget Nativo 4×2 de Coliflor</h1>
         <p>
-          Colibrí estilo Pokémon con pañoleta de corazón amarillo sutil, íconos vectoriales nítidos
-          (cero emojis genéricos) y datos funcionales en tiempo real.
+          Colibrí integrado de cuerpo completo en la tarjeta, contador en vivo del tiempo restante y
+          accesos directos a Racha y Nuestro Mundo.
         </p>
       </div>
 
@@ -187,6 +189,11 @@ export default function WidgetPreview() {
               className={`cozy-widget-card cozy-widget-card--${widgetState}`}
               onClick={handleCardClick}
             >
+              {/* Large Seamlessly Integrated Mascot Layer */}
+              <div className="cozy-widget-art-layer">
+                <img src={cfg.art} alt="Picaflor Coliflor" className="cozy-widget-art" />
+              </div>
+
               <div className="cozy-widget-top">
                 <div className="cozy-widget-brand">
                   <SvgFlower color={cfg.flowerColor} />
@@ -199,9 +206,8 @@ export default function WidgetPreview() {
               </div>
 
               <div className="cozy-widget-middle">
-                <div className="cozy-widget-art-wrap">
-                  <img src={cfg.art} alt="Picaflor Coliflor" className="cozy-widget-art" />
-                </div>
+                {/* Transparent spacer over the integrated hummingbird */}
+                <div style={{ width: '44%', flexShrink: 0 }} />
 
                 <div className="cozy-widget-info">
                   <span className="cozy-widget-eyebrow">NUESTRA RACHA</span>
@@ -221,13 +227,7 @@ export default function WidgetPreview() {
                     <SvgStatusIcon state={widgetState} />
                     <span>{cfg.pill}</span>
                   </span>
-                  <span
-                    className="cozy-widget-tagline"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
-                  >
-                    <span>{cfg.tagline}</span>
-                    <SvgHeart color={cfg.heartColor} />
-                  </span>
+                  <span className="cozy-widget-timer-line">{timeLine}</span>
                 </div>
               </div>
 

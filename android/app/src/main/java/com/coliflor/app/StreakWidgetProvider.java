@@ -17,7 +17,7 @@ import java.util.Locale;
 
 /**
  * Coliflor Native Android Home Screen Widget (4x2 Horizontal Cozy Card)
- * Uses custom vector icons (zero system emojis) and Pokémon-style Picaflor art.
+ * Integrates the large Pokémon-style Picaflor art seamlessly with live countdown time.
  */
 public class StreakWidgetProvider extends AppWidgetProvider {
 
@@ -55,6 +55,9 @@ public class StreakWidgetProvider extends AppWidgetProvider {
 
         String daysText = streakCount == 1 ? "1 día" : streakCount + " días";
         String nextDayText = "Próximo día: Día " + (streakCount + 1);
+        String remainingFormatted = hoursLeft > 0
+                ? String.format(Locale.getDefault(), "%02dh %02dm", hoursLeft, minutesLeft)
+                : String.format(Locale.getDefault(), "%02dm", minutesLeft);
 
         for (int appWidgetId : appWidgetIds) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_streak);
@@ -73,35 +76,32 @@ public class StreakWidgetProvider extends AppWidgetProvider {
                 views.setInt(R.id.widget_status_pill_bg, "setBackgroundResource", R.drawable.widget_pill_active);
                 views.setInt(R.id.widget_btn_world, "setBackgroundResource", R.drawable.widget_pill_active);
                 views.setTextColor(R.id.widget_btn_world_text, Color.parseColor("#D1FAE5"));
-                views.setTextViewText(R.id.widget_tagline, "¡Otro día juntos!");
-                views.setTextColor(R.id.widget_tagline, Color.parseColor("#A7F3D0"));
+                views.setTextViewText(R.id.widget_time_remaining, "Siguiente día en " + remainingFormatted);
+                views.setTextColor(R.id.widget_time_remaining, Color.parseColor("#A7F3D0"));
             } else if (isUrgent) {
                 views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_card_urgent);
                 views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_urgent);
                 views.setImageViewResource(R.id.widget_status_icon, R.drawable.ic_widget_alert);
                 views.setTextColor(R.id.widget_eyebrow, Color.parseColor("#FECACA"));
-                String timeText = hoursLeft > 0
-                        ? "Urgente · " + hoursLeft + "h " + minutesLeft + "m"
-                        : "Urgente · " + minutesLeft + "m";
-                views.setTextViewText(R.id.widget_status_pill, timeText);
+                views.setTextViewText(R.id.widget_status_pill, "Urgente");
                 views.setTextColor(R.id.widget_status_pill, Color.parseColor("#FECACA"));
                 views.setInt(R.id.widget_status_pill_bg, "setBackgroundResource", R.drawable.widget_pill_urgent);
                 views.setInt(R.id.widget_btn_world, "setBackgroundResource", R.drawable.widget_pill_urgent);
                 views.setTextColor(R.id.widget_btn_world_text, Color.parseColor("#FECACA"));
-                views.setTextViewText(R.id.widget_tagline, "¡Todavía estamos a tiempo!");
-                views.setTextColor(R.id.widget_tagline, Color.parseColor("#FCA5A5"));
+                views.setTextViewText(R.id.widget_time_remaining, "Quedan " + remainingFormatted + " hoy");
+                views.setTextColor(R.id.widget_time_remaining, Color.parseColor("#FCA5A5"));
             } else {
                 views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_card_pending);
                 views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_pending);
                 views.setImageViewResource(R.id.widget_status_icon, R.drawable.ic_widget_clock);
                 views.setTextColor(R.id.widget_eyebrow, Color.parseColor("#DDD6FE"));
-                views.setTextViewText(R.id.widget_status_pill, "Pendiente · " + hoursLeft + "h " + minutesLeft + "m");
+                views.setTextViewText(R.id.widget_status_pill, "Pendiente");
                 views.setTextColor(R.id.widget_status_pill, Color.parseColor("#EDE9FE"));
                 views.setInt(R.id.widget_status_pill_bg, "setBackgroundResource", R.drawable.widget_pill_pending);
                 views.setInt(R.id.widget_btn_world, "setBackgroundResource", R.drawable.widget_pill_pending);
                 views.setTextColor(R.id.widget_btn_world_text, Color.parseColor("#EDE9FE"));
-                views.setTextViewText(R.id.widget_tagline, "¿Volvemos a volar?");
-                views.setTextColor(R.id.widget_tagline, Color.parseColor("#C4B5FD"));
+                views.setTextViewText(R.id.widget_time_remaining, "Quedan " + remainingFormatted + " hoy");
+                views.setTextColor(R.id.widget_time_remaining, Color.parseColor("#DDD6FE"));
             }
 
             Intent streakIntent = new Intent(context, MainActivity.class);
