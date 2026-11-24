@@ -47,6 +47,15 @@ function AppRoutes() {
   const { status } = useAuth();
   const location = useLocation();
 
+  // Public instant route for previewing the native mobile widget without auth/loading delay
+  if (location.pathname === '/widget-preview') {
+    return (
+      <Suspense fallback={<LoadingScreen message="Cargando simulador del widget..." />}>
+        <WidgetPreview />
+      </Suspense>
+    );
+  }
+
   if (status === 'loading') {
     return <LoadingScreen message="Cargando tu espacio de pareja..." />;
   }
@@ -54,7 +63,6 @@ function AppRoutes() {
   if (status === 'unauthenticated') {
     return (
       <Routes>
-        <Route path="/widget-preview" element={<WidgetPreview />} />
         <Route path="*" element={<Login />} />
       </Routes>
     );
