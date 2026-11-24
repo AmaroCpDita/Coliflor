@@ -146,20 +146,20 @@
 }
 
 .cozy-widget-card--active {
-  background: linear-gradient(135deg, #0d352a 0%, #082019 100%);
-  border: 1.5px solid rgba(74, 222, 128, 0.5);
+  background: #103a30;
+  border: 1.5px solid rgba(74, 222, 128, 0.55);
   box-shadow: 0 12px 28px rgba(6, 40, 28, 0.75);
 }
 
 .cozy-widget-card--pending {
-  background: linear-gradient(135deg, #2c1b4e 0%, #19102e 100%);
-  border: 1.5px solid rgba(167, 139, 250, 0.5);
+  background: #251b40;
+  border: 1.5px solid rgba(167, 139, 250, 0.55);
   box-shadow: 0 12px 28px rgba(25, 16, 46, 0.75);
 }
 
 .cozy-widget-card--urgent {
-  background: linear-gradient(135deg, #4a1724 0%, #2a0c14 100%);
-  border: 1.5px solid rgba(248, 113, 113, 0.55);
+  background: #370b1a;
+  border: 1.5px solid rgba(248, 113, 113, 0.6);
   box-shadow: 0 12px 28px rgba(60, 12, 22, 0.75);
 }
 
