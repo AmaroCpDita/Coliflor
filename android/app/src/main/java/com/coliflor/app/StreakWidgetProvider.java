@@ -16,8 +16,9 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Coliflor Native Android Home Screen Widget (Duolingo-style Illustrated Mascot)
- * Swaps 3D Coliflor mascot artwork based on streak state (Active, Pending, Urgent).
+ * Coliflor Native Android Home Screen Widget (4x2 Horizontal Cozy Card)
+ * Displays the 2D Picaflor mascot, live streak count, countdown pill,
+ * "Nuestro mundo" shortcut, and next-day progress bar.
  */
 public class StreakWidgetProvider extends AppWidgetProvider {
 
@@ -49,53 +50,81 @@ public class StreakWidgetProvider extends AppWidgetProvider {
         long diffMs = midnight.getTimeInMillis() - now.getTimeInMillis();
         long hoursLeft = Math.max(0, diffMs / (1000 * 60 * 60));
         long minutesLeft = Math.max(0, (diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        int dayProgress = completedToday
+                ? 100
+                : Math.max(8, Math.min(95, (int) ((diffMs * 100L) / (24L * 60L * 60L * 1000L))));
         boolean isUrgent = !completedToday && hoursLeft < 4;
+
+        String daysText = streakCount == 1 ? "🔥 1 día" : "🔥 " + streakCount + " días";
+        String nextDayText = "📅 Próximo día: Día " + (streakCount + 1);
 
         for (int appWidgetId : appWidgetIds) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_streak);
 
-            views.setTextViewText(R.id.widget_streak_number, String.valueOf(streakCount));
-            views.setTextViewText(R.id.widget_streak_label, streakCount == 1 ? "DÍA" : "DÍAS");
+            views.setTextViewText(R.id.widget_streak_number, daysText);
+            views.setTextViewText(R.id.widget_next_day, nextDayText);
+            views.setProgressBar(R.id.widget_progress, 100, dayProgress, false);
 
             if (completedToday) {
+                views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_card_active);
                 views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_active);
-                views.setTextViewText(R.id.widget_status_pill, "✓ ACTIVA");
+                views.setTextColor(R.id.widget_eyebrow, Color.parseColor("#A7F3D0"));
+                views.setTextViewText(R.id.widget_status_pill, "✓ Activa");
                 views.setTextColor(R.id.widget_status_pill, Color.parseColor("#BBF7D0"));
                 views.setInt(R.id.widget_status_pill, "setBackgroundResource", R.drawable.widget_pill_active);
+                views.setInt(R.id.widget_btn_world, "setBackgroundResource", R.drawable.widget_pill_active);
+                views.setTextColor(R.id.widget_btn_world, Color.parseColor("#D1FAE5"));
+                views.setTextViewText(R.id.widget_tagline, "¡Otro día juntos! 💚");
+                views.setTextColor(R.id.widget_tagline, Color.parseColor("#A7F3D0"));
             } else if (isUrgent) {
+                views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_card_urgent);
                 views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_urgent);
+                views.setTextColor(R.id.widget_eyebrow, Color.parseColor("#FECACA"));
                 String timeText = hoursLeft > 0
-                        ? "🚨 " + hoursLeft + "h " + minutesLeft + "m"
-                        : "🚨 " + minutesLeft + "m";
+                        ? "! Urgente · " + hoursLeft + "h " + minutesLeft + "m"
+                        : "! Urgente · " + minutesLeft + "m";
                 views.setTextViewText(R.id.widget_status_pill, timeText);
                 views.setTextColor(R.id.widget_status_pill, Color.parseColor("#FECACA"));
                 views.setInt(R.id.widget_status_pill, "setBackgroundResource", R.drawable.widget_pill_urgent);
+                views.setInt(R.id.widget_btn_world, "setBackgroundResource", R.drawable.widget_pill_urgent);
+                views.setTextColor(R.id.widget_btn_world, Color.parseColor("#FECACA"));
+                views.setTextViewText(R.id.widget_tagline, "¡Todavía estamos a tiempo! ❤️");
+                views.setTextColor(R.id.widget_tagline, Color.parseColor("#FCA5A5"));
             } else {
+                views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_card_pending);
                 views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_pending);
-                views.setTextViewText(R.id.widget_status_pill, "⏳ " + hoursLeft + "h " + minutesLeft + "m");
-                views.setTextColor(R.id.widget_status_pill, Color.parseColor("#FDE68A"));
+                views.setTextColor(R.id.widget_eyebrow, Color.parseColor("#DDD6FE"));
+                views.setTextViewText(R.id.widget_status_pill, "🕒 Pendiente · " + hoursLeft + "h " + minutesLeft + "m");
+                views.setTextColor(R.id.widget_status_pill, Color.parseColor("#EDE9FE"));
                 views.setInt(R.id.widget_status_pill, "setBackgroundResource", R.drawable.widget_pill_pending);
+                views.setInt(R.id.widget_btn_world, "setBackgroundResource", R.drawable.widget_pill_pending);
+                views.setTextColor(R.id.widget_btn_world, Color.parseColor("#EDE9FE"));
+                views.setTextViewText(R.id.widget_tagline, "¿Volvemos a volar? 💜");
+                views.setTextColor(R.id.widget_tagline, Color.parseColor("#C4B5FD"));
             }
 
-            // PendingIntent to launch app directly on click
-            Intent intent = new Intent(context, MainActivity.class);
-            intent.putExtra("route", "/streak");
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            PendingIntent pendingIntent = PendingIntent.getActivity(
-                    context,
-                    0,
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            // Click on card -> open Streak
+            Intent streakIntent = new Intent(context, MainActivity.class);
+            streakIntent.putExtra("route", "/streak");
+            streakIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            PendingIntent streakPending = PendingIntent.getActivity(
+                    context, 0, streakIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
             );
+            views.setOnClickPendingIntent(R.id.widget_root, streakPending);
 
-            views.setOnClickPendingIntent(R.id.widget_root, pendingIntent);
+            // Click on "Nuestro mundo" -> open World
+            Intent worldIntent = new Intent(context, MainActivity.class);
+            worldIntent.putExtra("route", "/world");
+            worldIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            PendingIntent worldPending = PendingIntent.getActivity(
+                    context, 1, worldIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+            views.setOnClickPendingIntent(R.id.widget_btn_world, worldPending);
+
             appWidgetManager.updateAppWidget(appWidgetId, views);
         }
     }
 
-    /**
-     * Helper to update widget data from Capacitor plugin.
-     */
     public static void updateData(Context context, int streakCount, boolean completedToday, String partnerName) {
         String todayStr = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
