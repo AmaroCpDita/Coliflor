@@ -38,6 +38,7 @@ const Settings = lazy(() => import('./pages/Settings'));
 const BucketList = lazy(() => import('./pages/BucketList'));
 const MapPage = lazy(() => import('./pages/Map'));
 const OurWorldPage = lazy(() => import('./features/our-world/OurWorldPage'));
+const WidgetPreview = lazy(() => import('./pages/WidgetPreview'));
 
 import { useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
@@ -53,6 +54,7 @@ function AppRoutes() {
   if (status === 'unauthenticated') {
     return (
       <Routes>
+        <Route path="/widget-preview" element={<WidgetPreview />} />
         <Route path="*" element={<Login />} />
       </Routes>
     );
@@ -62,6 +64,7 @@ function AppRoutes() {
   return (
     <Suspense fallback={<LoadingScreen />}>
       <Routes>
+        <Route path="/widget-preview" element={<WidgetPreview />} />
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/streak" element={<Streak />} />

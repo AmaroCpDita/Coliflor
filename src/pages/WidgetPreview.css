@@ -1,0 +1,380 @@
+/* ============================================================
+   Coliflor — Live Widget Previewer & Simulator CSS
+   ============================================================ */
+
+.widget-preview-page {
+  min-height: 100vh;
+  background: #090a0f;
+  color: #f2f2f7;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-family, system-ui, sans-serif);
+}
+
+.widget-preview-header {
+  text-align: center;
+  max-width: 600px;
+  margin-bottom: 24px;
+}
+
+.widget-preview-header h1 {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, #e5c573 0%, #fb923c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.widget-preview-header p {
+  font-size: 13px;
+  color: #a1a1aa;
+}
+
+/* Two-column container: Controls + Phone simulator */
+.widget-preview-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+  max-width: 900px;
+}
+
+@media (min-width: 768px) {
+  .widget-preview-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+  }
+}
+
+/* Phone Mockup Frame */
+.phone-mockup {
+  width: 320px;
+  height: 640px;
+  background: #000;
+  border-radius: 44px;
+  border: 10px solid #1f2029;
+  box-shadow:
+    0 25px 60px -15px rgba(0, 0, 0, 0.9),
+    0 0 0 2px rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.phone-wallpaper {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, #2a1b3d 0%, #111425 50%, #080911 100%);
+  z-index: 1;
+}
+
+.phone-wallpaper-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.5) 100%);
+  z-index: 2;
+}
+
+/* Phone Status Bar */
+.phone-status-bar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 18px 6px 18px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+/* Android Camera Punch-hole */
+.phone-punchhole {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #000;
+  border: 1px solid #1a1a1a;
+}
+
+/* Home Screen Desktop Area */
+.phone-desktop {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.phone-clock-widget {
+  text-align: center;
+  margin: 10px 0 20px 0;
+}
+
+.phone-clock-time {
+  font-size: 44px;
+  font-weight: 200;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.phone-clock-date {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  margin-top: 4px;
+}
+
+/* Widget Placement on Desktop */
+.widget-slot {
+  margin: 12px 0 24px 0;
+  width: 100%;
+}
+
+/* Simulated App Icons on Desktop */
+.phone-app-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: auto;
+  margin-bottom: 20px;
+}
+
+.phone-app-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.phone-app-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.phone-app-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Phone Bottom Dock */
+.phone-dock {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 22px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 8px;
+}
+
+/* ============================================================
+   NATIVE WIDGET STYLES (SIMULATING EXACT ANDROID XML VIEWS)
+   ============================================================ */
+
+/* Style 1: Classic Horizontal Bar (3x1) */
+.android-widget-bar {
+  background: #161722;
+  border-radius: 22px;
+  border: 1.5px solid rgba(229, 197, 115, 0.35);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  user-select: none;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.android-widget-bar:hover {
+  transform: scale(1.02);
+}
+
+.android-widget-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.android-widget-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(229, 197, 115, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.android-widget-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.android-widget-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #f2f2f7;
+  letter-spacing: 0.02em;
+}
+
+.android-widget-subtitle {
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.android-widget-btn {
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+}
+
+.android-widget-btn--action {
+  background: #e5c573;
+  color: #0d0e12;
+  box-shadow: 0 3px 0 #bfa14c;
+}
+
+.android-widget-btn--done {
+  background: #22c55e;
+  color: #ffffff;
+  box-shadow: 0 3px 0 #15803d;
+}
+
+/* Style 2: Duolingo Square Card (2x2) */
+.android-widget-card {
+  background: #161722;
+  border-radius: 26px;
+  border: 2px solid rgba(229, 197, 115, 0.4);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  user-select: none;
+}
+
+.android-widget-card--done {
+  border-color: rgba(74, 222, 128, 0.5);
+  box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2);
+}
+
+.android-widget-card-flame {
+  font-size: 38px;
+  margin-bottom: 2px;
+  animation: flameBounce 2s infinite ease-in-out;
+}
+
+.android-widget-card-count {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
+}
+
+.android-widget-card-status {
+  font-size: 11px;
+  font-weight: 700;
+  margin: 6px 0 12px 0;
+}
+
+/* Controls Box */
+.controls-panel {
+  background: #161720;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 24px;
+  width: 100%;
+  max-width: 440px;
+}
+
+.controls-section {
+  margin-bottom: 20px;
+}
+
+.controls-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+  margin-bottom: 10px;
+}
+
+.controls-btn-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.controls-btn {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f2f2f7;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.controls-btn--active {
+  background: var(--color-accent, #e5c573);
+  color: #0d0e12;
+  border-color: var(--color-accent, #e5c573);
+}
+
+.controls-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.controls-slider {
+  flex: 1;
+}
+
+@keyframes flameBounce {
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    transform: scale(1.1) translateY(-3px);
+  }
+}
