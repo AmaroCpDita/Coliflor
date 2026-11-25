@@ -4,4 +4,5 @@
     <string name="title_activity_main">Coliflor</string>
     <string name="package_name">com.coliflor.app</string>
     <string name="custom_url_scheme">com.coliflor.app</string>
+    <string name="widget_streak_description">Muestra tu racha diaria de Coliflor, el tiempo restante y acceso directo a Nuestro Mundo.</string>
 </resources>

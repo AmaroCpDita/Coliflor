@@ -374,8 +374,16 @@ export default function Layout() {
     }
   }, [profile?.id]);
 
-  // Native Mobile Local Notifications & App State Lifecycle
+  // Native Mobile Local Notifications, Widget Deep-Link Navigation & App State Lifecycle
   useEffect(() => {
+    const handleWidgetNavigate = (event: Event) => {
+      const route = (event as CustomEvent<string>).detail;
+      if (typeof route === 'string' && route.startsWith('/')) {
+        navigate(route);
+      }
+    };
+    window.addEventListener('coliflor:navigate', handleWidgetNavigate);
+
     if (Capacitor.isNativePlatform()) {
       requestNotificationPermission();
 
@@ -386,10 +394,15 @@ export default function Layout() {
       });
 
       return () => {
+        window.removeEventListener('coliflor:navigate', handleWidgetNavigate);
         listenerPromise.then((handle) => handle.remove());
       };
     }
-  }, []);
+
+    return () => {
+      window.removeEventListener('coliflor:navigate', handleWidgetNavigate);
+    };
+  }, [navigate]);
 
   // Keep the inbox in sync without altering the underlying chat history.
   const fetchActivityLogs = useCallback(async () => {

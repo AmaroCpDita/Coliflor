@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Bundle;
+import android.view.View;
 import android.widget.RemoteViews;
 
 import java.text.SimpleDateFormat;
@@ -17,7 +19,7 @@ import java.util.Locale;
 
 /**
  * Coliflor Native Android Home Screen Widget (4x2 Horizontal Cozy Card)
- * Integrates the large Pokémon-style Picaflor art seamlessly with live countdown time.
+ * Complies with Android AppWidget sizing, RemoteViews safety, and deep-link routing.
  */
 public class StreakWidgetProvider extends AppWidgetProvider {
 
@@ -29,9 +31,38 @@ public class StreakWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        if (context == null || appWidgetManager == null || appWidgetIds == null) return;
+        for (int appWidgetId : appWidgetIds) {
+            try {
+                updateSingleWidget(context, appWidgetManager, appWidgetId);
+            } catch (Exception ignored) {
+                // Prevent launcher "Problem loading widget" crash under any edge condition
+            }
+        }
+    }
+
+    @Override
+    public void onAppWidgetOptionsChanged(
+            Context context,
+            AppWidgetManager appWidgetManager,
+            int appWidgetId,
+            Bundle newOptions
+    ) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
+        try {
+            updateSingleWidget(context, appWidgetManager, appWidgetId);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private static void updateSingleWidget(
+            Context context,
+            AppWidgetManager appWidgetManager,
+            int appWidgetId
+    ) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        int streakCount = prefs.getInt(KEY_STREAK_COUNT, 0);
+        int streakCount = Math.max(0, prefs.getInt(KEY_STREAK_COUNT, 0));
         boolean completedToday = prefs.getBoolean(KEY_COMPLETED_TODAY, false);
         String lastDate = prefs.getString(KEY_LAST_UPDATE_DATE, "");
 
@@ -45,9 +76,10 @@ public class StreakWidgetProvider extends AppWidgetProvider {
         midnight.set(Calendar.HOUR_OF_DAY, 24);
         midnight.set(Calendar.MINUTE, 0);
         midnight.set(Calendar.SECOND, 0);
-        long diffMs = midnight.getTimeInMillis() - now.getTimeInMillis();
-        long hoursLeft = Math.max(0, diffMs / (1000 * 60 * 60));
-        long minutesLeft = Math.max(0, (diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        midnight.set(Calendar.MILLISECOND, 0);
+        long diffMs = Math.max(0L, midnight.getTimeInMillis() - now.getTimeInMillis());
+        long hoursLeft = diffMs / (1000L * 60L * 60L);
+        long minutesLeft = (diffMs % (1000L * 60L * 60L)) / (1000L * 60L);
         int dayProgress = completedToday
                 ? 100
                 : Math.max(8, Math.min(95, (int) ((diffMs * 100L) / (24L * 60L * 60L * 1000L))));
@@ -59,89 +91,110 @@ public class StreakWidgetProvider extends AppWidgetProvider {
                 ? String.format(Locale.getDefault(), "%02dh %02dm", hoursLeft, minutesLeft)
                 : String.format(Locale.getDefault(), "%02dm", minutesLeft);
 
-        for (int appWidgetId : appWidgetIds) {
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_streak);
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_streak);
 
-            views.setTextViewText(R.id.widget_streak_number, daysText);
-            views.setTextViewText(R.id.widget_next_day, nextDayText);
-            views.setProgressBar(R.id.widget_progress, 100, dayProgress, false);
+        views.setTextViewText(R.id.widget_streak_number, daysText);
+        views.setTextViewText(R.id.widget_next_day, nextDayText);
 
-            if (completedToday) {
-                views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_card_active);
-                views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_active);
-                views.setImageViewResource(R.id.widget_status_icon, R.drawable.ic_widget_check);
-                views.setTextColor(R.id.widget_eyebrow, Color.parseColor("#A7F3D0"));
-                views.setTextViewText(R.id.widget_status_pill, "Activa");
-                views.setTextColor(R.id.widget_status_pill, Color.parseColor("#BBF7D0"));
-                views.setInt(R.id.widget_status_pill_bg, "setBackgroundResource", R.drawable.widget_pill_active);
-                views.setInt(R.id.widget_btn_world, "setBackgroundResource", R.drawable.widget_pill_active);
-                views.setTextColor(R.id.widget_btn_world_text, Color.parseColor("#D1FAE5"));
-                views.setTextViewText(R.id.widget_time_remaining, "Siguiente día en " + remainingFormatted);
-                views.setTextColor(R.id.widget_time_remaining, Color.parseColor("#A7F3D0"));
-            } else if (isUrgent) {
-                views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_card_urgent);
-                views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_urgent);
-                views.setImageViewResource(R.id.widget_status_icon, R.drawable.ic_widget_alert);
-                views.setTextColor(R.id.widget_eyebrow, Color.parseColor("#FECACA"));
-                views.setTextViewText(R.id.widget_status_pill, "Urgente");
-                views.setTextColor(R.id.widget_status_pill, Color.parseColor("#FECACA"));
-                views.setInt(R.id.widget_status_pill_bg, "setBackgroundResource", R.drawable.widget_pill_urgent);
-                views.setInt(R.id.widget_btn_world, "setBackgroundResource", R.drawable.widget_pill_urgent);
-                views.setTextColor(R.id.widget_btn_world_text, Color.parseColor("#FECACA"));
-                views.setTextViewText(R.id.widget_time_remaining, "Quedan " + remainingFormatted + " hoy");
-                views.setTextColor(R.id.widget_time_remaining, Color.parseColor("#FCA5A5"));
-            } else {
-                views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_card_pending);
-                views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_pending);
-                views.setImageViewResource(R.id.widget_status_icon, R.drawable.ic_widget_clock);
-                views.setTextColor(R.id.widget_eyebrow, Color.parseColor("#DDD6FE"));
-                views.setTextViewText(R.id.widget_status_pill, "Pendiente");
-                views.setTextColor(R.id.widget_status_pill, Color.parseColor("#EDE9FE"));
-                views.setInt(R.id.widget_status_pill_bg, "setBackgroundResource", R.drawable.widget_pill_pending);
-                views.setInt(R.id.widget_btn_world, "setBackgroundResource", R.drawable.widget_pill_pending);
-                views.setTextColor(R.id.widget_btn_world_text, Color.parseColor("#EDE9FE"));
-                views.setTextViewText(R.id.widget_time_remaining, "Quedan " + remainingFormatted + " hoy");
-                views.setTextColor(R.id.widget_time_remaining, Color.parseColor("#DDD6FE"));
-            }
+        if (completedToday) {
+            views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_card_active);
+            views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_active);
+            views.setImageViewResource(R.id.widget_status_icon, R.drawable.ic_widget_check);
+            views.setTextColor(R.id.widget_eyebrow, Color.parseColor("#A7F3D0"));
+            views.setTextViewText(R.id.widget_status_pill, "Activa");
+            views.setTextColor(R.id.widget_status_pill, Color.parseColor("#BBF7D0"));
+            views.setInt(R.id.widget_status_pill_bg, "setBackgroundResource", R.drawable.widget_pill_active);
+            views.setInt(R.id.widget_btn_world, "setBackgroundResource", R.drawable.widget_pill_active);
+            views.setTextColor(R.id.widget_btn_world_text, Color.parseColor("#D1FAE5"));
+            views.setTextViewText(R.id.widget_time_remaining, "Siguiente día en " + remainingFormatted);
+            views.setTextColor(R.id.widget_time_remaining, Color.parseColor("#A7F3D0"));
 
-            Intent streakIntent = new Intent(context, MainActivity.class);
-            streakIntent.putExtra("route", "/streak");
-            streakIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            PendingIntent streakPending = PendingIntent.getActivity(
-                    context, 0, streakIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-            );
-            views.setOnClickPendingIntent(R.id.widget_root, streakPending);
+            views.setViewVisibility(R.id.widget_progress_active, View.VISIBLE);
+            views.setViewVisibility(R.id.widget_progress_pending, View.GONE);
+            views.setViewVisibility(R.id.widget_progress_urgent, View.GONE);
+            views.setProgressBar(R.id.widget_progress_active, 100, 100, false);
+        } else if (isUrgent) {
+            views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_card_urgent);
+            views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_urgent);
+            views.setImageViewResource(R.id.widget_status_icon, R.drawable.ic_widget_alert);
+            views.setTextColor(R.id.widget_eyebrow, Color.parseColor("#FECACA"));
+            views.setTextViewText(R.id.widget_status_pill, "Urgente");
+            views.setTextColor(R.id.widget_status_pill, Color.parseColor("#FECACA"));
+            views.setInt(R.id.widget_status_pill_bg, "setBackgroundResource", R.drawable.widget_pill_urgent);
+            views.setInt(R.id.widget_btn_world, "setBackgroundResource", R.drawable.widget_pill_urgent);
+            views.setTextColor(R.id.widget_btn_world_text, Color.parseColor("#FECACA"));
+            views.setTextViewText(R.id.widget_time_remaining, "Quedan " + remainingFormatted + " hoy");
+            views.setTextColor(R.id.widget_time_remaining, Color.parseColor("#FCA5A5"));
 
-            Intent worldIntent = new Intent(context, MainActivity.class);
-            worldIntent.putExtra("route", "/world");
-            worldIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            PendingIntent worldPending = PendingIntent.getActivity(
-                    context, 1, worldIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-            );
-            views.setOnClickPendingIntent(R.id.widget_btn_world, worldPending);
+            views.setViewVisibility(R.id.widget_progress_active, View.GONE);
+            views.setViewVisibility(R.id.widget_progress_pending, View.GONE);
+            views.setViewVisibility(R.id.widget_progress_urgent, View.VISIBLE);
+            views.setProgressBar(R.id.widget_progress_urgent, 100, dayProgress, false);
+        } else {
+            views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_card_pending);
+            views.setImageViewResource(R.id.widget_bg_art, R.drawable.widget_coliflor_pending);
+            views.setImageViewResource(R.id.widget_status_icon, R.drawable.ic_widget_clock);
+            views.setTextColor(R.id.widget_eyebrow, Color.parseColor("#DDD6FE"));
+            views.setTextViewText(R.id.widget_status_pill, "Pendiente");
+            views.setTextColor(R.id.widget_status_pill, Color.parseColor("#EDE9FE"));
+            views.setInt(R.id.widget_status_pill_bg, "setBackgroundResource", R.drawable.widget_pill_pending);
+            views.setInt(R.id.widget_btn_world, "setBackgroundResource", R.drawable.widget_pill_pending);
+            views.setTextColor(R.id.widget_btn_world_text, Color.parseColor("#EDE9FE"));
+            views.setTextViewText(R.id.widget_time_remaining, "Quedan " + remainingFormatted + " hoy");
+            views.setTextColor(R.id.widget_time_remaining, Color.parseColor("#DDD6FE"));
 
-            appWidgetManager.updateAppWidget(appWidgetId, views);
+            views.setViewVisibility(R.id.widget_progress_active, View.GONE);
+            views.setViewVisibility(R.id.widget_progress_pending, View.VISIBLE);
+            views.setViewVisibility(R.id.widget_progress_urgent, View.GONE);
+            views.setProgressBar(R.id.widget_progress_pending, 100, dayProgress, false);
         }
+
+        Intent streakIntent = new Intent(context, MainActivity.class);
+        streakIntent.putExtra("route", "/streak");
+        streakIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent streakPending = PendingIntent.getActivity(
+                context,
+                appWidgetId * 10 + 1,
+                streakIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        views.setOnClickPendingIntent(R.id.widget_root, streakPending);
+
+        Intent worldIntent = new Intent(context, MainActivity.class);
+        worldIntent.putExtra("route", "/world");
+        worldIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent worldPending = PendingIntent.getActivity(
+                context,
+                appWidgetId * 10 + 2,
+                worldIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        views.setOnClickPendingIntent(R.id.widget_btn_world, worldPending);
+
+        appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
     public static void updateData(Context context, int streakCount, boolean completedToday, String partnerName) {
+        if (context == null) return;
         String todayStr = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         prefs.edit()
-                .putInt(KEY_STREAK_COUNT, streakCount)
+                .putInt(KEY_STREAK_COUNT, Math.max(0, streakCount))
                 .putBoolean(KEY_COMPLETED_TODAY, completedToday)
                 .putString(KEY_LAST_UPDATE_DATE, todayStr)
-                .putString(KEY_PARTNER_NAME, partnerName)
+                .putString(KEY_PARTNER_NAME, partnerName != null ? partnerName : "Tu pareja")
                 .apply();
 
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
         ComponentName componentName = new ComponentName(context, StreakWidgetProvider.class);
         int[] appWidgetIds = manager.getAppWidgetIds(componentName);
         if (appWidgetIds != null && appWidgetIds.length > 0) {
-            Intent intent = new Intent(context, StreakWidgetProvider.class);
-            intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
-            context.sendBroadcast(intent);
+            for (int id : appWidgetIds) {
+                try {
+                    updateSingleWidget(context, manager, id);
+                } catch (Exception ignored) {
+                }
+            }
         }
     }
 }

@@ -8,11 +8,13 @@
     <!-- Integrated Large Pokémon-style Picaflor Mascot anchored to Left Half -->
     <ImageView
         android:id="@+id/widget_bg_art"
-        android:layout_width="162dp"
+        android:layout_width="148dp"
         android:layout_height="match_parent"
         android:layout_gravity="start|center_vertical"
         android:layout_marginStart="2dp"
-        android:scaleType="centerInside"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="16dp"
+        android:scaleType="fitCenter"
         android:src="@drawable/widget_coliflor_active"
         android:contentDescription="@string/app_name" />
 
@@ -21,7 +23,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:paddingStart="11dp"
+        android:paddingEnd="11dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
 
         <!-- Top Row: Brand (Left) + Nuestro Mundo Button (Right) -->
         <RelativeLayout
@@ -37,8 +42,8 @@
                 android:gravity="center_vertical">
 
                 <ImageView
-                    android:layout_width="17dp"
-                    android:layout_height="17dp"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
                     android:src="@drawable/ic_widget_flower"
                     android:contentDescription="@null" />
 
@@ -47,9 +52,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     android:text="Coliflor"
                     android:textColor="#FFFFFF"
-                    android:textSize="13sp"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -61,15 +68,15 @@
                 android:layout_centerVertical="true"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
+                android:paddingStart="9dp"
+                android:paddingEnd="9dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
                 android:background="@drawable/widget_pill_active">
 
                 <ImageView
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
+                    android:layout_width="11dp"
+                    android:layout_height="11dp"
                     android:src="@drawable/ic_widget_home"
                     android:contentDescription="@null" />
 
@@ -77,10 +84,12 @@
                     android:id="@+id/widget_btn_world_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
+                    android:layout_marginStart="4dp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     android:text="Nuestro mundo"
                     android:textColor="#E2FBE8"
-                    android:textSize="10sp"
+                    android:textSize="9.5sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </RelativeLayout>
@@ -98,12 +107,12 @@
             <FrameLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.45" />
+                android:layout_weight="0.44" />
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.55"
+                android:layout_weight="0.56"
                 android:orientation="vertical"
                 android:gravity="center_horizontal">
 
@@ -111,9 +120,11 @@
                     android:id="@+id/widget_eyebrow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     android:text="NUESTRA RACHA"
                     android:textColor="#A7F3D0"
-                    android:textSize="9.5sp"
+                    android:textSize="9sp"
                     android:textStyle="bold"
                     android:letterSpacing="0.08" />
 
@@ -122,11 +133,11 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginTop="2dp">
+                    android:layout_marginTop="1dp">
 
                     <ImageView
-                        android:layout_width="21dp"
-                        android:layout_height="21dp"
+                        android:layout_width="19dp"
+                        android:layout_height="19dp"
                         android:src="@drawable/ic_widget_flame"
                         android:contentDescription="@null" />
 
@@ -135,9 +146,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
                         android:text="37 días"
                         android:textColor="#FFFFFF"
-                        android:textSize="23sp"
+                        android:textSize="21sp"
                         android:textStyle="bold"
                         android:includeFontPadding="false" />
                 </LinearLayout>
@@ -146,19 +159,19 @@
                     android:id="@+id/widget_status_pill_bg"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
+                    android:layout_marginTop="3dp"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:paddingStart="11dp"
-                    android:paddingEnd="11dp"
-                    android:paddingTop="3dp"
-                    android:paddingBottom="3dp"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
                     android:background="@drawable/widget_pill_active">
 
                     <ImageView
                         android:id="@+id/widget_status_icon"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
+                        android:layout_width="11dp"
+                        android:layout_height="11dp"
                         android:src="@drawable/ic_widget_check"
                         android:contentDescription="@null" />
 
@@ -166,10 +179,12 @@
                         android:id="@+id/widget_status_pill"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
+                        android:layout_marginStart="4dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
                         android:text="Activa"
                         android:textColor="#BBF7D0"
-                        android:textSize="11sp"
+                        android:textSize="10sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -178,29 +193,31 @@
                     android:id="@+id/widget_time_remaining"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Quedan 5h 45m"
-                    android:textColor="#FFFFFF"
-                    android:textSize="11sp"
+                    android:layout_marginTop="3dp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:text="Siguiente día en 05h 45m"
+                    android:textColor="#A7F3D0"
+                    android:textSize="10sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Bottom Footer Bar: Next Day + Progress Bar -->
+        <!-- Bottom Footer Bar: Next Day + State-Colored Progress Bars -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:background="@drawable/widget_footer_bg"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp">
+            android:paddingStart="9dp"
+            android:paddingEnd="9dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
 
             <ImageView
-                android:layout_width="12dp"
-                android:layout_height="12dp"
+                android:layout_width="11dp"
+                android:layout_height="11dp"
                 android:src="@drawable/ic_widget_calendar"
                 android:contentDescription="@null" />
 
@@ -208,22 +225,49 @@
                 android:id="@+id/widget_next_day"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="5dp"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:text="Próximo día: Día 38"
                 android:textColor="#E4E4E7"
                 android:textSize="9.5sp"
                 android:textStyle="bold" />
 
             <ProgressBar
-                android:id="@+id/widget_progress"
+                android:id="@+id/widget_progress_active"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="0dp"
-                android:layout_height="7dp"
+                android:layout_height="6dp"
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
                 android:max="100"
                 android:progress="100"
+                android:visibility="visible"
                 android:progressDrawable="@drawable/widget_progress_active" />
+
+            <ProgressBar
+                android:id="@+id/widget_progress_pending"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="6dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:max="100"
+                android:progress="62"
+                android:visibility="gone"
+                android:progressDrawable="@drawable/widget_progress_pending" />
+
+            <ProgressBar
+                android:id="@+id/widget_progress_urgent"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="6dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:max="100"
+                android:progress="18"
+                android:visibility="gone"
+                android:progressDrawable="@drawable/widget_progress_urgent" />
         </LinearLayout>
 
     </LinearLayout>

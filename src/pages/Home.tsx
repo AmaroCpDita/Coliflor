@@ -9,7 +9,12 @@ import PageTransition from '../components/PageTransition';
 import HeroPageTurn from '../components/HeroPageTurn';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { daysSince, generateInviteCode, parseHeroAlbumPaths } from '../lib/utils';
+import {
+  daysSince,
+  generateInviteCode,
+  getTodayInTimezone,
+  parseHeroAlbumPaths,
+} from '../lib/utils';
 import { readCachedHeroImages, saveCachedHeroImages } from '../lib/heroAlbumCache';
 import { readyHeroAlbumImages } from '../lib/heroAlbumImages';
 import { supabase } from '../lib/supabase';
@@ -385,8 +390,20 @@ export default function Home() {
     if (!couple || isMockMode) {
       return;
     }
-    syncStreakToHomeScreenWidget(couple.current_streak || 0, false, partnerName || 'Tu pareja');
-    syncStreakToHomeScreenWidget(couple.current_streak || 0, false, partnerName || 'Tu pareja');
+    const todayStr = getTodayInTimezone();
+    supabase
+      .from('streak_photos')
+      .select('user_id')
+      .eq('couple_id', couple.id)
+      .eq('photo_date', todayStr)
+      .then(({ data }) => {
+        const distinctUsers = new Set((data || []).map((row: { user_id: string }) => row.user_id));
+        syncStreakToHomeScreenWidget(
+          couple.current_streak || 0,
+          distinctUsers.size >= 2,
+          partnerName || 'Tu pareja',
+        );
+      });
     const paths = heroPaths;
     if (!paths.length) {
       saveCachedHeroImages(couple.id, [], []);
