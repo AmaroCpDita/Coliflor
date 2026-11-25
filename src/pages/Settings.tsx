@@ -453,22 +453,25 @@ export default function Settings() {
           </button>
         )}
 
-        <Link
-          to="/widget-preview"
-          className="btn btn--secondary btn--full"
-          style={{
-            textDecoration: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            background: 'rgba(229, 197, 115, 0.08)',
-            borderColor: 'rgba(229, 197, 115, 0.3)',
-            color: 'var(--color-accent)',
-          }}
-        >
-          <span>🎨 Ver y Diseñar Widget de Pantalla de Inicio</span>
-        </Link>
+        {/* Widget Preview Link (Solo en desarrollo local) */}
+        {import.meta.env.DEV && (
+          <Link
+            to="/widget-preview"
+            className="btn btn--secondary btn--full"
+            style={{
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              background: 'rgba(229, 197, 115, 0.08)',
+              borderColor: 'rgba(229, 197, 115, 0.3)',
+              color: 'var(--color-accent)',
+            }}
+          >
+            <span>🎨 Ver y Diseñar Widget de Pantalla de Inicio</span>
+          </Link>
+        )}
 
         {/* Sign Out */}
         <button className="btn btn--secondary btn--full btn--lg" onClick={signOut}>

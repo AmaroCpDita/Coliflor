@@ -310,10 +310,10 @@ export const UpdateCheckButton: React.FC = () => {
     const targetUrl = isIos
       ? foundVersion.ipaUrl ||
         foundVersion.supabaseIpaUrl ||
-        'https://coliflor.vercel.app/Coliflor.ipa'
+        'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.ipa'
       : foundVersion.apkUrl ||
         foundVersion.supabaseApkUrl ||
-        'https://coliflor.vercel.app/Coliflor.apk';
+        'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.apk';
 
     const link = document.createElement('a');
     link.href = targetUrl;
@@ -335,7 +335,7 @@ export const UpdateCheckButton: React.FC = () => {
           )}
         </div>
         <p className="update-settings-desc">
-          Comprueba en Vercel si hay una versión más reciente con nuevas funciones.
+          Comprueba si hay una versión más reciente con nuevas funciones.
         </p>
       </div>
 
@@ -349,7 +349,7 @@ export const UpdateCheckButton: React.FC = () => {
 
         {status === 'error' && (
           <span className="update-settings-status-text update-settings-status-text--error">
-            <span>Sin conexión a Vercel</span>
+            <span>Sin conexión al servidor</span>
           </span>
         )}
 
