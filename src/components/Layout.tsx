@@ -573,7 +573,14 @@ export default function Layout() {
           setActivityLogs((prev) => [msg, ...prev.filter((p) => p.id !== msg.id)]);
         }
 
+        // STRICT SENDER CHECK: Never notify oneself for actions initiated by the current user
         if (msg.sender_id === profileIdRef.current) return;
+
+        // Also safeguard if message text mentions current user uploading photo/action
+        const myDisplayName = profile?.display_name;
+        if (myDisplayName && msg.content && msg.content.includes(`${myDisplayName} subió`)) {
+          return;
+        }
 
         // STRICT DEDUPLICATION: If already notified once, return immediately
         if (notifiedIdsSetRef.current.has(msg.id)) return;

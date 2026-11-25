@@ -112,17 +112,27 @@ export const UpdateNotifier: React.FC = () => {
 
   const checkForUpdates = useCallback(async (isManual = false) => {
     try {
-      // 1. Try Vercel public URL
+      // 1. Try Vercel production manifest
       let response = await fetch(`${VERSION_MANIFEST_URL}?_t=${Date.now()}`, {
         cache: 'no-store',
-      });
+      }).catch(() => null);
 
-      // 2. Fallback to relative path if on web
-      if (!response.ok) {
-        response = await fetch(`/version.json?_t=${Date.now()}`, { cache: 'no-store' });
+      // 2. Fallback to GitHub raw version manifest
+      if (!response || !response.ok) {
+        response = await fetch(
+          `https://raw.githubusercontent.com/AmaroCpDita/Coliflor/main/public/version.json?_t=${Date.now()}`,
+          { cache: 'no-store' },
+        ).catch(() => null);
       }
 
-      if (!response.ok) return;
+      // 3. Fallback to relative path if on web
+      if (!response || !response.ok) {
+        response = await fetch(`/version.json?_t=${Date.now()}`, { cache: 'no-store' }).catch(
+          () => null,
+        );
+      }
+
+      if (!response || !response.ok) return;
 
       const data: AppVersionInfo = await response.json();
       if (data && data.versionCode > CURRENT_APP_VERSION.versionCode) {
@@ -279,12 +289,24 @@ export const UpdateCheckButton: React.FC = () => {
     setChecking(true);
     setStatus('idle');
     try {
-      let res = await fetch(`${VERSION_MANIFEST_URL}?_t=${Date.now()}`, { cache: 'no-store' });
-      if (!res.ok) {
-        res = await fetch(`/version.json?_t=${Date.now()}`, { cache: 'no-store' });
+      let res = await fetch(`${VERSION_MANIFEST_URL}?_t=${Date.now()}`, {
+        cache: 'no-store',
+      }).catch(() => null);
+
+      if (!res || !res.ok) {
+        res = await fetch(
+          `https://raw.githubusercontent.com/AmaroCpDita/Coliflor/main/public/version.json?_t=${Date.now()}`,
+          { cache: 'no-store' },
+        ).catch(() => null);
       }
 
-      if (res.ok) {
+      if (!res || !res.ok) {
+        res = await fetch(`/version.json?_t=${Date.now()}`, { cache: 'no-store' }).catch(
+          () => null,
+        );
+      }
+
+      if (res && res.ok) {
         const data: AppVersionInfo = await res.json();
         if (data && data.versionCode > CURRENT_APP_VERSION.versionCode) {
           setStatus('update-found');

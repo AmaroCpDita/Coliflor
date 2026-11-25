@@ -131,14 +131,30 @@ export async function sendNativeInstantNotification({
 
     await ensureChannels();
 
+    // Clean, aesthetic notification styling
+    const isStreak = channel === CHANNEL_STREAK || body.includes('racha') || body.includes('Racha');
+    const displayTitle =
+      !title || title.trim() === '' || title.toLowerCase() === 'coliflor'
+        ? isStreak
+          ? '🔥 Racha de Pareja'
+          : '💛 Coliflor'
+        : title.startsWith('💛') || title.startsWith('🔥') || title.startsWith('💌')
+          ? title
+          : `💛 ${title}`;
+
+    const smallIcon = isStreak ? 'ic_widget_flame' : 'ic_widget_flower';
+
     await LocalNotifications.schedule({
       notifications: [
         {
           id: nextNotificationId(),
-          title,
+          title: displayTitle,
           body,
+          summaryText: 'Coliflor',
           channelId: channel,
-          schedule: { at: new Date(Date.now() + 150) },
+          smallIcon,
+          iconColor: '#e5c573',
+          schedule: { at: new Date(Date.now() + 150), allowWhileIdle: true },
           extra: { route },
         },
       ],

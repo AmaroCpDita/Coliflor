@@ -16,12 +16,10 @@ export const CURRENT_APP_VERSION: AppVersionInfo = {
   releaseDate: '2026-11-25',
   changelog:
     'Nuevo logo oficial idéntico a la PWA, botón de widget automático y corrección de avisos.',
-  apkUrl: 'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.apk',
-  ipaUrl: 'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.ipa',
-  supabaseApkUrl:
-    'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.apk',
-  supabaseIpaUrl:
-    'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.ipa',
+  apkUrl: 'https://github.com/AmaroCpDita/Coliflor/releases/latest/download/Coliflor.apk',
+  ipaUrl: 'https://github.com/AmaroCpDita/Coliflor/releases/latest/download/Coliflor.ipa',
+  supabaseApkUrl: 'https://github.com/AmaroCpDita/Coliflor/releases/latest/download/Coliflor.apk',
+  supabaseIpaUrl: 'https://github.com/AmaroCpDita/Coliflor/releases/latest/download/Coliflor.ipa',
   apkSize: '150 MB',
 };
 
