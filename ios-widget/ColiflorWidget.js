@@ -1,20 +1,9 @@
-// ============================================================
-// Coliflor — Widget 4×2 (Mediano) para iPhone con Scriptable
-// ============================================================
-// Cómo instalarlo en tu iPhone:
-// 1. Descarga "Scriptable" (gratis en la App Store).
-// 2. Abre Scriptable -> toca "+" arriba a la derecha -> pega todo este código -> ponle nombre "Coliflor".
-// 3. En la pantalla de inicio de tu iPhone: mantén presionado -> "+" -> busca "Scriptable"
-//    -> elige el tamaño MEDIANO (4×2) -> Agregar widget.
-// 4. Mantén presionado el widget -> "Editar widget" -> en Script elige "Coliflor".
-// ============================================================
+/* Coliflor — Widget 4x2 (Mediano) para iPhone con Scriptable */
 
 const SUPABASE_URL = "https://gamwmifvgfedgfizcxoz.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhbXdtaWZ2Z2ZlZGdmaXpjeG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3ODgxODYsImV4cCI6MjEwMzM2NDE4Nn0.7Pc0AGrKNMz6FoWJHQ_CzDV24HMH0aiE0lUP1nrhFnc";
 const COUPLE_ID = "7b8edae0-65da-44b7-a9b9-8073ecdd607e";
-
-// Cambia esta URL si tu dominio de Vercel es distinto (sirve las 3 imágenes PNG del colibrí):
 const ASSETS_BASE_URL = "https://coliflor.vercel.app/assets/widget";
 
 // --- 1. Obtener estado real de la racha desde Supabase ---
