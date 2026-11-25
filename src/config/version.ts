@@ -11,17 +11,18 @@ export interface AppVersionInfo {
 }
 
 export const CURRENT_APP_VERSION: AppVersionInfo = {
-  version: '1.0.0',
-  versionCode: 1,
-  releaseDate: '2026-11-23',
-  changelog: 'Versión base inicial de Coliflor con widget nativo y notificaciones.',
-  apkUrl: 'https://coliflor-one.vercel.app/Coliflor.apk',
-  ipaUrl: 'https://coliflor-one.vercel.app/Coliflor.ipa',
+  version: '1.1.0',
+  versionCode: 2,
+  releaseDate: '2026-11-25',
+  changelog:
+    'Nuevo logo oficial idéntico a la PWA, botón de widget automático y corrección de avisos.',
+  apkUrl: 'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.apk',
+  ipaUrl: 'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.ipa',
   supabaseApkUrl:
-    'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/photos/Coliflor.apk',
+    'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.apk',
   supabaseIpaUrl:
-    'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/photos/Coliflor.ipa',
-  apkSize: '14 MB',
+    'https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.ipa',
+  apkSize: '150 MB',
 };
 
 export const VERSION_MANIFEST_URL = 'https://coliflor-one.vercel.app/version.json';

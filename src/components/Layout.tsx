@@ -401,10 +401,19 @@ export default function Layout() {
         }
       });
 
+      const backButtonPromise = App.addListener('backButton', () => {
+        if (location.pathname !== '/') {
+          navigate(-1);
+        } else {
+          App.exitApp();
+        }
+      });
+
       return () => {
         window.removeEventListener('coliflor:navigate', handleWidgetNavigate);
         removeNotifTapListener();
         listenerPromise.then((handle) => handle.remove());
+        backButtonPromise.then((handle) => handle.remove());
       };
     }
 

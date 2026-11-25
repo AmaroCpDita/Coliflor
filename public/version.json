@@ -3,9 +3,9 @@
   "versionCode": 2,
   "releaseDate": "2026-11-25",
   "changelog": "Nuevo logo oficial idéntico a la PWA, botón de widget automático y corrección de avisos.",
-  "apkUrl": "https://coliflor-one.vercel.app/Coliflor.apk",
-  "ipaUrl": "https://coliflor-one.vercel.app/Coliflor.ipa",
-  "supabaseApkUrl": "https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/photos/Coliflor.apk",
-  "supabaseIpaUrl": "https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/photos/Coliflor.ipa",
-  "apkSize": "14 MB"
+  "apkUrl": "https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.apk",
+  "ipaUrl": "https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.ipa",
+  "supabaseApkUrl": "https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.apk",
+  "supabaseIpaUrl": "https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/releases/Coliflor.ipa",
+  "apkSize": "150 MB"
 }

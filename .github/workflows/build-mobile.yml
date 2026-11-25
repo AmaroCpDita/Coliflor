@@ -86,6 +86,33 @@ jobs:
             Coliflor.ipa
           if-no-files-found: error
 
+      - name: Upload to Supabase Public Releases Storage
+        run: |
+          SUPABASE_URL="https://gamwmifvgfedgfizcxoz.supabase.co"
+          SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhbXdtaWZ2Z2ZlZGdmaXpjeG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3ODgxODYsImV4cCI6MjEwMzM2NDE4Nn0.7Pc0AGrKNMz6FoWJHQ_CzDV24HMH0aiE0lUP1nrhFnc"
+
+          if [ -f "Coliflor.apk" ]; then
+            echo "Uploading Coliflor.apk to Supabase releases bucket..."
+            curl -s -X POST \
+              "${SUPABASE_URL}/storage/v1/object/releases/Coliflor.apk" \
+              -H "Authorization: Bearer ${SUPABASE_KEY}" \
+              -H "apikey: ${SUPABASE_KEY}" \
+              -H "Content-Type: application/vnd.android.package-archive" \
+              -H "x-upsert: true" \
+              --data-binary "@Coliflor.apk" || true
+          fi
+
+          if [ -f "Coliflor.ipa" ]; then
+            echo "Uploading Coliflor.ipa to Supabase releases bucket..."
+            curl -s -X POST \
+              "${SUPABASE_URL}/storage/v1/object/releases/Coliflor.ipa" \
+              -H "Authorization: Bearer ${SUPABASE_KEY}" \
+              -H "apikey: ${SUPABASE_KEY}" \
+              -H "Content-Type: application/octet-stream" \
+              -H "x-upsert: true" \
+              --data-binary "@Coliflor.ipa" || true
+          fi
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main') || github.event_name == 'workflow_dispatch'
