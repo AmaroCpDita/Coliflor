@@ -1,4 +1,4 @@
-/* Coliflor — Widget 4x2 (Mediano) para iPhone con Scriptable */
+/* Coliflor Widget 4x2 para iPhone (Scriptable) */
 
 const SUPABASE_URL = "https://gamwmifvgfedgfizcxoz.supabase.co";
 const SUPABASE_ANON_KEY =
@@ -6,14 +6,13 @@ const SUPABASE_ANON_KEY =
 const COUPLE_ID = "7b8edae0-65da-44b7-a9b9-8073ecdd607e";
 const ASSETS_BASE_URL = "https://coliflor.vercel.app/assets/widget";
 
-// --- 1. Obtener estado real de la racha desde Supabase ---
 async function fetchStreakStatus() {
   try {
-    const req = new Request(`${SUPABASE_URL}/rest/v1/rpc/get_widget_streak_status`);
+    const req = new Request(SUPABASE_URL + "/rest/v1/rpc/get_widget_streak_status");
     req.method = "POST";
     req.headers = {
       apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
       "Content-Type": "application/json",
     };
     req.body = JSON.stringify({ p_couple_id: COUPLE_ID });
@@ -26,30 +25,27 @@ async function fetchStreakStatus() {
       };
     }
   } catch (e) {
-    console.warn("Supabase fetch error:", e);
+    console.warn("Supabase fetch error: " + e);
   }
   return { streakCount: 0, completedToday: false };
 }
 
-// --- 2. Descargar y cachear la ilustración del Colibrí en el iPhone ---
 async function loadMascotImage(stateKey) {
-  const fileName = `picaflor-${stateKey}-ios.png`;
+  const fileName = "picaflor-" + stateKey + "-ios.png";
   const fm = FileManager.local();
   const cacheDir = fm.joinPath(fm.cacheDirectory(), "coliflor_widget");
   if (!fm.fileExists(cacheDir)) fm.createDirectory(cacheDir, true);
   const localPath = fm.joinPath(cacheDir, fileName);
 
   try {
-    const req = new Request(`${ASSETS_BASE_URL}/${fileName}`);
+    const req = new Request(ASSETS_BASE_URL + "/" + fileName);
     req.timeoutInterval = 8;
     const img = await req.loadImage();
     if (img) {
       fm.writeImage(localPath, img);
       return img;
     }
-  } catch (e) {
-    // Usar copia en caché si no hay conexión
-  }
+  } catch (e) {}
 
   if (fm.fileExists(localPath)) {
     return fm.readImage(localPath);
@@ -57,7 +53,6 @@ async function loadMascotImage(stateKey) {
   return null;
 }
 
-// --- 3. Dibujar barra de progreso redondeada nítida ---
 function drawProgressBar(progress, fillHex) {
   const w = 130;
   const h = 7;
@@ -82,7 +77,6 @@ function drawProgressBar(progress, fillHex) {
   return ctx.getImage();
 }
 
-// --- 4. Calcular tiempo restante hasta medianoche ---
 function getTimeRemaining() {
   const now = new Date();
   const midnight = new Date(now);
@@ -90,15 +84,18 @@ function getTimeRemaining() {
   const diffMs = Math.max(0, midnight.getTime() - now.getTime());
   const hours = Math.floor(diffMs / 3600000);
   const minutes = Math.floor((diffMs % 3600000) / 60000);
-  const pad = (n) => String(n).padStart(2, "0");
-  const formatted = hours > 0 ? `${pad(hours)}h ${pad(minutes)}m` : `${pad(minutes)}m`;
+  const pad = function (n) {
+    return String(n).padStart(2, "0");
+  };
+  const formatted = hours > 0 ? pad(hours) + "h " + pad(minutes) + "m" : pad(minutes) + "m";
   const progress = Math.max(8, Math.min(95, Math.round((diffMs / 86400000) * 100)));
-  return { hours, minutes, formatted, progress };
+  return { hours: hours, minutes: minutes, formatted: formatted, progress: progress };
 }
 
-// --- 5. Construir el Widget 4×2 (Mediano) ---
 async function createWidget() {
-  const { streakCount, completedToday } = await fetchStreakStatus();
+  const data = await fetchStreakStatus();
+  const streakCount = data.streakCount;
+  const completedToday = data.completedToday;
   const time = getTimeRemaining();
   const stateKey = completedToday ? "active" : time.hours < 4 ? "urgent" : "pending";
 
@@ -110,7 +107,7 @@ async function createWidget() {
       pillText: "#BBF7D0",
       pillLabel: "Activa",
       pillIcon: "checkmark.circle.fill",
-      timerText: `Siguiente día en ${time.formatted}`,
+      timerText: "Siguiente día en " + time.formatted,
       timerColor: "#A7F3D0",
       progressColor: "#4ADE80",
       progressVal: 100,
@@ -122,7 +119,7 @@ async function createWidget() {
       pillText: "#EDE9FE",
       pillLabel: "Pendiente",
       pillIcon: "clock.fill",
-      timerText: `Quedan ${time.formatted} hoy`,
+      timerText: "Quedan " + time.formatted + " hoy",
       timerColor: "#DDD6FE",
       progressColor: "#A78BFA",
       progressVal: time.progress,
@@ -134,7 +131,7 @@ async function createWidget() {
       pillText: "#FECACA",
       pillLabel: "Urgente",
       pillIcon: "exclamationmark.circle.fill",
-      timerText: `Quedan ${time.formatted} hoy`,
+      timerText: "Quedan " + time.formatted + " hoy",
       timerColor: "#FCA5A5",
       progressColor: "#F87171",
       progressVal: time.progress,
@@ -149,7 +146,6 @@ async function createWidget() {
   w.setPadding(10, 12, 10, 12);
   w.url = "com.coliflor.app://streak";
 
-  // Top Bar: Coliflor + Nuestro mundo
   const topRow = w.addStack();
   topRow.layoutHorizontally();
   topRow.centerAlignContent();
@@ -188,7 +184,6 @@ async function createWidget() {
 
   w.addSpacer(4);
 
-  // Middle Row: Mascot (Left) + Streak Info (Right)
   const midRow = w.addStack();
   midRow.layoutHorizontally();
   midRow.centerAlignContent();
@@ -230,7 +225,7 @@ async function createWidget() {
   flameImg.tintColor = new Color("#FF9F43");
   countRow.addSpacer(4);
 
-  const daysTxt = countRow.addText(`${streakCount} ${streakCount === 1 ? "día" : "días"}`);
+  const daysTxt = countRow.addText(streakCount + (streakCount === 1 ? " día" : " días"));
   daysTxt.font = Font.heavySystemFont(22);
   daysTxt.textColor = Color.white();
 
@@ -262,7 +257,6 @@ async function createWidget() {
 
   w.addSpacer(5);
 
-  // Footer Bar: Next Day + Progress Bar
   const footer = w.addStack();
   footer.layoutHorizontally();
   footer.centerAlignContent();
@@ -277,7 +271,7 @@ async function createWidget() {
   calImg.tintColor = new Color("#D4D4D8");
   footer.addSpacer(5);
 
-  const nextTxt = footer.addText(`Próximo día: Día ${streakCount + 1}`);
+  const nextTxt = footer.addText("Próximo día: Día " + (streakCount + 1));
   nextTxt.font = Font.boldSystemFont(9.5);
   nextTxt.textColor = new Color("#E4E4E7");
 
@@ -286,7 +280,6 @@ async function createWidget() {
   const barImg = footer.addImage(drawProgressBar(t.progressVal, t.progressColor));
   barImg.imageSize = new Size(115, 7);
 
-  // Refresh every 15 minutes
   w.refreshAfterDate = new Date(Date.now() + 15 * 60 * 1000);
   return w;
 }
