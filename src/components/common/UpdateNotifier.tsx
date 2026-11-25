@@ -175,10 +175,10 @@ export const UpdateNotifier: React.FC = () => {
     const targetUrl = isIos
       ? remoteUpdate.ipaUrl ||
         remoteUpdate.supabaseIpaUrl ||
-        'https://coliflor.vercel.app/Coliflor.ipa'
+        'https://coliflor-one.vercel.app/Coliflor.ipa'
       : remoteUpdate.apkUrl ||
         remoteUpdate.supabaseApkUrl ||
-        'https://coliflor.vercel.app/Coliflor.apk';
+        'https://coliflor-one.vercel.app/Coliflor.apk';
 
     const fileName = isIos ? 'Coliflor.ipa' : 'Coliflor.apk';
 
