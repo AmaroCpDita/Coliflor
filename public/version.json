@@ -3,8 +3,8 @@
   "versionCode": 2,
   "releaseDate": "2026-11-23",
   "changelog": "Widget nativo para la pantalla de inicio de Android y mejoras de sincronización.",
-  "apkUrl": "https://coliflor.vercel.app/Coliflor.apk",
-  "ipaUrl": "https://coliflor.vercel.app/Coliflor.ipa",
+  "apkUrl": "https://coliflor-one.vercel.app/Coliflor.apk",
+  "ipaUrl": "https://coliflor-one.vercel.app/Coliflor.ipa",
   "supabaseApkUrl": "https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/photos/Coliflor.apk",
   "supabaseIpaUrl": "https://gamwmifvgfedgfizcxoz.supabase.co/storage/v1/object/public/photos/Coliflor.ipa",
   "apkSize": "14 MB"

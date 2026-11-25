@@ -10,8 +10,8 @@ const OPEN_IN_NATIVE_APP = false;
 const NATIVE_APP_URL = "com.coliflor.app://streak";
 const NATIVE_WORLD_URL = "com.coliflor.app://world";
 
-const WEB_APP_URL = "https://coliflor.vercel.app/streak";
-const WEB_WORLD_URL = "https://coliflor.vercel.app/world";
+const WEB_APP_URL = "https://coliflor-one.vercel.app/streak";
+const WEB_WORLD_URL = "https://coliflor-one.vercel.app/world";
 
 const APP_URL = OPEN_IN_NATIVE_APP ? NATIVE_APP_URL : WEB_APP_URL;
 const WORLD_URL = OPEN_IN_NATIVE_APP ? NATIVE_WORLD_URL : WEB_WORLD_URL;
@@ -20,7 +20,7 @@ const SUPABASE_URL = "https://gamwmifvgfedgfizcxoz.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhbXdtaWZ2Z2ZlZGdmaXpjeG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3ODgxODYsImV4cCI6MjEwMzM2NDE4Nn0.7Pc0AGrKNMz6FoWJHQ_CzDV24HMH0aiE0lUP1nrhFnc";
 const COUPLE_ID = "7b8edae0-65da-44b7-a9b9-8073ecdd607e";
-const ASSETS_BASE_URL = "https://coliflor.vercel.app/assets/widget";
+const ASSETS_BASE_URL = "https://coliflor-one.vercel.app/assets/widget";
 
 async function fetchStreakStatus() {
   try {
