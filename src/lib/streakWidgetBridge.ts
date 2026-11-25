@@ -9,7 +9,8 @@ interface StreakWidgetPluginInterface {
     streakCount: number;
     completedToday: boolean;
     partnerName: string;
-  }): Promise<void>;
+  }): Promise<{ success: boolean }>;
+  requestPinWidget(): Promise<{ supported: boolean; requested: boolean }>;
 }
 
 export const StreakWidget = registerPlugin<StreakWidgetPluginInterface>('StreakWidget');
@@ -36,5 +37,23 @@ export async function syncStreakToHomeScreenWidget(
     console.log('[WidgetBridge] Successfully synced streak to Home Screen Widget');
   } catch (err) {
     console.warn('[WidgetBridge] Failed to update home screen widget:', err);
+  }
+}
+
+/**
+ * Request the Android OS to pin the 4x2 Home Screen Widget automatically.
+ * Opens the system dialog: "¿Añadir a la pantalla de inicio? [Añadir automáticamente]"
+ */
+export async function requestPinHomeScreenWidget(): Promise<boolean> {
+  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
+    return false;
+  }
+
+  try {
+    const res = await StreakWidget.requestPinWidget();
+    return Boolean(res && res.requested);
+  } catch (err) {
+    console.warn('[WidgetBridge] Failed to request pin widget:', err);
+    return false;
   }
 }

@@ -12,6 +12,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { formatDate } from '../lib/utils';
 import { UpdateCheckButton } from '../components/common/UpdateNotifier';
+import { requestPinHomeScreenWidget } from '../lib/streakWidgetBridge';
+import { Capacitor } from '@capacitor/core';
 
 function IconUser() {
   return (
@@ -426,7 +428,31 @@ export default function Settings() {
         {/* App Updates Section (AntiAgg-style) */}
         <UpdateCheckButton />
 
-        {/* Widget Preview Link */}
+        {/* Widget Pin & Preview Actions */}
+        {Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android' && (
+          <button
+            type="button"
+            className="btn btn--primary btn--full"
+            onClick={async () => {
+              const ok = await requestPinHomeScreenWidget();
+              if (!ok) {
+                alert(
+                  'Si tu teléfono no abrió la ventana automática, mantén presionado un espacio vacío de la pantalla de inicio y entra a Widgets > Widgets clásicos.',
+                );
+              }
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              fontWeight: 700,
+            }}
+          >
+            <span>📲 Añadir Widget al Inicio Automáticamente</span>
+          </button>
+        )}
+
         <Link
           to="/widget-preview"
           className="btn btn--secondary btn--full"
