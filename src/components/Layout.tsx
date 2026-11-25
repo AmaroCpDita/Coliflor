@@ -9,13 +9,17 @@ import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import NotificationCenter from './NotificationCenter';
 import { useNotificationInbox } from '../hooks/useNotificationInbox';
-import { isActivityNotification } from '../lib/notifications';
+import { isActivityNotification, parseNotification } from '../lib/notifications';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { Message } from '../lib/types';
 import {
+  CHANNEL_ACTIVITY,
+  CHANNEL_MESSAGES,
   requestNotificationPermission,
   checkNotificationPermission,
+  sendNativeInstantNotification,
+  registerNotificationTapListener,
 } from '../lib/localNotifications';
 import { UpdateNotifier } from './common/UpdateNotifier';
 
@@ -387,6 +391,10 @@ export default function Layout() {
     if (Capacitor.isNativePlatform()) {
       requestNotificationPermission();
 
+      const removeNotifTapListener = registerNotificationTapListener((route) => {
+        navigate(route);
+      });
+
       const listenerPromise = App.addListener('appStateChange', (state) => {
         if (state.isActive) {
           checkNotificationPermission();
@@ -395,6 +403,7 @@ export default function Layout() {
 
       return () => {
         window.removeEventListener('coliflor:navigate', handleWidgetNavigate);
+        removeNotifTapListener();
         listenerPromise.then((handle) => handle.remove());
       };
     }
@@ -490,18 +499,30 @@ export default function Layout() {
     }
   }, []);
 
-  // Global In-App Notification Trigger (Works when app is open or softly backgrounded)
+  // Global Notification Trigger (Native OS Banner on Android/iOS APK + Web Notification fallback)
   const triggerGlobalNotification = useCallback(
-    (sender: string, text: string) => {
+    (sender: string, text: string, route = '/messages') => {
       playNotificationChime();
 
-      if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
-
-      // Cross-tab deduplication: prevent loop if multiple tabs are open
-      const notifKey = `coliflor_last_notif_${Date.now()}`;
+      // Deduplicate rapid events within 1.5s
       const recentNotif = localStorage.getItem('coliflor_last_notif_time');
-      if (recentNotif && Date.now() - parseInt(recentNotif) < 2000) return; // Debounce 2 seconds across tabs
+      if (recentNotif && Date.now() - parseInt(recentNotif, 10) < 1500) return;
       localStorage.setItem('coliflor_last_notif_time', Date.now().toString());
+
+      // 1. Native Android / iOS APK: fire REAL OS status-bar notification
+      if (Capacitor.isNativePlatform()) {
+        const isActivity = isActivityNotification(text);
+        void sendNativeInstantNotification({
+          title: sender,
+          body: text,
+          route,
+          channel: isActivity ? CHANNEL_ACTIVITY : CHANNEL_MESSAGES,
+        });
+        return;
+      }
+
+      // 2. Web browser fallback
+      if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
 
       const notifOptions = {
         body: text,
@@ -510,20 +531,20 @@ export default function Layout() {
         vibrate: [200, 100, 200, 100, 200],
         tag: 'coliflor-notif',
         renotify: true,
-        data: { url: '/messages' },
+        data: { url: route },
       };
 
       try {
         if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
           navigator.serviceWorker.ready
             .then((reg) => {
-              reg.showNotification(`💛 ${sender}`, notifOptions as any);
+              reg.showNotification(sender, notifOptions as any);
             })
             .catch(() => {
-              new Notification(`💛 ${sender}`, notifOptions);
+              new Notification(sender, notifOptions);
             });
         } else {
-          new Notification(`💛 ${sender}`, notifOptions);
+          new Notification(sender, notifOptions);
         }
       } catch (e) {
         console.warn('Global notification error:', e);
@@ -550,7 +571,8 @@ export default function Layout() {
         notifiedIdsSetRef.current.add(msg.id);
 
         const partnerNickname = getPartnerNickname();
-        triggerGlobalNotification(partnerNickname, msg.content);
+        const targetRoute = isSystem ? parseNotification(msg.content).route : '/messages';
+        triggerGlobalNotification(partnerNickname, msg.content, targetRoute);
       } catch (err) {
         console.warn('Error processing notification:', err);
       }
@@ -600,6 +622,7 @@ export default function Layout() {
               triggerGlobalNotification(
                 partnerNickname,
                 `📅 ¡Agregó un evento al calendario: "${evt.title || 'Nuevo evento'}"!`,
+                '/calendar',
               );
             }
           }

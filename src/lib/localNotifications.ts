@@ -1,35 +1,62 @@
 // ============================================================
-// Coliflor — Native & Web Local Notifications Service
+// Coliflor — Native (Android/iOS) & Web Notifications Engine
 // ============================================================
 
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 
-const CHANNEL_ID = 'streak_reminders';
+export const CHANNEL_STREAK = 'streak_reminders';
+export const CHANNEL_MESSAGES = 'coliflor_messages';
+export const CHANNEL_ACTIVITY = 'coliflor_activity';
+
 const NOTIF_ID_AFTERNOON = 101;
 const NOTIF_ID_NIGHT = 102;
 const NOTIF_ID_LAST_CALL = 103;
 
-let channelInitialized = false;
+let channelsInitialized = false;
+let rollingNotifId = 1000;
+
+function nextNotificationId(): number {
+  rollingNotifId = rollingNotifId >= 990000 ? 1000 : rollingNotifId + 1;
+  return rollingNotifId;
+}
 
 /**
- * Initialize Android notification channel for high-priority streak alerts.
+ * Initialize Android high-priority notification channels (API 26+).
  */
-async function ensureChannel() {
-  if (channelInitialized) return;
+async function ensureChannels(): Promise<void> {
+  if (channelsInitialized) return;
   if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
     try {
-      await LocalNotifications.createChannel({
-        id: CHANNEL_ID,
-        name: 'Recordatorios de Racha 🔥',
-        description: 'Notificaciones para que nunca pierdas tu racha en Coliflor',
-        importance: 5, // High importance (heads-up banner + sound)
-        visibility: 1,
-        vibration: true,
-      });
-      channelInitialized = true;
+      await Promise.all([
+        LocalNotifications.createChannel({
+          id: CHANNEL_STREAK,
+          name: 'Recordatorios de Racha',
+          description: 'Alertas para mantener tu racha diaria activa en Coliflor',
+          importance: 5,
+          visibility: 1,
+          vibration: true,
+        }),
+        LocalNotifications.createChannel({
+          id: CHANNEL_MESSAGES,
+          name: 'Mensajes y Notitas',
+          description: 'Mensajes directos y notitas de amor de tu pareja',
+          importance: 5,
+          visibility: 1,
+          vibration: true,
+        }),
+        LocalNotifications.createChannel({
+          id: CHANNEL_ACTIVITY,
+          name: 'Actividad de Pareja',
+          description: 'Fotos nuevas, eventos del calendario y quizzes',
+          importance: 4,
+          visibility: 1,
+          vibration: true,
+        }),
+      ]);
+      channelsInitialized = true;
     } catch (e) {
-      console.warn('[LocalNotif] Failed to create channel:', e);
+      console.warn('[LocalNotif] Failed to create Android channels:', e);
     }
   }
 }
@@ -40,7 +67,7 @@ async function ensureChannel() {
 export async function requestNotificationPermission(): Promise<boolean> {
   if (Capacitor.isNativePlatform()) {
     try {
-      await ensureChannel();
+      await ensureChannels();
       const status = await LocalNotifications.requestPermissions();
       return status.display === 'granted';
     } catch (e) {
@@ -49,7 +76,6 @@ export async function requestNotificationPermission(): Promise<boolean> {
     }
   }
 
-  // Web Browser fallback
   if (typeof window !== 'undefined' && 'Notification' in window) {
     try {
       const permission = await Notification.requestPermission();
@@ -84,12 +110,100 @@ export async function checkNotificationPermission(): Promise<boolean> {
 }
 
 /**
+ * Fire an immediate REAL native OS notification (Android status bar / iOS banner).
+ */
+export async function sendNativeInstantNotification({
+  title,
+  body,
+  route = '/messages',
+  channel = CHANNEL_MESSAGES,
+}: {
+  title: string;
+  body: string;
+  route?: string;
+  channel?: string;
+}): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return false;
+
+  try {
+    const hasPermission = await checkNotificationPermission();
+    if (!hasPermission) return false;
+
+    await ensureChannels();
+
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: nextNotificationId(),
+          title,
+          body,
+          channelId: channel,
+          schedule: { at: new Date(Date.now() + 150) },
+          extra: { route },
+        },
+      ],
+    });
+    return true;
+  } catch (e) {
+    console.warn('[LocalNotif] Failed to fire instant native notification:', e);
+    return false;
+  }
+}
+
+/**
+ * Trigger a test notification so the user can verify real delivery on their device.
+ */
+export async function sendTestNotification(): Promise<boolean> {
+  const granted = (await checkNotificationPermission()) || (await requestNotificationPermission());
+  if (!granted) return false;
+
+  if (Capacitor.isNativePlatform()) {
+    return sendNativeInstantNotification({
+      title: 'Coliflor',
+      body: '¡Notificaciones activas! Así recibirás los avisos reales de tu pareja.',
+      route: '/streak',
+      channel: CHANNEL_MESSAGES,
+    });
+  }
+
+  if (typeof window !== 'undefined' && 'Notification' in window) {
+    try {
+      new Notification('Coliflor', {
+        body: '¡Notificaciones activas! Así recibirás los avisos de tu pareja.',
+        icon: '/logo.png',
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Listen for taps on native OS notifications and navigate to the target route.
+ */
+export function registerNotificationTapListener(onNavigate: (route: string) => void): () => void {
+  if (!Capacitor.isNativePlatform()) return () => {};
+
+  const listenerPromise = LocalNotifications.addListener(
+    'localNotificationActionPerformed',
+    (action) => {
+      const route = action?.notification?.extra?.route;
+      if (typeof route === 'string' && route.startsWith('/')) {
+        onNavigate(route);
+      }
+    },
+  );
+
+  return () => {
+    listenerPromise.then((handle) => handle.remove()).catch(() => {});
+  };
+}
+
+/**
  * Schedule automated daily countdown reminders if today's streak is not yet completed.
- *
- * Reminders:
- * - 18:00: Aviso de la tarde ("¡No dejen apagar la llama!")
- * - 21:00: Aviso nocturno ("¡Quedan 3 horas!")
- * - 23:00: Alerta crítica ("¡ÚLTIMA HORA para salvar la racha!")
  */
 export async function scheduleStreakDangerReminders({
   streakCount,
@@ -106,15 +220,12 @@ export async function scheduleStreakDangerReminders({
     const hasPermission = await checkNotificationPermission();
     if (!hasPermission) return;
 
-    await ensureChannel();
-
-    // First cancel previous streak danger alerts for today
+    await ensureChannels();
     await cancelStreakDangerReminders();
 
     const now = new Date();
     const notificationsToSchedule: any[] = [];
 
-    // Helper to build a Date for today at a given hour:minute
     const makeTodayTime = (hours: number, minutes = 0) => {
       const target = new Date();
       target.setHours(hours, minutes, 0, 0);
@@ -126,51 +237,44 @@ export async function scheduleStreakDangerReminders({
       ? `Tú ya subiste tu foto, ¡pero falta la de ${partnerName}!`
       : `¡Aún falta tu foto de hoy!`;
 
-    // 1. 18:00 Reminder
     const t18 = makeTodayTime(18, 0);
     if (t18.getTime() > now.getTime() + 60000) {
       notificationsToSchedule.push({
         id: NOTIF_ID_AFTERNOON,
-        title: '🔥 ¡Tu racha de Coliflor te espera!',
-        body: `Llevan ${countLabel} de racha. ${missingWho} Mantengan viva la llama.`,
-        channelId: CHANNEL_ID,
+        title: 'Tu racha de Coliflor te espera',
+        body: `Llevan ${countLabel} de racha. ${missingWho}`,
+        channelId: CHANNEL_STREAK,
         schedule: { at: t18 },
-        sound: 'default',
         extra: { route: '/streak' },
       });
     }
 
-    // 2. 21:00 Urgent Reminder (3 hours left)
     const t21 = makeTodayTime(21, 0);
     if (t21.getTime() > now.getTime() + 60000) {
       notificationsToSchedule.push({
         id: NOTIF_ID_NIGHT,
-        title: '⏳ ¡Solo quedan 3 horas para salvar su racha!',
-        body: `¡No pierdan su racha de ${countLabel}! Entren a subir la foto antes de medianoche.`,
-        channelId: CHANNEL_ID,
+        title: 'Quedan 3 horas para salvar su racha',
+        body: `¡No pierdan su racha de ${countLabel}! Suban la foto antes de medianoche.`,
+        channelId: CHANNEL_STREAK,
         schedule: { at: t21 },
-        sound: 'default',
         extra: { route: '/streak' },
       });
     }
 
-    // 3. 23:00 Critical Last Call (1 hour left)
     const t23 = makeTodayTime(23, 0);
     if (t23.getTime() > now.getTime() + 60000) {
       notificationsToSchedule.push({
         id: NOTIF_ID_LAST_CALL,
-        title: '🚨 ¡ÚLTIMA HORA! Racha en peligro crítico',
-        body: `¡Queda 1 hora para medianoche! Si no suben su foto, la racha de ${countLabel} se perderá.`,
-        channelId: CHANNEL_ID,
+        title: 'Última hora para tu racha',
+        body: `Queda 1 hora antes de medianoche para mantener sus ${countLabel} juntos.`,
+        channelId: CHANNEL_STREAK,
         schedule: { at: t23 },
-        sound: 'default',
         extra: { route: '/streak' },
       });
     }
 
     if (notificationsToSchedule.length > 0) {
       await LocalNotifications.schedule({ notifications: notificationsToSchedule });
-      console.log(`[LocalNotif] Scheduled ${notificationsToSchedule.length} streak reminders`);
     }
   } catch (e) {
     console.warn('[LocalNotif] Failed to schedule reminders:', e);
@@ -206,18 +310,18 @@ export async function triggerStreakSecuredNotification(streakCount: number): Pro
     const hasPermission = await checkNotificationPermission();
     if (!hasPermission) return;
 
-    await ensureChannel();
+    await ensureChannels();
     await cancelStreakDangerReminders();
 
     await LocalNotifications.schedule({
       notifications: [
         {
           id: 200,
-          title: '✨ ¡Racha Activada Hoy! 🔥',
-          body: `¡Felicidades! Han protegido su racha por hoy. Llevan ${streakCount} ${streakCount === 1 ? 'día' : 'días'} juntos.`,
-          channelId: CHANNEL_ID,
-          schedule: { at: new Date(Date.now() + 500) },
-          sound: 'default',
+          title: '¡Racha activada hoy!',
+          body: `Han protegido su racha por hoy. Llevan ${streakCount} ${streakCount === 1 ? 'día' : 'días'} juntos.`,
+          channelId: CHANNEL_STREAK,
+          schedule: { at: new Date(Date.now() + 300) },
+          extra: { route: '/streak' },
         },
       ],
     });

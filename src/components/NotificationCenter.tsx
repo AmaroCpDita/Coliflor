@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { Message } from '../lib/types';
@@ -7,6 +7,11 @@ import {
   groupNotificationsByDate,
   parseNotification,
 } from '../lib/notifications';
+import {
+  checkNotificationPermission,
+  requestNotificationPermission,
+  sendTestNotification,
+} from '../lib/localNotifications';
 import './NotificationCenter.css';
 
 interface NotificationCenterProps {
@@ -24,13 +29,15 @@ interface NotificationCenterProps {
   onRetry: () => void;
 }
 
+type FilterTab = 'all' | 'unread' | 'streak' | 'love' | 'calendar' | 'quiz';
+
 function Bell() {
   return (
     <svg
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.6"
+      strokeWidth="1.7"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -54,14 +61,77 @@ export default function NotificationCenter({
   onOpen,
   onRetry,
 }: NotificationCenterProps) {
-  const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [filter, setFilter] = useState<FilterTab>('all');
+  const [deviceNotifEnabled, setDeviceNotifEnabled] = useState<boolean>(false);
+  const [testSent, setTestSent] = useState<boolean>(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const closeCallbackRef = useRef(onClose);
   closeCallbackRef.current = onClose;
   const reducedMotion = useReducedMotion();
-  const filtered = filter === 'unread' ? logs.filter((log) => unreadIds.has(log.id)) : logs;
-  const groups = groupNotificationsByDate(filtered);
+
+  // Check real device notification status when panel opens
+  useEffect(() => {
+    checkNotificationPermission().then(setDeviceNotifEnabled);
+  }, []);
+
+  const handleToggleOrTestDeviceNotif = async () => {
+    if (!deviceNotifEnabled) {
+      const granted = await requestNotificationPermission();
+      setDeviceNotifEnabled(granted);
+      if (granted) {
+        await sendTestNotification();
+        setTestSent(true);
+        setTimeout(() => setTestSent(false), 3000);
+      }
+    } else {
+      const ok = await sendTestNotification();
+      if (ok) {
+        setTestSent(true);
+        setTimeout(() => setTestSent(false), 3000);
+      }
+    }
+  };
+
+  // Pre-parse categories once for snappy filtering and counts
+  const parsedLogs = useMemo(
+    () => logs.map((log) => ({ log, parsed: parseNotification(log.content) })),
+    [logs],
+  );
+
+  const counts = useMemo(() => {
+    let streak = 0;
+    let love = 0;
+    let calendar = 0;
+    let quiz = 0;
+    for (const item of parsedLogs) {
+      const cat = item.parsed.category;
+      if (cat === 'streak' || cat === 'photo' || cat === 'care') streak += 1;
+      else if (cat === 'love') love += 1;
+      else if (cat === 'calendar') calendar += 1;
+      else if (cat === 'quiz') quiz += 1;
+    }
+    return { streak, love, calendar, quiz };
+  }, [parsedLogs]);
+
+  const filtered = useMemo(() => {
+    return parsedLogs
+      .filter(({ log, parsed }) => {
+        if (filter === 'all') return true;
+        if (filter === 'unread') return unreadIds.has(log.id);
+        if (filter === 'streak') {
+          return (
+            parsed.category === 'streak' ||
+            parsed.category === 'photo' ||
+            parsed.category === 'care'
+          );
+        }
+        return parsed.category === filter;
+      })
+      .map((item) => item.log);
+  }, [parsedLogs, filter, unreadIds]);
+
+  const groups = useMemo(() => groupNotificationsByDate(filtered), [filtered]);
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -72,23 +142,6 @@ export default function NotificationCenter({
       if (event.key === 'Escape') {
         event.preventDefault();
         closeCallbackRef.current();
-      }
-      if (event.key !== 'Tab') return;
-      const controls = panelRef.current?.querySelectorAll<HTMLElement>(
-        'button:not(:disabled), a[href], [tabindex="0"]',
-      );
-      if (!controls?.length) return;
-      const first = controls[0];
-      const last = controls[controls.length - 1];
-      if (!panelRef.current?.contains(document.activeElement)) {
-        event.preventDefault();
-        (event.shiftKey ? last : first).focus();
-      } else if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
       }
     };
     document.addEventListener('keydown', onKey);
@@ -120,73 +173,144 @@ export default function NotificationCenter({
         exit={reducedMotion ? { opacity: 0 } : { opacity: 0, x: 24 }}
         transition={{ duration: reducedMotion ? 0 : 0.25, ease: [0.22, 1, 0.36, 1] }}
       >
-        <header className="notification-header">
-          <div className="notification-header__icon">
-            <Bell />
-            <span />
-          </div>
-          <button
-            ref={closeRef}
-            type="button"
-            className="notification-icon-button"
-            onClick={onClose}
-            aria-label="Cerrar notificaciones"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.7"
-              aria-hidden="true"
+        {/* Compact, Clean Header */}
+        <header className="notification-header notification-header--compact">
+          <div className="notification-header__top-row">
+            <div className="notification-header__title-group">
+              <div className="notification-header__icon notification-header__icon--sm">
+                <Bell />
+                {unreadIds.size > 0 && <span />}
+              </div>
+              <div>
+                <h2 id="notification-title">Notificaciones</h2>
+                <span className="notification-header__subtitle">
+                  {unreadIds.size
+                    ? `${unreadIds.size} ${unreadIds.size === 1 ? 'aviso sin leer' : 'avisos sin leer'}`
+                    : 'Todo al día'}
+                </span>
+              </div>
+            </div>
+
+            <button
+              ref={closeRef}
+              type="button"
+              className="notification-icon-button notification-icon-button--inline"
+              onClick={onClose}
+              aria-label="Cerrar notificaciones"
             >
-              <path d="m6 6 12 12M6 18 18 6" />
-            </svg>
-          </button>
-          <span className="notification-eyebrow">Su pequeño mundo</span>
-          <h2 id="notification-title">Notificaciones</h2>
-          <p>Los detalles que los acercan, en un solo lugar.</p>
-          <div className="notification-summary">
-            <span className={unreadIds.size ? 'notification-summary__new' : ''}>
-              <span className="notification-status-dot" />
-              {unreadIds.size
-                ? `${unreadIds.size} ${unreadIds.size === 1 ? 'aviso sin leer' : 'avisos sin leer'}`
-                : 'Estás al día'}
-            </span>
-            {unreadIds.size > 0 && (
-              <button type="button" onClick={onReadAll}>
-                Marcar como leídas <span aria-hidden="true">✓</span>
-              </button>
-            )}
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                aria-hidden="true"
+              >
+                <path d="m6 6 12 12M6 18 18 6" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Native Phone Notification Status & 1-Tap Test Strip */}
+          <div
+            className={`notification-device-bar ${deviceNotifEnabled ? 'notification-device-bar--active' : 'notification-device-bar--off'}`}
+          >
+            <div className="notification-device-bar__info">
+              <span className="notification-device-bar__dot" />
+              <span>
+                {testSent
+                  ? 'Notificación enviada al celular'
+                  : deviceNotifEnabled
+                    ? 'Avisos del celular activos'
+                    : 'Avisos del celular desactivados'}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="notification-device-bar__btn"
+              onClick={handleToggleOrTestDeviceNotif}
+            >
+              {deviceNotifEnabled ? 'Probar' : 'Activar'}
+            </button>
           </div>
         </header>
 
-        <div className="notification-toolbar">
-          <div className="notification-filters" role="group" aria-label="Filtrar notificaciones">
-            <button type="button" aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>
+        {/* Organized Category Chips + Bulk Actions */}
+        <div className="notification-toolbar notification-toolbar--stacked">
+          <div
+            className="notification-chips"
+            role="group"
+            aria-label="Filtrar notificaciones por categoría"
+          >
+            <button
+              type="button"
+              className={`notification-chip ${filter === 'all' ? 'notification-chip--active' : ''}`}
+              onClick={() => setFilter('all')}
+            >
               Todas <span>{logs.length}</span>
             </button>
             <button
               type="button"
-              aria-pressed={filter === 'unread'}
+              className={`notification-chip ${filter === 'unread' ? 'notification-chip--active' : ''}`}
               onClick={() => setFilter('unread')}
             >
               Sin leer <span>{unreadIds.size}</span>
             </button>
-          </div>
-          {logs.length > 0 && (
             <button
               type="button"
-              className="notification-clear"
-              onClick={onClear}
-              title="Limpiar la bandeja en este dispositivo"
+              className={`notification-chip ${filter === 'streak' ? 'notification-chip--active' : ''}`}
+              onClick={() => setFilter('streak')}
             >
-              Limpiar
+              Racha y fotos {counts.streak > 0 && <span>{counts.streak}</span>}
             </button>
+            <button
+              type="button"
+              className={`notification-chip ${filter === 'love' ? 'notification-chip--active' : ''}`}
+              onClick={() => setFilter('love')}
+            >
+              Notitas {counts.love > 0 && <span>{counts.love}</span>}
+            </button>
+            <button
+              type="button"
+              className={`notification-chip ${filter === 'calendar' ? 'notification-chip--active' : ''}`}
+              onClick={() => setFilter('calendar')}
+            >
+              Calendario {counts.calendar > 0 && <span>{counts.calendar}</span>}
+            </button>
+            <button
+              type="button"
+              className={`notification-chip ${filter === 'quiz' ? 'notification-chip--active' : ''}`}
+              onClick={() => setFilter('quiz')}
+            >
+              Quiz {counts.quiz > 0 && <span>{counts.quiz}</span>}
+            </button>
+          </div>
+
+          {(unreadIds.size > 0 || logs.length > 0) && (
+            <div className="notification-actions-row">
+              {unreadIds.size > 0 ? (
+                <button type="button" className="notification-action-link" onClick={onReadAll}>
+                  Marcar todas leídas ✓
+                </button>
+              ) : (
+                <span />
+              )}
+              {logs.length > 0 && (
+                <button
+                  type="button"
+                  className="notification-clear"
+                  onClick={onClear}
+                  title="Limpiar la bandeja en este dispositivo"
+                >
+                  Limpiar bandeja
+                </button>
+              )}
+            </div>
           )}
         </div>
 
+        {/* Feed Grouped by Date */}
         <div className="notification-feed" aria-busy={loading || undefined}>
           {loading && logs.length === 0 ? (
             <div
@@ -219,22 +343,22 @@ export default function NotificationCenter({
             <div className="notification-empty" role="status">
               <div className="notification-empty__icon">
                 <Bell />
-                <span aria-hidden="true">✦</span>
               </div>
-              <span className="notification-eyebrow">Un espacio para sus detalles</span>
-              <h3>{filter === 'unread' ? 'Todo al día' : 'Lo bonito está por venir'}</h3>
+              <h3>{filter === 'all' ? 'Sin novedades por ahora' : 'Nada en esta categoría'}</h3>
               <p>
                 {filter === 'unread'
-                  ? 'Ya viste todas las novedades. Sigue creando recuerdos juntos.'
-                  : `Aquí aparecerán las notitas, fotos y novedades que compartan tú y ${partnerName}.`}
+                  ? 'Ya viste todas las notificaciones.'
+                  : filter === 'all'
+                    ? `Aquí aparecerán las fotos, notitas y recuerdos que compartan tú y ${partnerName}.`
+                    : 'No hay avisos recientes en este filtro.'}
               </p>
-              {filter === 'unread' && logs.length > 0 && (
+              {filter !== 'all' && logs.length > 0 && (
                 <button
                   type="button"
                   className="notification-text-button"
                   onClick={() => setFilter('all')}
                 >
-                  Ver todas las notificaciones <span aria-hidden="true">→</span>
+                  Ver todas las notificaciones →
                 </button>
               )}
             </div>
@@ -266,21 +390,20 @@ export default function NotificationCenter({
                         <span className="notification-item__body">
                           <span className="notification-item__meta">
                             <strong>{notification.label}</strong>
-                            {unread && (
-                              <span className="notification-unread-dot" aria-hidden="true" />
-                            )}
-                          </span>
-                          <span className="notification-item__text">{notification.text}</span>
-                          <span className="notification-item__details">
-                            <span>{log.sender_id === viewerId ? 'Tú' : partnerName}</span>
-                            <span aria-hidden="true">·</span>
                             <time dateTime={log.created_at}>
                               {formatNotificationTime(log.created_at)}
                             </time>
                           </span>
-                        </span>
-                        <span className="notification-item__arrow" aria-hidden="true">
-                          ↗
+                          <span className="notification-item__text">{notification.text}</span>
+                          <span className="notification-item__details">
+                            <span>{log.sender_id === viewerId ? 'Tú' : partnerName}</span>
+                            {unread && (
+                              <>
+                                <span aria-hidden="true">·</span>
+                                <span className="notification-unread-tag">Nuevo</span>
+                              </>
+                            )}
+                          </span>
                         </span>
                       </button>
                       <button
@@ -299,9 +422,6 @@ export default function NotificationCenter({
             ))
           )}
         </div>
-        <footer className="notification-footer">
-          <span aria-hidden="true">♡</span> Hecho de pequeños momentos juntos
-        </footer>
       </motion.div>
     </motion.div>,
     document.body,
