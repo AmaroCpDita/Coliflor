@@ -573,14 +573,23 @@ export default function Layout() {
           setActivityLogs((prev) => [msg, ...prev.filter((p) => p.id !== msg.id)]);
         }
 
-        // STRICT SENDER CHECK: Never notify oneself for actions initiated by the current user
-        if (msg.sender_id === profileIdRef.current) return;
-
-        // Also safeguard if message text mentions current user uploading photo/action
+        // If message announces current user uploaded their photo, notify them in 2nd person!
         const myDisplayName = profile?.display_name;
         if (myDisplayName && msg.content && msg.content.includes(`${myDisplayName} subió`)) {
+          if (notifiedIdsSetRef.current.has(msg.id)) return;
+          notifiedIdsSetRef.current.add(msg.id);
+
+          const partnerNickname = getPartnerNickname();
+          triggerGlobalNotification(
+            '📸 ¡Subiste tu foto de hoy!',
+            `Tu foto se guardó con éxito. Falta que ${partnerNickname} suba la suya para desbloquearlas.`,
+            '/streak',
+          );
           return;
         }
+
+        // STRICT SENDER CHECK: Never notify oneself for standard chat messages sent by self
+        if (msg.sender_id === profileIdRef.current) return;
 
         // STRICT DEDUPLICATION: If already notified once, return immediately
         if (notifiedIdsSetRef.current.has(msg.id)) return;

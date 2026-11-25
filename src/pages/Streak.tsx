@@ -16,6 +16,8 @@ import { sendPushNotification } from '../lib/push';
 import {
   triggerStreakSecuredNotification,
   cancelStreakDangerReminders,
+  sendNativeInstantNotification,
+  CHANNEL_STREAK,
 } from '../lib/localNotifications';
 import { syncStreakToHomeScreenWidget } from '../lib/streakWidgetBridge';
 
@@ -672,6 +674,7 @@ export default function Streak() {
       // Step 4: Send push notification (non-critical)
       try {
         const myName = profile.display_name || 'Tú';
+        const partnerName = partner?.display_name || 'tu pareja';
         const hasPartnerPhoto = Boolean(todayPhotos.partnerPhoto);
         const pushContent = hasPartnerPhoto
           ? `🔥 ¡Racha del día completada! Ya pueden ver las fotos de hoy y llevar la racha activa.`
@@ -683,7 +686,7 @@ export default function Streak() {
           content: pushContent,
         });
 
-        // 100% functional push notification to partner
+        // Push notification to partner
         if (partner?.id) {
           sendPushNotification(partner.id, 'Coliflor 🔥', pushContent);
         }
@@ -692,6 +695,14 @@ export default function Streak() {
         if (hasPartnerPhoto) {
           triggerStreakSecuredNotification(couple.current_streak + 1);
           cancelStreakDangerReminders();
+        } else {
+          // Instant confirmation notification for the uploader
+          void sendNativeInstantNotification({
+            title: '📸 ¡Subiste tu foto de hoy!',
+            body: `Tu foto se guardó con éxito. Falta que ${partnerName} suba la suya para desbloquearlas.`,
+            route: '/streak',
+            channel: CHANNEL_STREAK,
+          });
         }
       } catch {
         // Ignore notification fallback
@@ -964,6 +975,13 @@ export default function Streak() {
 
       setSuccessMessage(`✅ ¡Foto subida para el ${formatDate(pastDayUpload.date, 'medium')}!`);
       setTimeout(() => setSuccessMessage(''), 4000);
+
+      void sendNativeInstantNotification({
+        title: '📸 ¡Subiste tu foto de recuerdo!',
+        body: `Foto del ${formatDate(pastDayUpload.date, 'medium')} guardada con éxito en el álbum.`,
+        route: '/streak',
+        channel: CHANNEL_STREAK,
+      });
 
       await fetchHistory();
     } catch (err: any) {
