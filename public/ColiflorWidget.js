@@ -25,13 +25,14 @@ async function fetchStreakStatus() {
         streakCount: res.current_streak,
         completedToday: Boolean(res.completed_today),
         needsRecovery: Boolean(res.needs_recovery),
+        missedDaysCount: res.missed_days_count || (res.needs_recovery ? 1 : 0),
         photosToday: res.photos_today || 0,
       };
     }
   } catch (e) {
     console.warn("Supabase fetch error: " + e);
   }
-  return { streakCount: 0, completedToday: false, needsRecovery: false, photosToday: 0 };
+  return { streakCount: 0, completedToday: false, needsRecovery: false, missedDaysCount: 0, photosToday: 0 };
 }
 
 async function loadMascotImage(stateKey) {
@@ -97,6 +98,7 @@ async function buildWidget() {
   const streakCount = data.streakCount;
   const completedToday = data.completedToday;
   const needsRecovery = data.needsRecovery;
+  const missedCount = data.missedDaysCount || 1;
   const time = getTimeRemaining();
 
   let stateKey = "pending";
@@ -112,6 +114,10 @@ async function buildWidget() {
     stateKey = "urgent";
     mascotKey = "urgent";
   }
+
+  const recoveryLabel = missedCount > 1 ? missedCount + " por recuperar" : "Por recuperar";
+  const recoveryMsg = missedCount > 1 ? "¡Faltan " + missedCount + " días!" : "¡Falta foto de ayer!";
+  const recoverySubtitle = missedCount > 1 ? "Recuperar " + missedCount + " días en app" : "Recuperar día anterior";
 
   const THEMES = {
     active: {
@@ -152,11 +158,11 @@ async function buildWidget() {
       eyebrow: "#FED7AA",
       pillBg: "#C2410C",
       pillText: "#FFEDD5",
-      pillLabel: "Por recuperar",
+      pillLabel: recoveryLabel,
       pillIcon: "exclamationmark.triangle.fill",
       timerColor: "#FDBA74",
       progressColor: "#FB923C",
-      progressVal: 40,
+      progressVal: 35,
     },
   };
 
@@ -241,7 +247,7 @@ async function buildWidget() {
     bottomRow.addSpacer();
 
     if (stateKey === "recovery") {
-      const recAlert = bottomRow.addText("¡Ayer pendiente!");
+      const recAlert = bottomRow.addText(missedCount > 1 ? "¡" + missedCount + " días sin foto!" : "¡Ayer pendiente!");
       recAlert.font = Font.boldSystemFont(10);
       recAlert.textColor = new Color(t.timerColor);
     } else if (stateKey === "active") {
@@ -264,7 +270,6 @@ async function buildWidget() {
   } else {
     /* ========================================================
        DISPOSICIÓN 2x4 (Mediano - Rectangular)
-       Aprovecha 100% el ancho y alto del widget
        ======================================================== */
     w.setPadding(12, 14, 12, 14);
 
@@ -373,7 +378,7 @@ async function buildWidget() {
     statusRow.addSpacer(8);
 
     if (stateKey === "recovery") {
-      const recMsg = statusRow.addText("¡Falta foto de ayer!");
+      const recMsg = statusRow.addText(recoveryMsg);
       recMsg.font = Font.boldSystemFont(11);
       recMsg.textColor = new Color(t.timerColor);
     } else if (stateKey === "active") {
@@ -415,7 +420,7 @@ async function buildWidget() {
     progRow.addSpacer(3);
 
     const nextDayLabel = progRow.addText(
-      stateKey === "recovery" ? "Recuperar día anterior" : "Próximo: Día " + (streakCount + 1)
+      stateKey === "recovery" ? recoverySubtitle : "Próximo: Día " + (streakCount + 1)
     );
     nextDayLabel.font = Font.systemFont(9);
     nextDayLabel.textColor = new Color(t.eyebrow, 0.8);

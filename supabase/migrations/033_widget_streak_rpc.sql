@@ -1,8 +1,8 @@
 -- ============================================================
--- Coliflor — Migration v033: Public Read-Only RPC for iOS/Scriptable Widget (Enhanced with Yesterday Recovery Check)
+-- Coliflor — Migration v033: Public Read-Only RPC for iOS/Scriptable Widget (Multi-Day Recovery Check)
 -- ============================================================
--- Returns non-sensitive streak status, including whether yesterday
--- was completed or requires a recovery photo.
+-- Returns non-sensitive streak status, checking the entire 7-day
+-- recovery window for any missed days (1, 2 or more days).
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION public.get_widget_streak_status(
@@ -15,15 +15,15 @@ SET search_path = public
 AS $$
 DECLARE
   v_today DATE := get_today_santiago();
-  v_yesterday DATE := v_today - 1;
   v_streak INT := 0;
   v_photos_today INT := 0;
-  v_photos_yesterday INT := 0;
-  v_yesterday_recovered BOOLEAN := FALSE;
+  v_missed_days_count INT := 0;
   v_needs_recovery BOOLEAN := FALSE;
+  v_relationship_start DATE;
 BEGIN
-  -- Obtener racha registrada en la pareja
-  SELECT COALESCE(current_streak, 0) INTO v_streak
+  -- Obtener racha registrada y fecha de inicio de la pareja
+  SELECT COALESCE(current_streak, 0), relationship_start
+  INTO v_streak, v_relationship_start
   FROM couples
   WHERE id = p_couple_id;
 
@@ -32,20 +32,31 @@ BEGIN
   FROM streak_photos
   WHERE couple_id = p_couple_id AND photo_date = v_today;
 
-  -- Cantidad de fotos únicas subidas ayer
-  SELECT COUNT(DISTINCT user_id) INTO v_photos_yesterday
-  FROM streak_photos
-  WHERE couple_id = p_couple_id AND photo_date = v_yesterday;
+  -- Contar cuántos días de los últimos 7 días (excluyendo hoy) quedaron incompletos y sin recuperar
+  WITH last_7_days AS (
+    SELECT (v_today - s.d)::DATE AS check_date
+    FROM generate_series(1, 7) AS s(d)
+    WHERE (v_relationship_start IS NULL OR (v_today - s.d)::DATE >= v_relationship_start)
+  ),
+  uncompleted_days AS (
+    SELECT l.check_date
+    FROM last_7_days l
+    LEFT JOIN (
+      SELECT photo_date, COUNT(DISTINCT user_id) AS photo_count
+      FROM streak_photos
+      WHERE couple_id = p_couple_id
+      GROUP BY photo_date
+    ) p ON p.photo_date = l.check_date
+    WHERE COALESCE(p.photo_count, 0) < 2
+      AND NOT EXISTS (
+        SELECT 1 FROM streak_recoveries r
+        WHERE r.couple_id = p_couple_id AND r.recovered_date = l.check_date
+      )
+  )
+  SELECT COUNT(*) INTO v_missed_days_count FROM uncompleted_days;
 
-  -- Verificar si ayer ya fue recuperado formalmente
-  SELECT EXISTS (
-    SELECT 1 FROM streak_recoveries
-    WHERE couple_id = p_couple_id AND recovered_date = v_yesterday
-  ) INTO v_yesterday_recovered;
-
-  -- Si hay una racha en curso (> 0) y ayer NO se completaron las 2 fotos ni se ha recuperado,
-  -- la racha está en riesgo y requiere recuperar la foto de ayer.
-  IF v_streak > 0 AND v_photos_yesterday < 2 AND NOT v_yesterday_recovered THEN
+  -- Si hay racha activa y hay días pendientes de recuperación (1, 2 o más)
+  IF v_streak > 0 AND v_missed_days_count > 0 THEN
     v_needs_recovery := TRUE;
   END IF;
 
@@ -54,10 +65,8 @@ BEGIN
     'completed_today', (v_photos_today >= 2),
     'photos_today', v_photos_today,
     'needs_recovery', v_needs_recovery,
-    'photos_yesterday', v_photos_yesterday,
-    'yesterday_recovered', v_yesterday_recovered,
-    'today', v_today::TEXT,
-    'yesterday', v_yesterday::TEXT
+    'missed_days_count', v_missed_days_count,
+    'today', v_today::TEXT
   );
 END;
 $$;
