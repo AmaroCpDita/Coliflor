@@ -1102,18 +1102,23 @@ export default function Streak() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                background: 'var(--color-bg-secondary)',
-                padding: '4px 12px',
+                background: 'rgba(245, 220, 134, 0.08)',
+                border: '1px solid rgba(245, 220, 134, 0.2)',
+                padding: '5px 14px',
                 borderRadius: 'var(--radius-full)',
                 marginTop: 'var(--space-md)',
               }}
             >
-              <IconFlameLarge active={false} size={16} />
+              <span style={{ fontSize: '13px' }}>🏆</span>
               <span
-                className="text-secondary"
-                style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600 }}
+                style={{
+                  fontSize: 'var(--font-size-xs)',
+                  fontWeight: 600,
+                  color: 'var(--color-accent)',
+                  letterSpacing: '0.3px',
+                }}
               >
-                Récord máximo: {couple.max_streak}
+                Récord máximo: {couple.max_streak} {couple.max_streak === 1 ? 'día' : 'días'}
               </span>
             </div>
           )}
@@ -1121,13 +1126,22 @@ export default function Streak() {
 
         {/* BROKEN STREAK BANNER */}
         {streakBroken && (
-          <div className="streak-broken-banner animate-fade-in">
-            <div className="row row--center row--gap-sm" style={{ marginBottom: '8px' }}>
+          <div
+            className="glass-card animate-fade-in"
+            style={{
+              padding: 'var(--space-md) var(--space-lg)',
+              background: 'rgba(239, 68, 68, 0.08)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              borderRadius: 'var(--radius-lg)',
+              marginTop: 'var(--space-sm)',
+            }}
+          >
+            <div className="row row--center row--gap-sm" style={{ marginBottom: '6px' }}>
               <IconBrokenHeart />
               <span
                 style={{ fontWeight: 700, color: '#f87171', fontSize: 'var(--font-size-base)' }}
               >
-                La racha se perdió
+                Racha en riesgo
               </span>
             </div>
             <p
@@ -1135,20 +1149,29 @@ export default function Streak() {
                 fontSize: 'var(--font-size-xs)',
                 color: 'var(--color-text-secondary)',
                 textAlign: 'center',
-                marginBottom: '12px',
+                marginBottom: '8px',
+                lineHeight: 1.4,
               }}
             >
               {bothMissedOrUnknown
                 ? 'Faltó completar la racha de ayer.'
                 : iMissedYesterday
-                  ? `Solo ${partnerName} subió foto ayer. Te faltó la tuya.`
+                  ? `Solo ${partnerName} subió foto ayer. Te faltó subir la tuya.`
                   : `Solo tú subiste foto ayer. ${partnerName} no subió la suya.`}
             </p>
             {recoveriesRemaining > 0 && !yesterdayComplete && (
-              <p className="text-center text-secondary" style={{ fontSize: 'var(--font-size-xs)' }}>
+              <p
+                className="text-center"
+                style={{
+                  fontSize: 'var(--font-size-xs)',
+                  color: 'var(--color-accent)',
+                  fontWeight: 600,
+                  margin: 0,
+                }}
+              >
                 {iMissedYesterday
-                  ? 'Toca el día faltante en la línea para recuperar tu foto.'
-                  : `${partnerName} puede tocar el día faltante para recuperar su foto.`}
+                  ? '👇 Toca el día pendiente en la línea de tiempo para recuperarlo.'
+                  : `👇 ${partnerName} puede tocar el día pendiente para recuperarlo.`}
               </p>
             )}
           </div>

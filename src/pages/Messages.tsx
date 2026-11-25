@@ -10,6 +10,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatTime } from '../lib/utils';
 import { sendPushNotification } from '../lib/push';
+import {
+  checkNotificationPermission,
+  requestNotificationPermission as requestAppNotifPermission,
+} from '../lib/localNotifications';
 import type { Message } from '../lib/types';
 
 function IconSend() {
@@ -376,9 +380,40 @@ export default function Messages() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
-    typeof Notification !== 'undefined' ? Notification.permission : 'default',
-  );
+  const [showNotifBanner, setShowNotifBanner] = useState(false);
+
+  useEffect(() => {
+    if (isMockMode) {
+      setShowNotifBanner(false);
+      return;
+    }
+    const isDismissed = localStorage.getItem('coliflor_chat_notif_dismissed') === 'true';
+    if (isDismissed) {
+      setShowNotifBanner(false);
+      return;
+    }
+    void checkNotificationPermission().then((granted) => {
+      setShowNotifBanner(!granted);
+    });
+  }, [isMockMode]);
+
+  const handleEnableNotif = async () => {
+    try {
+      const granted = await requestAppNotifPermission();
+      if (granted) {
+        setShowNotifBanner(false);
+        triggerLockscreenNotification('Coliflor', '¡Notificaciones activadas!');
+      }
+    } catch (err) {
+      console.error('Error requesting notification permission:', err);
+    }
+  };
+
+  const handleDismissNotif = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowNotifBanner(false);
+    localStorage.setItem('coliflor_chat_notif_dismissed', 'true');
+  };
 
   const partnerName = partner ? partner.display_name : 'Tu pareja';
 
@@ -418,23 +453,6 @@ export default function Messages() {
   useEffect(() => {
     profileIdRef.current = profile?.id;
   }, [profile?.id]);
-
-  const requestNotificationPermission = async () => {
-    try {
-      const win = window as any;
-      if (win.OneSignal) {
-        await win.OneSignal.Slidedown.promptPush();
-      } else if (typeof Notification !== 'undefined') {
-        const perm = await Notification.requestPermission();
-        setNotifPermission(perm);
-        if (perm === 'granted') {
-          triggerLockscreenNotification('Coliflor', '¡Notificaciones activadas!');
-        }
-      }
-    } catch (err) {
-      console.error('Error requesting notification permission:', err);
-    }
-  };
 
   const triggerLockscreenNotification = useCallback((sender: string, text: string) => {
     if (typeof Notification === 'undefined') return;
@@ -1004,32 +1022,72 @@ export default function Messages() {
             <IconSend />
           </button>
         </div>
-        {notifPermission === 'default' && !isMockMode && (
+        {showNotifBanner && (
           <div
             style={{
-              background: 'var(--color-primary)',
-              padding: 'var(--space-xs) var(--space-md)',
-              textAlign: 'center',
-              cursor: 'pointer',
-              borderTop: '1px solid var(--color-border)',
+              background: 'rgba(245, 220, 134, 0.12)',
+              border: '1px solid rgba(245, 220, 134, 0.25)',
+              padding: '8px 12px',
               marginTop: 'var(--space-sm)',
               borderRadius: 'var(--radius-md)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px',
             }}
-            onClick={requestNotificationPermission}
           >
-            <span style={{ fontSize: '11px', marginRight: '8px' }}>
-              🔔 Activa las notificaciones push para saber cuándo te escribe
-            </span>
-            <span
+            <div
               style={{
-                fontSize: '11px',
-                color: '#fff',
-                textDecoration: 'underline',
-                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                flex: 1,
+                cursor: 'pointer',
               }}
+              onClick={handleEnableNotif}
             >
-              Activar
-            </span>
+              <span style={{ fontSize: '14px' }}>🔔</span>
+              <span style={{ fontSize: '11px', color: 'var(--color-text-primary)' }}>
+                Activa las notificaciones para saber cuándo te escribe
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={handleEnableNotif}
+                style={{
+                  background: 'var(--color-accent)',
+                  color: '#1a1600',
+                  border: 'none',
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Activar
+              </button>
+              <button
+                type="button"
+                onClick={handleDismissNotif}
+                aria-label="Cerrar aviso"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--color-text-tertiary)',
+                  fontSize: '14px',
+                  padding: '4px',
+                  cursor: 'pointer',
+                  lineHeight: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                ✕
+              </button>
+            </div>
           </div>
         )}
       </div>
