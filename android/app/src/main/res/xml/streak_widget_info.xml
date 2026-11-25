@@ -8,7 +8,6 @@
     android:targetCellWidth="4"
     android:targetCellHeight="2"
     android:updatePeriodMillis="1800000"
-    android:previewImage="@drawable/widget_coliflor_active"
     android:previewLayout="@layout/widget_streak"
     android:initialLayout="@layout/widget_streak"
     android:resizeMode="horizontal|vertical"
