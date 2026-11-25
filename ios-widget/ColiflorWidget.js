@@ -1,12 +1,26 @@
 /* Coliflor Widget Adaptable (2x2 y 2x4) para iPhone con Scriptable */
 
+// ========================================================
+// CONFIGURACIÓN DE APERTURA DE LA APP
+// ========================================================
+// Cambia a true cuando instales la app nativa (IPA / TestFlight)
+// Déjalo en false para abrir en Safari / Web App PWA
+const OPEN_IN_NATIVE_APP = false;
+
+const NATIVE_APP_URL = "com.coliflor.app://streak";
+const NATIVE_WORLD_URL = "com.coliflor.app://world";
+
+const WEB_APP_URL = "https://coliflor.vercel.app/streak";
+const WEB_WORLD_URL = "https://coliflor.vercel.app/world";
+
+const APP_URL = OPEN_IN_NATIVE_APP ? NATIVE_APP_URL : WEB_APP_URL;
+const WORLD_URL = OPEN_IN_NATIVE_APP ? NATIVE_WORLD_URL : WEB_WORLD_URL;
+
 const SUPABASE_URL = "https://gamwmifvgfedgfizcxoz.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhbXdtaWZ2Z2ZlZGdmaXpjeG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3ODgxODYsImV4cCI6MjEwMzM2NDE4Nn0.7Pc0AGrKNMz6FoWJHQ_CzDV24HMH0aiE0lUP1nrhFnc";
 const COUPLE_ID = "7b8edae0-65da-44b7-a9b9-8073ecdd607e";
 const ASSETS_BASE_URL = "https://coliflor.vercel.app/assets/widget";
-const APP_URL = "https://coliflor.vercel.app/streak";
-const WORLD_URL = "https://coliflor.vercel.app/world";
 
 async function fetchStreakStatus() {
   try {
@@ -194,6 +208,7 @@ async function buildWidget() {
     const appTitle = topSmall.addText("Coliflor");
     appTitle.font = Font.boldSystemFont(11);
     appTitle.textColor = new Color(t.eyebrow);
+    appTitle.lineLimit = 1;
 
     topSmall.addSpacer();
 
@@ -204,6 +219,7 @@ async function buildWidget() {
     const streakTxt = streakBadge.addText(streakCount + "d");
     streakTxt.font = Font.boldSystemFont(11);
     streakTxt.textColor = new Color("#F59E0B");
+    streakTxt.lineLimit = 1;
 
     w.addSpacer(4);
 
@@ -238,6 +254,8 @@ async function buildWidget() {
     const pillText = pillStack.addText(t.pillLabel);
     pillText.font = Font.boldSystemFont(10);
     pillText.textColor = new Color(t.pillText);
+    pillText.lineLimit = 1;
+    pillText.minimumScaleFactor = 0.85;
 
     w.addSpacer(3);
 
@@ -250,12 +268,14 @@ async function buildWidget() {
       const recAlert = bottomRow.addText(missedCount > 1 ? "¡" + missedCount + " días sin foto!" : "¡Ayer pendiente!");
       recAlert.font = Font.boldSystemFont(10);
       recAlert.textColor = new Color(t.timerColor);
+      recAlert.lineLimit = 1;
     } else if (stateKey === "active") {
       const doneLabel = bottomRow.addText("¡Completada!");
       doneLabel.font = Font.boldSystemFont(10);
       doneLabel.textColor = new Color(t.timerColor);
+      doneLabel.lineLimit = 1;
     } else {
-      const clockIco = SFSymbol.named("clock");
+      const clockIco = SFSymbol.named("clock.fill");
       const cImg = bottomRow.addImage(clockIco.image);
       cImg.imageSize = new Size(9, 9);
       cImg.tintColor = new Color(t.timerColor);
@@ -265,79 +285,105 @@ async function buildWidget() {
       liveTimer.applyTimerStyle();
       liveTimer.font = Font.boldSystemFont(10);
       liveTimer.textColor = new Color(t.timerColor);
+      liveTimer.lineLimit = 1;
     }
     bottomRow.addSpacer();
   } else {
     /* ========================================================
        DISPOSICIÓN 2x4 (Mediano - Rectangular)
+       Perfeccionado: Sin palabras cortadas, espaciado premium
        ======================================================== */
-    w.setPadding(12, 14, 12, 14);
+    w.setPadding(10, 14, 10, 14);
 
     const rootStack = w.addStack();
     rootStack.layoutHorizontally();
     rootStack.centerAlignContent();
 
-    /* Columna Izquierda: Mascota Picaflor */
+    /* Columna Izquierda: Mascota Picaflor + Botón Nuestro mundo */
     const leftCol = rootStack.addStack();
     leftCol.layoutVertically();
     leftCol.centerAlignContent();
 
     if (mascot) {
       const imgView = leftCol.addImage(mascot);
-      imgView.imageSize = new Size(88, 88);
+      imgView.imageSize = new Size(82, 82);
       imgView.applyFillingContentMode();
       imgView.cornerRadius = 12;
     }
     leftCol.url = APP_URL;
 
-    rootStack.addSpacer(12);
+    leftCol.addSpacer(5);
 
-    /* Columna Derecha: Contenido completo */
-    const rightCol = rootStack.addStack();
-    rightCol.layoutVertically();
-
-    /* Fila 1: Logo Coliflor + Botón Nuestro mundo */
-    const topBar = rightCol.addStack();
-    topBar.layoutHorizontally();
-    topBar.centerAlignContent();
-
-    const flower = SFSymbol.named("suit.heart.fill");
-    const flowerImg = topBar.addImage(flower.image);
-    flowerImg.imageSize = new Size(12, 12);
-    flowerImg.tintColor = new Color(t.eyebrow);
-    topBar.addSpacer(4);
-
-    const brand = topBar.addText("Coliflor");
-    brand.font = Font.boldSystemFont(13);
-    brand.textColor = new Color(t.eyebrow);
-
-    topBar.addSpacer();
-
-    const worldBtn = topBar.addStack();
+    /* Botón Nuestro mundo centrado debajo del picaflor */
+    const worldBtn = leftCol.addStack();
     worldBtn.backgroundColor = new Color("#FFFFFF", 0.14);
-    worldBtn.cornerRadius = 9;
-    worldBtn.setPadding(3, 8, 3, 8);
+    worldBtn.cornerRadius = 8;
+    worldBtn.setPadding(3, 7, 3, 7);
     worldBtn.centerAlignContent();
     worldBtn.url = WORLD_URL;
 
     const globe = SFSymbol.named("sparkles");
     const globeImg = worldBtn.addImage(globe.image);
-    globeImg.imageSize = new Size(10, 10);
+    globeImg.imageSize = new Size(9, 9);
     globeImg.tintColor = new Color("#E9D5FF");
-    worldBtn.addSpacer(4);
+    worldBtn.addSpacer(3);
 
     const worldText = worldBtn.addText("Nuestro mundo");
-    worldText.font = Font.systemFont(10);
+    worldText.font = Font.systemFont(9);
     worldText.textColor = new Color("#F5F3FF");
+    worldText.lineLimit = 1;
 
-    rightCol.addSpacer(4);
+    rootStack.addSpacer(12);
 
-    /* Fila 2: Título NUESTRA RACHA */
+    /* Columna Derecha: Todo el contenido de la racha */
+    const rightCol = rootStack.addStack();
+    rightCol.layoutVertically();
+
+    /* Fila 1: Logo Coliflor (izq) + Status Pill (der, nunca se corta) */
+    const topRow = rightCol.addStack();
+    topRow.layoutHorizontally();
+    topRow.centerAlignContent();
+
+    const flower = SFSymbol.named("suit.heart.fill");
+    const flowerImg = topRow.addImage(flower.image);
+    flowerImg.imageSize = new Size(11, 11);
+    flowerImg.tintColor = new Color(t.eyebrow);
+    topRow.addSpacer(3);
+
+    const brand = topRow.addText("Coliflor");
+    brand.font = Font.boldSystemFont(12);
+    brand.textColor = new Color(t.eyebrow);
+    brand.lineLimit = 1;
+
+    topRow.addSpacer();
+
+    const pill = topRow.addStack();
+    pill.backgroundColor = new Color(t.pillBg);
+    pill.cornerRadius = 8;
+    pill.setPadding(3, 8, 3, 8);
+    pill.centerAlignContent();
+
+    const pIcon = SFSymbol.named(t.pillIcon);
+    const pIconImg = pill.addImage(pIcon.image);
+    pIconImg.imageSize = new Size(10, 10);
+    pIconImg.tintColor = new Color(t.pillText);
+    pill.addSpacer(4);
+
+    const pText = pill.addText(t.pillLabel);
+    pText.font = Font.boldSystemFont(10);
+    pText.textColor = new Color(t.pillText);
+    pText.lineLimit = 1;
+    pText.minimumScaleFactor = 0.85;
+
+    rightCol.addSpacer(3);
+
+    /* Fila 2: Subtítulo NUESTRA RACHA */
     const subTitle = rightCol.addText("NUESTRA RACHA");
     subTitle.font = Font.systemFont(9);
     subTitle.textColor = new Color(t.eyebrow, 0.7);
+    subTitle.lineLimit = 1;
 
-    /* Fila 3: Número de racha y fueguito */
+    /* Fila 3: Racha grande y fueguito */
     const streakRow = rightCol.addStack();
     streakRow.layoutHorizontally();
     streakRow.centerAlignContent();
@@ -346,67 +392,68 @@ async function buildWidget() {
     const flameImg = streakRow.addImage(flame.image);
     flameImg.imageSize = new Size(18, 18);
     flameImg.tintColor = new Color("#F97316");
-    streakRow.addSpacer(5);
+    streakRow.addSpacer(4);
 
     const streakVal = streakRow.addText(streakCount + " días");
     streakVal.font = Font.boldSystemFont(22);
     streakVal.textColor = new Color("#FFFFFF");
+    streakVal.lineLimit = 1;
 
     rightCol.addSpacer(4);
 
-    /* Fila 4: Pill de estado + Temporizador dinámico en vivo */
-    const statusRow = rightCol.addStack();
-    statusRow.layoutHorizontally();
-    statusRow.centerAlignContent();
-
-    const pill = statusRow.addStack();
-    pill.backgroundColor = new Color(t.pillBg);
-    pill.cornerRadius = 8;
-    pill.setPadding(2, 7, 2, 7);
-    pill.centerAlignContent();
-
-    const pIcon = SFSymbol.named(t.pillIcon);
-    const pIconImg = pill.addImage(pIcon.image);
-    pIconImg.imageSize = new Size(10, 10);
-    pIconImg.tintColor = new Color(t.pillText);
-    pill.addSpacer(3);
-
-    const pText = pill.addText(t.pillLabel);
-    pText.font = Font.boldSystemFont(10);
-    pText.textColor = new Color(t.pillText);
-
-    statusRow.addSpacer(8);
+    /* Fila 4: Temporizador dinámico o mensaje de recuperación en su propia fila completa */
+    const timerRow = rightCol.addStack();
+    timerRow.layoutHorizontally();
+    timerRow.centerAlignContent();
 
     if (stateKey === "recovery") {
-      const recMsg = statusRow.addText(recoveryMsg);
+      const warnIco = SFSymbol.named("exclamationmark.triangle.fill");
+      const wImg = timerRow.addImage(warnIco.image);
+      wImg.imageSize = new Size(11, 11);
+      wImg.tintColor = new Color(t.timerColor);
+      timerRow.addSpacer(4);
+
+      const recMsg = timerRow.addText(recoveryMsg);
       recMsg.font = Font.boldSystemFont(11);
       recMsg.textColor = new Color(t.timerColor);
+      recMsg.lineLimit = 1;
+      recMsg.minimumScaleFactor = 0.85;
     } else if (stateKey === "active") {
-      const doneMsg = statusRow.addText("¡Siguiente día!");
-      doneMsg.font = Font.systemFont(11);
-      doneMsg.textColor = new Color(t.timerColor);
-    } else {
-      const clockSym = SFSymbol.named("clock");
-      const cImg = statusRow.addImage(clockSym.image);
-      cImg.imageSize = new Size(10, 10);
+      const chkIco = SFSymbol.named("checkmark.circle.fill");
+      const cImg = timerRow.addImage(chkIco.image);
+      cImg.imageSize = new Size(11, 11);
       cImg.tintColor = new Color(t.timerColor);
-      statusRow.addSpacer(3);
+      timerRow.addSpacer(4);
 
-      const qLabel = statusRow.addText("Quedan ");
+      const doneMsg = timerRow.addText("¡Racha de hoy completada!");
+      doneMsg.font = Font.boldSystemFont(11);
+      doneMsg.textColor = new Color(t.timerColor);
+      doneMsg.lineLimit = 1;
+    } else {
+      const clockSym = SFSymbol.named("clock.fill");
+      const cImg = timerRow.addImage(clockSym.image);
+      cImg.imageSize = new Size(11, 11);
+      cImg.tintColor = new Color(t.timerColor);
+      timerRow.addSpacer(4);
+
+      const qLabel = timerRow.addText("Quedan ");
       qLabel.font = Font.systemFont(11);
       qLabel.textColor = new Color(t.timerColor);
+      qLabel.lineLimit = 1;
 
-      const dynamicTimer = statusRow.addDate(time.midnight);
+      const dynamicTimer = timerRow.addDate(time.midnight);
       dynamicTimer.applyTimerStyle();
       dynamicTimer.font = Font.boldSystemFont(11);
       dynamicTimer.textColor = new Color(t.timerColor);
+      dynamicTimer.lineLimit = 1;
 
-      const hLabel = statusRow.addText(" hoy");
+      const hLabel = timerRow.addText(" hoy");
       hLabel.font = Font.systemFont(11);
       hLabel.textColor = new Color(t.timerColor);
+      hLabel.lineLimit = 1;
     }
 
-    rightCol.addSpacer(6);
+    rightCol.addSpacer(5);
 
     /* Fila 5: Barra de progreso a lo ancho y Próximo día */
     const progRow = rightCol.addStack();
@@ -424,10 +471,11 @@ async function buildWidget() {
     );
     nextDayLabel.font = Font.systemFont(9);
     nextDayLabel.textColor = new Color(t.eyebrow, 0.8);
+    nextDayLabel.lineLimit = 1;
 
     progRow.addSpacer();
 
-    const barImg = drawProgressBar(t.progressVal, t.progressColor, 85, 5);
+    const barImg = drawProgressBar(t.progressVal, t.progressColor, 80, 5);
     progRow.addImage(barImg);
   }
 
