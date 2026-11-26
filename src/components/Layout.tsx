@@ -315,13 +315,17 @@ export default function Layout() {
   const partnerRef = useRef(partner);
   const partnerNameRef = useRef(partnerName);
   const notifiedIdsSetRef = useRef(new Set<string>());
+  const currentPathnameRef = useRef(location.pathname);
+  const showNotifCenterRef = useRef(showNotifCenter);
 
   useEffect(() => {
     profileIdRef.current = profile?.id;
     coupleRef.current = couple;
     partnerRef.current = partner;
     partnerNameRef.current = partnerName;
-  }, [profile?.id, couple, partner, partnerName]);
+    currentPathnameRef.current = location.pathname;
+    showNotifCenterRef.current = showNotifCenter;
+  }, [profile?.id, couple, partner, partnerName, location.pathname, showNotifCenter]);
 
   // Detect input focus to hide the floating dock when virtual keyboard is open
   useEffect(() => {
@@ -402,7 +406,9 @@ export default function Layout() {
       });
 
       const backButtonPromise = App.addListener('backButton', () => {
-        if (location.pathname !== '/') {
+        if (showNotifCenterRef.current) {
+          setShowNotifCenter(false);
+        } else if (currentPathnameRef.current !== '/') {
           navigate(-1);
         } else {
           App.exitApp();
